@@ -87,6 +87,19 @@ let dashboardData = {
     }
   }
   
+  // Função para destruir gráficos quando sair do dashboard
+  function destroyDashboardCharts() {
+    if (categoryChart) {
+      categoryChart.destroy();
+      categoryChart = null;
+    }
+    
+    if (monthlyTrendChart) {
+      monthlyTrendChart.destroy();
+      monthlyTrendChart = null;
+    }
+  }
+  
   // Função principal para atualizar o dashboard
   async function updateDashboard(isInitialLoad) {
     try {
@@ -113,8 +126,15 @@ let dashboardData = {
       // Carregar dados
       await loadDashboardData(month);
       
+      // Verificar se ainda estamos na visualização de dashboard antes de inicializar/atualizar gráficos
+      if (typeof currentCategory !== 'undefined' && currentCategory !== 'dashboard') {
+        return;
+      }
+      
       // Inicializar ou atualizar gráficos
       if (isInitialLoad || !categoryChart || !monthlyTrendChart) {
+        // Certifique-se de destruir gráficos existentes primeiro
+        destroyDashboardCharts();
         initializeCharts();
       } else {
         updateCharts();

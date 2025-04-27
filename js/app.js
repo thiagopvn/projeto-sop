@@ -164,57 +164,76 @@ appElements.categoryItems.forEach(item => {
     appElements.categoryItems.forEach(i => i.classList.remove('active'));
     item.classList.add('active');
     
+    // Obter a categoria atual
+    const newCategory = item.getAttribute('data-category');
+    
+    // Se estamos saindo do dashboard, destruir os gráficos
+    if (currentCategory === 'dashboard' && newCategory !== 'dashboard') {
+      if (typeof destroyDashboardCharts === 'function') {
+        destroyDashboardCharts();
+      }
+    }
+    
     // Atualizar categoria atual
-    currentCategory = item.getAttribute('data-category');
+    currentCategory = newCategory;
     appElements.categoryTitle.textContent = currentCategory === 'dashboard' ? 'DASHBOARD' : 
                                            DOCUMENT_TYPES[getCategoryKey(currentCategory)].name;
     
+    // Ocultar primeiro todos os containers principais
+    if (appElements.documentContainer) appElements.documentContainer.style.display = 'none';
+    if (appElements.calendarContainer) appElements.calendarContainer.style.display = 'none';
+    if (document.getElementById('dashboard-container')) document.getElementById('dashboard-container').style.display = 'none';
+    
+    // Ocultar botões e filtros que não são necessários para todos os modos
+    if (appElements.uploadBtn) appElements.uploadBtn.style.display = 'none';
+    if (appElements.addEventBtn) appElements.addEventBtn.style.display = 'none';
+    
     // Verificar se é a categoria de calendário
     if (currentCategory === 'calendario') {
-      // Ocultar elementos de documentos
-      appElements.documentContainer.style.display = 'none';
-      appElements.monthFilter.style.display = 'none';
-      appElements.uploadBtn.style.display = 'none';
+      // Ocultar filtro de mês
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
       
       // Exibir elementos de calendário
-      appElements.calendarContainer.style.display = 'block';
-      appElements.addEventBtn.style.display = 'inline-flex';
-      return;
+      if (appElements.calendarContainer) appElements.calendarContainer.style.display = 'block';
+      if (appElements.addEventBtn) appElements.addEventBtn.style.display = 'inline-flex';
+      
+      // Ocultar informações de status
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'none';
+      
+      // Atualizar eventos do calendário
+      if (typeof calendar !== 'undefined' && calendar) {
+        calendar.refetchEvents();
+      }
     } 
     // Verificar se é a categoria de dashboard
     else if (currentCategory === 'dashboard') {
-      // Ocultar elementos de documentos e calendário
-      appElements.documentContainer.style.display = 'none';
-      appElements.calendarContainer.style.display = 'none';
-      appElements.monthFilter.style.display = 'inline-flex'; // Alterado para mostrar o filtro
-      appElements.uploadBtn.style.display = 'none';
-      appElements.addEventBtn.style.display = 'none';
+      // Exibir filtro de mês
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'inline-flex';
       
       // Ocultar informações de status
-      document.querySelector('.status-info').style.display = 'none';
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'none';
       
       // Exibir dashboard
-      document.getElementById('dashboard-container').style.display = 'block';
+      const dashboardContainer = document.getElementById('dashboard-container');
+      if (dashboardContainer) dashboardContainer.style.display = 'block';
       
       // Atualizar dashboard
       if (typeof updateDashboard === 'function') {
-        updateDashboard();
+        updateDashboard(true);
       }
-      
-      return;
     } else {
-      // Ocultar elementos de calendário e dashboard
-      appElements.calendarContainer.style.display = 'none';
-      appElements.addEventBtn.style.display = 'none';
-      document.getElementById('dashboard-container').style.display = 'none';
+      // Para todas as outras categorias (documentos)
       
       // Exibir elementos de documentos
-      appElements.documentContainer.style.display = 'block';
-      appElements.monthFilter.style.display = 'inline-flex';
-      appElements.uploadBtn.style.display = 'inline-flex';
+      if (appElements.documentContainer) appElements.documentContainer.style.display = 'block';
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'inline-flex';
+      if (appElements.uploadBtn) appElements.uploadBtn.style.display = 'inline-flex';
       
       // Exibir informações de status
-      document.querySelector('.status-info').style.display = 'flex';
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'flex';
       
       // Carregar documentos da categoria
       loadDocumentsByCategory(currentCategory, currentMonth);
@@ -226,7 +245,7 @@ if (appElements.monthFilter) {
   appElements.monthFilter.addEventListener('change', () => {
     currentMonth = parseInt(appElements.monthFilter.value);
     if (currentCategory === 'dashboard' && typeof updateDashboard === 'function') {
-      updateDashboard();
+      updateDashboard(false);
     } else {
       loadDocumentsByCategory(currentCategory, currentMonth);
     }
@@ -329,7 +348,7 @@ async function loadDocuments() {
       dashboardItem.classList.add('active');
     }
     
-    // Esconder elementos de documentos
+    // Esconder elementos de documentos e calendário
     if (appElements.documentContainer) {
       appElements.documentContainer.style.display = 'none';
     }
