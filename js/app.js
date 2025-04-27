@@ -66,7 +66,7 @@ const DOCUMENT_TYPES = {
   
   // Estado da aplicação
   let currentUser = null;
-  let currentCategory = DOCUMENT_TYPES.AULAS.id;
+  let currentCategory = DOCUMENT_TYPES.DASHBOARD.id || 'dashboard'; // Alterado para dashboard como padrão
   let currentMonth = 3; // Alterado para começar em março (mês 3)
   
   // Meses válidos para a aplicação (sem janeiro e fevereiro)
@@ -263,14 +263,43 @@ const DOCUMENT_TYPES = {
       currentMonth = currentMonthFromDate;
       appElements.monthFilter.value = currentMonth;
       
-      // Carregar documentos da categoria atual
-      if (currentCategory !== 'calendario' && currentCategory !== 'dashboard') {
-        loadDocumentsByCategory(currentCategory, currentMonth);
-      }
-      
       // Atualizar nome do usuário
       if (auth.currentUser) {
         appElements.userName.textContent = auth.currentUser.email;
+      }
+      
+      // Definir dashboard como categoria inicial
+      currentCategory = 'dashboard';
+      
+      // Atualizar classes na navegação
+      appElements.categoryItems.forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      const dashboardItem = document.querySelector('li[data-category="dashboard"]');
+      if (dashboardItem) {
+        dashboardItem.classList.add('active');
+      }
+      
+      // Esconder elementos de documentos
+      appElements.documentContainer.style.display = 'none';
+      appElements.monthFilter.style.display = 'none';
+      appElements.uploadBtn.style.display = 'none';
+      appElements.calendarContainer.style.display = 'none';
+      appElements.addEventBtn.style.display = 'none';
+      
+      // Mostrar dashboard
+      document.getElementById('dashboard-container').style.display = 'block';
+      
+      // Ocultar informações de status
+      document.querySelector('.status-info').style.display = 'none';
+      
+      // Atualizar título
+      appElements.categoryTitle.textContent = 'DASHBOARD';
+      
+      // Atualizar dashboard
+      if (typeof updateDashboard === 'function') {
+        updateDashboard(true);
       }
     } catch (error) {
       console.error('Erro ao carregar documentos:', error);
