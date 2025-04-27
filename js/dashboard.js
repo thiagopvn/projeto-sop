@@ -1,4 +1,6 @@
+// dashboard.js - Script para o dashboard da aplicação
 
+// Variáveis globais
 let dashboardData = {
     documents: {
       total: 0,
@@ -16,8 +18,12 @@ let dashboardData = {
   let categoryChart = null;
   let monthlyTrendChart = null;
   
-  // Meses válidos para a aplicação (sem janeiro e fevereiro)
-  const VALID_MONTHS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  // Usar VALID_MONTHS já definido em app.js, não redeclarar
+  // Se não existir, cria uma versão local (não deve acontecer em uso normal)
+  if (typeof VALID_MONTHS === 'undefined') {
+    console.warn("VALID_MONTHS não encontrado no escopo global, criando localmente");
+    var VALID_MONTHS_LOCAL = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  }
   
   // Inicializar dashboard quando a página carregar
   document.addEventListener('DOMContentLoaded', function() {
@@ -88,14 +94,12 @@ let dashboardData = {
     if (viewAllPending) {
       viewAllPending.addEventListener('click', function(e) {
         e.preventDefault();
-        const aulasTab = document.querySelector('li[data-category="aulas"]');
-        
-        // Sincronizar filtro de mês
         const dashboardMonth = document.getElementById('dashboard-month-filter')?.value || '3';
         const appMonthFilter = document.getElementById('month-filter');
         if (appMonthFilter) appMonthFilter.value = dashboardMonth;
         
         // Navegar para a aba de aulas
+        const aulasTab = document.querySelector('li[data-category="aulas"]');
         if (aulasTab) aulasTab.click();
       });
     }
@@ -109,7 +113,11 @@ let dashboardData = {
       if (!dashboardMonthFilter) return;
       
       const month = parseInt(dashboardMonthFilter.value);
-      if (!VALID_MONTHS.includes(month)) {
+      
+      // Verificar se o mês é válido usando a variável global ou a local
+      const validMonths = typeof VALID_MONTHS !== 'undefined' ? VALID_MONTHS : VALID_MONTHS_LOCAL;
+      
+      if (!validMonths.includes(month)) {
         dashboardMonthFilter.value = '3';
         return updateDashboard(isInitialLoad);
       }
@@ -326,9 +334,10 @@ let dashboardData = {
       
       // 6. Gerar dados de tendência mensal
       const monthlyTrend = [];
-      const startMonth = Math.max(3, month - 5);
+      const validMonths = typeof VALID_MONTHS !== 'undefined' ? VALID_MONTHS : VALID_MONTHS_LOCAL;
+      const startMonth = Math.max(validMonths[0], month - 5);
       
-      for (let i = 0; i < 6 && (startMonth + i) <= 12; i++) {
+      for (let i = 0; i < 6 && (startMonth + i) <= validMonths[validMonths.length - 1]; i++) {
         const m = startMonth + i;
         
         // Simplificando: usar dados simulados consistentes
@@ -367,7 +376,10 @@ let dashboardData = {
   
   // Função para calcular documentos esperados para um mês
   function getExpectedDocumentsForMonth(month, weeksConfig) {
-    if (!VALID_MONTHS.includes(month)) return 0;
+    // Usar a constante global ou local
+    const validMonths = typeof VALID_MONTHS !== 'undefined' ? VALID_MONTHS : VALID_MONTHS_LOCAL;
+    
+    if (!validMonths.includes(month)) return 0;
     
     let expectedCount = 0;
     Object.keys(DOCUMENT_TYPES).forEach(key => {
@@ -703,19 +715,4 @@ let dashboardData = {
   // Capitalizar primeira letra
   function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-  
-  // Verificar se getCategoryKey existe, caso contrário, criar a função
-  if (typeof getCategoryKey !== 'function') {
-    function getCategoryKey(categoryId) {
-      if (!DOCUMENT_TYPES) return null;
-      
-      const keys = Object.keys(DOCUMENT_TYPES);
-      for (const key of keys) {
-        if (DOCUMENT_TYPES[key].id === categoryId) {
-          return key;
-        }
-      }
-      return null;
-    }
   }
