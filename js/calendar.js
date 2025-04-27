@@ -351,8 +351,6 @@ document.addEventListener('DOMContentLoaded', function() {
     deleteBtn.addEventListener('click', deleteEvent);
   }
   
-  // REMOVA OU COMENTE O BLOCO ABAIXO:
-  /*
   // Ao clicar na categoria "CALENDÁRIO"
   const calendarCategory = document.querySelector('li[data-category="calendario"]');
   if (calendarCategory) {
@@ -387,5 +385,4 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  */
 });
