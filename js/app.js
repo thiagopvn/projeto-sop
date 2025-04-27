@@ -5,14 +5,14 @@ const DOCUMENT_TYPES = {
       id: 'aulas',
       name: 'AULAS',
       icon: 'fas fa-chalkboard-teacher',
-      monthlyCount: 5,  // Alterado de 1 para 5
-      needsWeek: true   // Alterado de false para true
+      monthlyCount: 5,  // Máximo de 5 documentos por mês
+      needsWeek: true   // Usa semanas para identificar documentos
     },
     PLANO_DE_SESSAO: {
       id: 'plano-de-sessao',
       name: 'PLANO DE SESSÃO',
       icon: 'fas fa-clipboard-list',
-      monthlyCount: 5,  // Alterado de 4 para 5
+      monthlyCount: 5,  // Máximo de 5 documentos por mês
       needsWeek: true
     },
     QTA: {
@@ -33,7 +33,7 @@ const DOCUMENT_TYPES = {
       id: 'qts',
       name: 'QTS',
       icon: 'fas fa-tasks',
-      monthlyCount: 5,  // Alterado de 4 para 5
+      monthlyCount: 5,  // Máximo de 5 documentos por mês
       needsWeek: true
     },
     RELATORIO_MENSAL: {
@@ -56,6 +56,12 @@ const DOCUMENT_TYPES = {
   let currentCategory = DOCUMENT_TYPES.AULAS.id;
   let currentMonth = new Date().getMonth() + 1; // Mês atual (1-12)
   
+  // Configuração padrão de semanas por mês
+  let weeksPerMonth = {
+    1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4,
+    7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4
+  };
+  
   // Elementos DOM
   const loginForm = {
     email: document.getElementById('email'),
@@ -66,6 +72,7 @@ const DOCUMENT_TYPES = {
   const appElements = {
     userName: document.getElementById('user-name'),
     logoutBtn: document.getElementById('logout-btn'),
+    configBtn: document.getElementById('config-btn'),
     categoryTitle: document.getElementById('category-title'),
     monthFilter: document.getElementById('month-filter'),
     uploadBtn: document.getElementById('upload-btn'),
@@ -83,6 +90,14 @@ const DOCUMENT_TYPES = {
     cancelBtn: document.getElementById('cancel-upload'),
     confirmBtn: document.getElementById('confirm-upload'),
     closeBtn: document.querySelector('.close-modal')
+  };
+  
+  const configModalElements = {
+    modal: document.getElementById('config-modal'),
+    month: document.getElementById('config-month'),
+    weeks: document.getElementById('config-weeks'),
+    saveBtn: document.getElementById('save-config'),
+    closeBtn: document.querySelector('.close-config-modal')
   };
   
   // Eventos de login e logout
@@ -128,16 +143,38 @@ const DOCUMENT_TYPES = {
   modalElements.closeBtn.addEventListener('click', closeUploadModal);
   modalElements.confirmBtn.addEventListener('click', uploadDocument);
   
-  // Alternar exibição da seleção de semana
-  modalElements.category.addEventListener('change', () => {
-    const categoryKey = getCategoryKey(modalElements.category.value);
-    modalElements.weekContainer.style.display = 
-      DOCUMENT_TYPES[categoryKey].needsWeek ? 'block' : 'none';
-  });
+  // Evento para abrir modal de configuração
+  appElements.configBtn.addEventListener('click', openConfigModal);
+  configModalElements.closeBtn.addEventListener('click', closeConfigModal);
+  configModalElements.saveBtn.addEventListener('click', saveConfig);
+  
+  // Alternar exibição da seleção de semana e atualizar as opções
+  modalElements.category.addEventListener('change', updateWeekOptions);
+  modalElements.month.addEventListener('change', updateWeekOptions);
+  
+  // Inicializar configurações
+  async function initializeConfig() {
+    try {
+      // Verificar se existem configurações salvas no Firestore
+      const configDoc = await db.collection('config').doc('weeksPerMonth').get();
+      
+      if (configDoc.exists) {
+        weeksPerMonth = configDoc.data();
+      } else {
+        // Se não existir, criar configuração padrão
+        await db.collection('config').doc('weeksPerMonth').set(weeksPerMonth);
+      }
+    } catch (error) {
+      console.error('Erro ao inicializar configurações:', error);
+    }
+  }
   
   // Função para carregar todos os documentos
   async function loadDocuments() {
     try {
+      // Inicializar configurações
+      await initializeConfig();
+      
       // Definir mês atual no filtro
       appElements.monthFilter.value = currentMonth;
       
@@ -182,6 +219,10 @@ const DOCUMENT_TYPES = {
       // Para QTA, só verificamos uma vez por ano, no mês de Janeiro
       if (categoryKey === 'QTA') {
         expectedCount = month === 1 ? 1 : 0;
+      } 
+      // Para categorias que usam semanas, limitar ao número de semanas configurado para o mês
+      else if (categoryInfo.needsWeek) {
+        expectedCount = Math.min(expectedCount, weeksPerMonth[month]);
       }
       
       // Criar linhas da tabela
@@ -304,6 +345,31 @@ const DOCUMENT_TYPES = {
     return tr;
   }
   
+  // Função para atualizar as opções de semana no modal de upload
+  function updateWeekOptions() {
+    const category = modalElements.category.value;
+    const month = parseInt(modalElements.month.value);
+    const categoryKey = getCategoryKey(category);
+    const needsWeek = DOCUMENT_TYPES[categoryKey].needsWeek;
+    
+    // Verificar se a categoria precisa de semana
+    modalElements.weekContainer.style.display = needsWeek ? 'block' : 'none';
+    
+    if (needsWeek) {
+      // Limpar opções atuais
+      modalElements.week.innerHTML = '';
+      
+      // Adicionar opções baseadas no número de semanas configurado para o mês
+      const numWeeks = weeksPerMonth[month];
+      for (let i = 1; i <= numWeeks; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `${i}ª Semana`;
+        modalElements.week.appendChild(option);
+      }
+    }
+  }
+  
   // Função para abrir modal de upload
   function openUploadModal(category, month, week) {
     if (typeof category === 'object') {
@@ -317,12 +383,11 @@ const DOCUMENT_TYPES = {
     modalElements.category.value = category;
     modalElements.month.value = month;
     
-    // Verificar se a categoria precisa de semana
-    const categoryKey = getCategoryKey(category);
-    const needsWeek = DOCUMENT_TYPES[categoryKey].needsWeek;
-    modalElements.weekContainer.style.display = needsWeek ? 'block' : 'none';
+    // Atualizar opções de semana
+    updateWeekOptions();
     
-    if (needsWeek && week) {
+    // Se uma semana específica foi solicitada
+    if (week) {
       modalElements.week.value = week;
     }
     
@@ -334,6 +399,48 @@ const DOCUMENT_TYPES = {
   function closeUploadModal() {
     modalElements.modal.style.display = 'none';
     modalElements.file.value = '';
+  }
+  
+  // Função para abrir modal de configuração
+  function openConfigModal() {
+    // Atualizar campos com a configuração atual
+    configModalElements.month.value = currentMonth;
+    configModalElements.weeks.value = weeksPerMonth[currentMonth];
+    
+    // Exibir modal
+    configModalElements.modal.style.display = 'block';
+  }
+  
+  // Função para fechar modal de configuração
+  function closeConfigModal() {
+    configModalElements.modal.style.display = 'none';
+  }
+  
+  // Função para salvar configurações
+  async function saveConfig() {
+    try {
+      const month = parseInt(configModalElements.month.value);
+      const weeks = parseInt(configModalElements.weeks.value);
+      
+      // Atualizar configuração local
+      weeksPerMonth[month] = weeks;
+      
+      // Salvar no Firestore
+      await db.collection('config').doc('weeksPerMonth').set(weeksPerMonth);
+      
+      // Fechar modal e recarregar se necessário
+      closeConfigModal();
+      
+      // Se o mês configurado for o mês atual exibido, recarregar documentos
+      if (month === currentMonth) {
+        loadDocumentsByCategory(currentCategory, currentMonth);
+      }
+      
+      alert(`Configuração salva: ${MONTH_NAMES[month - 1]} agora tem ${weeks} semanas.`);
+    } catch (error) {
+      console.error('Erro ao salvar configuração:', error);
+      alert('Erro ao salvar configuração.');
+    }
   }
   
   // Função para fazer upload de documento

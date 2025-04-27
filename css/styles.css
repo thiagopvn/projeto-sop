@@ -449,3 +449,57 @@
       overflow-x: auto;
     }
   }
+
+  /* Botão de configuração */
+  #config-btn {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  #config-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  /* Estilos para o modal de configuração */
+  .modal-body h4 {
+    margin-bottom: 15px;
+    color: var(--primary-dark);
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+  }
+  
+  /* Gap entre os inputs do formulário de configuração */
+  .config-form-group {
+    margin-bottom: 20px;
+  }
+  
+  /* Espaçamento entre rótulos e campos de entrada */
+  .input-group label {
+    margin-bottom: 8px;
+  }
+  
+  /* Botão de salvar com cor de sucesso */
+  #save-config {
+    background-color: var(--success-color);
+  }
+  
+  #save-config:hover {
+    background-color: #3d8b40;
+  }
+  
+  /* Close button para o modal de configuração */
+  .close-config-modal {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--gray-color);
+  }
+  
+  .close-config-modal:hover {
+    color: var(--dark-color);
+  }

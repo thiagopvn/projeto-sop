@@ -50,6 +50,9 @@
       <div class="nav-menu">
         <div class="user-info">
           <span id="user-name">Usuário</span>
+          <button id="config-btn" class="btn btn-outline" style="margin-right: 10px;">
+            <i class="fas fa-cog"></i> Config
+          </button>
           <button id="logout-btn" class="btn btn-outline">Sair</button>
         </div>
       </div>
@@ -183,11 +186,7 @@
           <div id="week-container" class="input-group" style="display: none;">
             <label for="document-week">Semana</label>
             <select id="document-week">
-              <option value="1">1ª Semana</option>
-              <option value="2">2ª Semana</option>
-              <option value="3">3ª Semana</option>
-              <option value="4">4ª Semana</option>
-              <option value="5">5ª Semana</option>
+              <!-- Opções de semana serão geradas dinamicamente -->
             </select>
           </div>
           <div class="input-group">
@@ -198,6 +197,49 @@
         <div class="modal-footer">
           <button id="cancel-upload" class="btn btn-outline">Cancelar</button>
           <button id="confirm-upload" class="btn btn-primary">Upload</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Configuração -->
+    <div id="config-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Configurações</h3>
+          <span class="close-config-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <h4>Número de Semanas por Mês</h4>
+          <div class="input-group">
+            <label for="config-month">Selecione o Mês</label>
+            <select id="config-month">
+              <option value="1">Janeiro</option>
+              <option value="2">Fevereiro</option>
+              <option value="3">Março</option>
+              <option value="4">Abril</option>
+              <option value="5">Maio</option>
+              <option value="6">Junho</option>
+              <option value="7">Julho</option>
+              <option value="8">Agosto</option>
+              <option value="9">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="config-weeks">Número de Semanas</label>
+            <select id="config-weeks">
+              <option value="1">1 Semana</option>
+              <option value="2">2 Semanas</option>
+              <option value="3">3 Semanas</option>
+              <option value="4">4 Semanas</option>
+              <option value="5">5 Semanas</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="save-config" class="btn btn-primary">Salvar</button>
         </div>
       </div>
     </div>
