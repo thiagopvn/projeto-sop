@@ -18,12 +18,21 @@ let dashboardData = {
   let categoryChart = null;
   let monthlyTrendChart = null;
   
+  // Meses válidos para a aplicação (sem janeiro e fevereiro)
+  const VALID_MONTHS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  
   // Inicializar dashboard quando a página carregar
   document.addEventListener('DOMContentLoaded', function() {
     // Inicializar seletor de mês no dashboard com o mês atual
     const dashboardMonthFilter = document.getElementById('dashboard-month-filter');
     if (dashboardMonthFilter) {
-      dashboardMonthFilter.value = new Date().getMonth() + 1;
+      // Verificar se o mês atual é válido (março a dezembro)
+      let currentDateMonth = new Date().getMonth() + 1;
+      if (currentDateMonth < 3) {
+        currentDateMonth = 3; // Definir março como padrão se for janeiro ou fevereiro
+      }
+      
+      dashboardMonthFilter.value = currentDateMonth;
       dashboardMonthFilter.addEventListener('change', updateDashboard);
     }
   
@@ -48,65 +57,30 @@ let dashboardData = {
       navigateToCategory('aulas');
     });
     
-    // Adicionar manipulador para o item de menu do dashboard
+    // Adicionar manipulador para o item de menu do dashboard (não necessário se já configurado no app.js)
     setupDashboardNav();
   });
   
-  // Configurar navegação do dashboard
+  // Configurar navegação do dashboard (caso não esteja configurado no app.js)
   function setupDashboardNav() {
     const dashboardItem = document.querySelector('li[data-category="dashboard"]');
-    if (dashboardItem) {
-      dashboardItem.addEventListener('click', function() {
-        // Remover classe ativa de todos os itens
-        document.querySelectorAll('.category-list li').forEach(item => {
-          item.classList.remove('active');
-        });
-        
-        // Adicionar classe ativa ao dashboard
-        dashboardItem.classList.add('active');
-        
-        // Atualizar título
-        document.getElementById('category-title').textContent = 'DASHBOARD';
-        
-        // Ocultar elementos não relacionados ao dashboard
-        document.getElementById('document-container').style.display = 'none';
-        document.getElementById('calendar-container').style.display = 'none';
-        document.getElementById('month-filter').style.display = 'none';
-        document.getElementById('upload-btn').style.display = 'none';
-        document.getElementById('add-event-btn').style.display = 'none';
-        
-        // Ocultar as informações de status
-        document.querySelector('.status-info').style.display = 'none';
-        
-        // Exibir dashboard
-        document.getElementById('dashboard-container').style.display = 'block';
-        
-        // Carregar dados do dashboard
-        updateDashboard();
-      });
+    if (dashboardItem && !dashboardItem.hasEventListeners) {
+      dashboardItem.hasEventListeners = true; // Marcar para evitar múltiplos event listeners
       
-      // Definir dashboard como ativo por padrão após login
-      // Isso será chamado após a autenticação bem-sucedida
+      // O evento de clique agora é gerenciado em app.js
+      
+      // Ao carregar a página, clique no dashboard automaticamente
       auth.onAuthStateChanged((user) => {
         if (user) {
           setTimeout(() => {
-            dashboardItem.click();
-          }, 500); // Pequeno atraso para garantir que outros componentes estejam carregados
+            // Verificar se a navegação para o dashboard não é tratada no app.js
+            if (!document.getElementById('dashboard-container').style.display === 'block') {
+              dashboardItem.click();
+            }
+          }, 500);
         }
       });
     }
-    
-    // Adicionar evento para todas as outras categorias (para esconder o dashboard)
-    const otherCategories = document.querySelectorAll('li[data-category]:not([data-category="dashboard"])');
-    otherCategories.forEach(category => {
-      category.addEventListener('click', function() {
-        // Ocultar dashboard
-        document.getElementById('dashboard-container').style.display = 'none';
-        
-        // Exibir as informações de status
-        document.querySelector('.status-info').style.display = 'flex';
-      });
-    });
   }
   
   // Função para navegar para outra categoria
@@ -223,6 +197,13 @@ let dashboardData = {
       if (!dashboardMonthFilter) return;
       
       const month = parseInt(dashboardMonthFilter.value);
+      
+      // Verificar se o mês é válido (3-12)
+      if (!VALID_MONTHS.includes(month)) {
+        console.warn('Mês inválido selecionado. Usando março como padrão.');
+        dashboardMonthFilter.value = 3;
+        return updateDashboard(); // Chamar novamente com mês válido
+      }
       
       // Mostrar spinner ou indicador de carregamento aqui se necessário
       
@@ -400,15 +381,15 @@ let dashboardData = {
         });
       });
       
-      // 4. Simular dados de tendência mensal (normalmente seria obtido do banco de dados)
+      // 4. Gerar dados de tendência mensal (usando apenas meses válidos 3-12)
       const monthlyTrend = [];
       
-      // Adicionar dados dos últimos 6 meses
-      let startMonth = month - 5;
-      for (let i = 0; i < 6; i++) {
-        let m = startMonth + i;
-        if (m <= 0) m += 12;
-        if (m > 12) m -= 12;
+      // Verificar o mês atual para determinar o intervalo de meses (recuar até 6 meses, mas não antes de março)
+      const startMonth = Math.max(3, month - 5);
+      
+      // Adicionar dados dos últimos meses (no máximo 6, começando em março)
+      for (let i = 0; i < 6 && (startMonth + i) <= 12; i++) {
+        const m = startMonth + i;
         
         // Simular dados com tendência crescente
         const completionRate = 0.5 + (i * 0.07) + (Math.random() * 0.15);
@@ -445,6 +426,11 @@ let dashboardData = {
   
   // Função para calcular documentos esperados para um mês
   function getExpectedDocumentsForMonth(month) {
+    // Verificar se é um mês válido (3-12)
+    if (!VALID_MONTHS.includes(month)) {
+      return 0;
+    }
+    
     let expectedCount = 0;
     
     Object.keys(DOCUMENT_TYPES).forEach(key => {

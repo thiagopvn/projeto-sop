@@ -67,12 +67,15 @@ const DOCUMENT_TYPES = {
   // Estado da aplicação
   let currentUser = null;
   let currentCategory = DOCUMENT_TYPES.AULAS.id;
-  let currentMonth = new Date().getMonth() + 1; // Mês atual (1-12)
+  let currentMonth = 3; // Alterado para começar em março (mês 3)
+  
+  // Meses válidos para a aplicação (sem janeiro e fevereiro)
+  const VALID_MONTHS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   
   // Configuração padrão de semanas por mês
   let weeksPerMonth = {
-    1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4,
-    7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4
+    3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4,
+    9: 4, 10: 4, 11: 4, 12: 4
   };
   
   // Elementos DOM
@@ -141,7 +144,8 @@ const DOCUMENT_TYPES = {
       
       // Atualizar categoria atual
       currentCategory = item.getAttribute('data-category');
-      appElements.categoryTitle.textContent = DOCUMENT_TYPES[getCategoryKey(currentCategory)].name;
+      appElements.categoryTitle.textContent = currentCategory === 'dashboard' ? 'DASHBOARD' : 
+                                             DOCUMENT_TYPES[getCategoryKey(currentCategory)].name;
       
       // Verificar se é a categoria de calendário
       if (currentCategory === 'calendario') {
@@ -154,15 +158,41 @@ const DOCUMENT_TYPES = {
         appElements.calendarContainer.style.display = 'block';
         appElements.addEventBtn.style.display = 'inline-flex';
         return;
+      } 
+      // Verificar se é a categoria de dashboard
+      else if (currentCategory === 'dashboard') {
+        // Ocultar elementos de documentos e calendário
+        appElements.documentContainer.style.display = 'none';
+        appElements.calendarContainer.style.display = 'none';
+        appElements.monthFilter.style.display = 'none';
+        appElements.uploadBtn.style.display = 'none';
+        appElements.addEventBtn.style.display = 'none';
+        
+        // Ocultar informações de status
+        document.querySelector('.status-info').style.display = 'none';
+        
+        // Exibir dashboard
+        document.getElementById('dashboard-container').style.display = 'block';
+        
+        // Atualizar dashboard
+        if (typeof updateDashboard === 'function') {
+          updateDashboard();
+        }
+        
+        return;
       } else {
-        // Ocultar elementos de calendário
+        // Ocultar elementos de calendário e dashboard
         appElements.calendarContainer.style.display = 'none';
         appElements.addEventBtn.style.display = 'none';
+        document.getElementById('dashboard-container').style.display = 'none';
         
         // Exibir elementos de documentos
         appElements.documentContainer.style.display = 'block';
         appElements.monthFilter.style.display = 'inline-flex';
         appElements.uploadBtn.style.display = 'inline-flex';
+        
+        // Exibir informações de status
+        document.querySelector('.status-info').style.display = 'flex';
         
         // Carregar documentos da categoria
         loadDocumentsByCategory(currentCategory, currentMonth);
@@ -197,9 +227,16 @@ const DOCUMENT_TYPES = {
       const configDoc = await db.collection('config').doc('weeksPerMonth').get();
       
       if (configDoc.exists) {
-        weeksPerMonth = configDoc.data();
+        // Garantir que apenas os meses válidos estejam nas configurações
+        const savedConfig = configDoc.data();
+        weeksPerMonth = {};
+        
+        // Usar apenas os meses válidos (3-12)
+        VALID_MONTHS.forEach(month => {
+          weeksPerMonth[month] = savedConfig[month] || 4; // Valor padrão é 4 semanas
+        });
       } else {
-        // Se não existir, criar configuração padrão
+        // Se não existir, criar configuração padrão apenas com meses válidos
         await db.collection('config').doc('weeksPerMonth').set(weeksPerMonth);
       }
     } catch (error) {
@@ -213,11 +250,21 @@ const DOCUMENT_TYPES = {
       // Inicializar configurações
       await initializeConfig();
       
-      // Definir mês atual no filtro
+      // Definir mês atual no filtro (certificando que é um mês válido)
+      const currentDate = new Date();
+      let currentMonthFromDate = currentDate.getMonth() + 1;
+      
+      // Se o mês atual for janeiro ou fevereiro, usar março como padrão
+      if (currentMonthFromDate < 3) {
+        currentMonthFromDate = 3;
+      }
+      
+      // Atualizar o mês atual e o filtro
+      currentMonth = currentMonthFromDate;
       appElements.monthFilter.value = currentMonth;
       
       // Carregar documentos da categoria atual
-      if (currentCategory !== 'calendario') {
+      if (currentCategory !== 'calendario' && currentCategory !== 'dashboard') {
         loadDocumentsByCategory(currentCategory, currentMonth);
       }
       
@@ -237,14 +284,14 @@ const DOCUMENT_TYPES = {
       const categoryKey = getCategoryKey(category);
       const categoryInfo = DOCUMENT_TYPES[categoryKey];
       
-      // Se for a categoria de calendário, não fazer nada
-      if (category === 'calendario') {
+      // Se for a categoria de calendário ou dashboard, não fazer nada
+      if (category === 'calendario' || category === 'dashboard') {
         return;
       }
       
       // Verificar se é um documento anual (QTA) e se deve ser exibido no mês atual
       if (categoryInfo.annual && categoryInfo.visibleMonths && !categoryInfo.visibleMonths.includes(month)) {
-        // Se for QTA e o mês atual for Janeiro ou Fevereiro, não exibir nada
+        // Se for QTA e o mês atual não for visível, não exibir nada
         return;
       }
       
@@ -514,6 +561,12 @@ const DOCUMENT_TYPES = {
       const month = parseInt(configModalElements.month.value);
       const weeks = parseInt(configModalElements.weeks.value);
       
+      // Garantir que é um mês válido (3-12)
+      if (!VALID_MONTHS.includes(month)) {
+        alert('Mês inválido. Selecione um mês de março a dezembro.');
+        return;
+      }
+      
       // Atualizar configuração local
       weeksPerMonth[month] = weeks;
       
@@ -551,6 +604,12 @@ const DOCUMENT_TYPES = {
       const needsWeek = categoryInfo.needsWeek;
       const isAnnual = categoryInfo.annual;
       const week = needsWeek ? parseInt(modalElements.week.value) : null;
+      
+      // Verificar se o mês é válido (3-12)
+      if (!VALID_MONTHS.includes(month)) {
+        alert('Mês inválido. Selecione um mês de março a dezembro.');
+        return;
+      }
       
       // Verificar se o mês é válido para documentos anuais (QTA)
       if (isAnnual && categoryInfo.visibleMonths && !categoryInfo.visibleMonths.includes(month)) {
@@ -738,7 +797,13 @@ const DOCUMENT_TYPES = {
     return `${day}/${month}/${year} ${hours}:${minutes}`;
   }
   
-  // Inicializar o mês atual no filtro
+  // Inicializar o mês atual no filtro (garantindo que seja um mês válido)
   document.addEventListener('DOMContentLoaded', () => {
+    let currentDateMonth = new Date().getMonth() + 1;
+    if (currentDateMonth < 3) {
+      currentDateMonth = 3; // Definir março como padrão se for janeiro ou fevereiro
+    }
+    
+    currentMonth = currentDateMonth;
     appElements.monthFilter.value = currentMonth;
   });
