@@ -72,13 +72,18 @@
     background-color: #d32f2f;
   }
   
-  /* Login Container - Atualizado para centralizar */
+  /* Login Container - Centralização forçada */
   #login-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    width: 100vw;
     background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
   }
   
   .login-card {
@@ -87,7 +92,10 @@
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     overflow: hidden;
-    /* Removidas as propriedades que impediam a centralização */
+    /* Garantir que não haja posicionamento que interfira */
+    position: static !important;
+    transform: none !important;
+    margin: 0 auto;
   }
   
   .login-header {
