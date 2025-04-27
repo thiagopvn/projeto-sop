@@ -5,15 +5,15 @@ const DOCUMENT_TYPES = {
       id: 'aulas',
       name: 'AULAS',
       icon: 'fas fa-chalkboard-teacher',
-      monthlyCount: 1,
-      needsWeek: false
+      monthlyCount: 5,  // Alterado de 1 para 5
+      needsWeek: true   // Alterado de false para true
     },
     PLANO_DE_SESSAO: {
       id: 'plano-de-sessao',
       name: 'PLANO DE SESSÃO',
       icon: 'fas fa-clipboard-list',
-      monthlyCount: 4,
-      needsWeek: false
+      monthlyCount: 5,  // Alterado de 4 para 5
+      needsWeek: true
     },
     QTA: {
       id: 'qta',
@@ -33,7 +33,7 @@ const DOCUMENT_TYPES = {
       id: 'qts',
       name: 'QTS',
       icon: 'fas fa-tasks',
-      monthlyCount: 4,
+      monthlyCount: 5,  // Alterado de 4 para 5
       needsWeek: true
     },
     RELATORIO_MENSAL: {
@@ -187,13 +187,13 @@ const DOCUMENT_TYPES = {
       // Criar linhas da tabela
       if (expectedCount > 0) {
         if (categoryInfo.needsWeek) {
-          // Documentos que precisam de semana (QTS, Plano de Sessão)
+          // Documentos que precisam de semana (AULAS, QTS, Plano de Sessão)
           for (let week = 1; week <= expectedCount; week++) {
             const doc = documents[week];
             createDocumentRow(category, month, week, doc);
           }
         } else {
-          // Documentos sem semana (Aulas, QTM, Relatório Mensal)
+          // Documentos sem semana (QTM, Relatório Mensal)
           createDocumentRow(category, month, null, documents[1]);
         }
       } else if (categoryKey === 'QTA' && month === 1) {
@@ -212,41 +212,41 @@ const DOCUMENT_TYPES = {
     appElements.documentList.appendChild(row);
   }
   
-  // Função para criar linha de documento existente - FUNÇÃO CORRIGIDA
-  function createExistingDocumentRow(doc) {  // Mudado 'document' para 'doc'
+  // Função para criar linha de documento existente
+  function createExistingDocumentRow(doc) {
     const tr = document.createElement('tr');
     
-    const categoryKey = getCategoryKey(doc.category);  // Mudado 'document' para 'doc'
+    const categoryKey = getCategoryKey(doc.category);
     const categoryInfo = DOCUMENT_TYPES[categoryKey];
     
     // Criar nome do documento
     let documentName = categoryInfo.name;
-    if (categoryInfo.needsWeek && doc.week) {  // Mudado 'document' para 'doc'
-      documentName += ` - ${doc.week}ª SEMANA`;  // Mudado 'document' para 'doc'
+    if (categoryInfo.needsWeek && doc.week) {
+      documentName += ` - ${doc.week}ª SEMANA`;
     }
-    documentName += ` - ${MONTH_NAMES[doc.month - 1]}`;  // Mudado 'document' para 'doc'
+    documentName += ` - ${MONTH_NAMES[doc.month - 1]}`;
     
     tr.innerHTML = `
       <td>${documentName}</td>
-      <td>${formatDate(doc.uploadDate)}</td>  <!-- Mudado 'document' para 'doc' -->
+      <td>${formatDate(doc.uploadDate)}</td>
       <td><span class="status-badge complete">Completo</span></td>
       <td class="table-actions">
-        <button class="action-btn view-btn" data-id="${doc.id}" data-url="${doc.fileUrl}">  <!-- Mudado 'document' para 'doc' -->
+        <button class="action-btn view-btn" data-id="${doc.id}" data-url="${doc.fileUrl}">
           <i class="fas fa-eye"></i>
         </button>
-        <button class="action-btn download-btn" data-id="${doc.id}" data-url="${doc.fileUrl}">  <!-- Mudado 'document' para 'doc' -->
+        <button class="action-btn download-btn" data-id="${doc.id}" data-url="${doc.fileUrl}">
           <i class="fas fa-download"></i>
         </button>
-        <button class="action-btn delete-btn" data-id="${doc.id}">  <!-- Mudado 'document' para 'doc' -->
+        <button class="action-btn delete-btn" data-id="${doc.id}">
           <i class="fas fa-trash"></i>
         </button>
       </td>
     `;
     
     // Adicionar eventos aos botões
-    tr.querySelector('.view-btn').addEventListener('click', () => viewDocument(doc.fileUrl));  // Mudado 'document' para 'doc'
-    tr.querySelector('.download-btn').addEventListener('click', () => downloadDocument(doc.fileUrl, documentName));  // Mudado 'document' para 'doc'
-    tr.querySelector('.delete-btn').addEventListener('click', () => deleteDocument(doc.id));  // Mudado 'document' para 'doc'
+    tr.querySelector('.view-btn').addEventListener('click', () => viewDocument(doc.fileUrl));
+    tr.querySelector('.download-btn').addEventListener('click', () => downloadDocument(doc.fileUrl, documentName));
+    tr.querySelector('.delete-btn').addEventListener('click', () => deleteDocument(doc.id));
     
     return tr;
   }
