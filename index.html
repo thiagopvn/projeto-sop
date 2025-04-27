@@ -101,7 +101,7 @@
       <!-- Área de conteúdo -->
       <section class="content-area">
         <div class="content-header">
-          <h2 id="category-title">AULAS</h2>
+          <h2 id="category-title">DASHBOARD</h2>
           <div class="content-actions">
             <select id="month-filter" class="select-filter">
               <!-- Janeiro e Fevereiro removidos -->
@@ -116,7 +116,7 @@
               <option value="11">Novembro</option>
               <option value="12">Dezembro</option>
             </select>
-            <button id="upload-btn" class="btn btn-primary">
+            <button id="upload-btn" class="btn btn-primary" style="display: none;">
               <i class="fas fa-upload"></i> Upload
             </button>
             <button id="add-event-btn" class="btn btn-primary" style="display: none;">
@@ -125,29 +125,8 @@
           </div>
         </div>
 
-        <!-- Dashboard Container (inicialmente oculto) -->
-        <div id="dashboard-container" class="dashboard-container" style="display: none;">
-          <!-- Cabeçalho do dashboard -->
-          <div class="dashboard-header">
-            <h2>Dashboard</h2>
-            <div class="date-filter">
-              <select id="dashboard-month-filter" class="select-filter">
-                <!-- Janeiro e Fevereiro removidos -->
-                <option value="3">Março</option>
-                <option value="4">Abril</option>
-                <option value="5">Maio</option>
-                <option value="6">Junho</option>
-                <option value="7">Julho</option>
-                <option value="8">Agosto</option>
-                <option value="9">Setembro</option>
-                <option value="10">Outubro</option>
-                <option value="11">Novembro</option>
-                <option value="12">Dezembro</option>
-              </select>
-              <span id="current-year">2025</span>
-            </div>
-          </div>
-
+        <!-- Dashboard Container -->
+        <div id="dashboard-container" class="dashboard-container">
           <!-- Cartões de resumo -->
           <div class="summary-cards">
             <div class="card" id="total-documents-card">
@@ -272,7 +251,7 @@
         </div>
 
         <!-- Tabela de documentos -->
-        <div id="document-container" class="document-list-container">
+        <div id="document-container" class="document-list-container" style="display: none;">
           <table class="document-table">
             <thead>
               <tr>
@@ -448,7 +427,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <!-- FullCalendar Scripts -->

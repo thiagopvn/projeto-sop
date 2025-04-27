@@ -48,33 +48,11 @@ let dashboardData = {
   function initializeDashboard() {
     console.log("Inicializando dashboard...");
     
-    // Configurar seletor de mês
-    setupMonthSelector();
-    
     // Configurar navegação
     setupNavigation();
     
     // Carregar dados iniciais e inicializar gráficos
     updateDashboard(true);
-  }
-  
-  // Configurar seletor de mês
-  function setupMonthSelector() {
-    const dashboardMonthFilter = document.getElementById('dashboard-month-filter');
-    if (dashboardMonthFilter) {
-      // Definir mês atual (ou março se atual for janeiro/fevereiro)
-      let currentDateMonth = new Date().getMonth() + 1;
-      if (currentDateMonth < 3) {
-        currentDateMonth = 3;
-      }
-      
-      dashboardMonthFilter.value = currentDateMonth;
-      
-      // Adicionar evento para atualizar dashboard quando o mês mudar
-      dashboardMonthFilter.addEventListener('change', function() {
-        updateDashboard(false);
-      });
-    }
   }
   
   // Configurar navegação
@@ -94,31 +72,36 @@ let dashboardData = {
     if (viewAllPending) {
       viewAllPending.addEventListener('click', function(e) {
         e.preventDefault();
-        const dashboardMonth = document.getElementById('dashboard-month-filter')?.value || '3';
-        const appMonthFilter = document.getElementById('month-filter');
-        if (appMonthFilter) appMonthFilter.value = dashboardMonth;
+        const dashboardMonth = document.getElementById('month-filter')?.value || '3';
         
         // Navegar para a aba de aulas
         const aulasTab = document.querySelector('li[data-category="aulas"]');
         if (aulasTab) aulasTab.click();
       });
     }
+    
+    // Adicionar evento ao seletor de mês para atualizar o dashboard quando estiver na tela do dashboard
+    document.getElementById('month-filter')?.addEventListener('change', function() {
+      if (currentCategory === 'dashboard') {
+        updateDashboard(false);
+      }
+    });
   }
   
   // Função principal para atualizar o dashboard
   async function updateDashboard(isInitialLoad) {
     try {
-      // Obter mês selecionado
-      const dashboardMonthFilter = document.getElementById('dashboard-month-filter');
-      if (!dashboardMonthFilter) return;
+      // Obter mês selecionado (agora usando apenas o seletor principal)
+      const monthFilter = document.getElementById('month-filter');
+      if (!monthFilter) return;
       
-      const month = parseInt(dashboardMonthFilter.value);
+      const month = parseInt(monthFilter.value);
       
       // Verificar se o mês é válido usando a variável global ou a local
       const validMonths = typeof VALID_MONTHS !== 'undefined' ? VALID_MONTHS : VALID_MONTHS_LOCAL;
       
       if (!validMonths.includes(month)) {
-        dashboardMonthFilter.value = '3';
+        monthFilter.value = '3';
         return updateDashboard(isInitialLoad);
       }
       
@@ -132,7 +115,7 @@ let dashboardData = {
       await loadDashboardData(month);
       
       // Inicializar ou atualizar gráficos
-      if (isInitialLoad) {
+      if (isInitialLoad || !categoryChart || !monthlyTrendChart) {
         initializeCharts();
       } else {
         updateCharts();
@@ -148,7 +131,7 @@ let dashboardData = {
     }
   }
   
-  // Função para carregar dados do dashboard
+  // Função para carregar dados para o dashboard
   async function loadDashboardData(month) {
     try {
       // Reinicializar dados
@@ -640,12 +623,12 @@ let dashboardData = {
       
       listItem.addEventListener('click', function() {
         // Configurar mês e navegar para a categoria
-        const monthFilter = document.getElementById('month-filter');
-        if (monthFilter) monthFilter.value = doc.month;
-        
         if (typeof currentMonth !== 'undefined') {
           currentMonth = doc.month;
         }
+        
+        const monthFilter = document.getElementById('month-filter');
+        if (monthFilter) monthFilter.value = doc.month;
         
         const categoryTab = document.querySelector(`li[data-category="${doc.category}"]`);
         if (categoryTab) categoryTab.click();
