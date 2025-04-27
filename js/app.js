@@ -186,7 +186,7 @@ appElements.categoryItems.forEach(item => {
       // Ocultar elementos de documentos e calendário
       appElements.documentContainer.style.display = 'none';
       appElements.calendarContainer.style.display = 'none';
-      appElements.monthFilter.style.display = 'none';
+      appElements.monthFilter.style.display = 'inline-flex'; // Alterado para mostrar o filtro
       appElements.uploadBtn.style.display = 'none';
       appElements.addEventBtn.style.display = 'none';
       
@@ -225,7 +225,11 @@ appElements.categoryItems.forEach(item => {
 if (appElements.monthFilter) {
   appElements.monthFilter.addEventListener('change', () => {
     currentMonth = parseInt(appElements.monthFilter.value);
-    loadDocumentsByCategory(currentCategory, currentMonth);
+    if (currentCategory === 'dashboard' && typeof updateDashboard === 'function') {
+      updateDashboard();
+    } else {
+      loadDocumentsByCategory(currentCategory, currentMonth);
+    }
   });
 }
 
@@ -330,7 +334,7 @@ async function loadDocuments() {
       appElements.documentContainer.style.display = 'none';
     }
     if (appElements.monthFilter) {
-      appElements.monthFilter.style.display = 'none';
+      appElements.monthFilter.style.display = 'inline-flex'; // Alterado para mostrar o filtro
     }
     if (appElements.uploadBtn) {
       appElements.uploadBtn.style.display = 'none';
