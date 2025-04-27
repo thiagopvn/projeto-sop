@@ -207,46 +207,46 @@ const DOCUMENT_TYPES = {
   }
   
   // Função para criar linha de documento na tabela
-  function createDocumentRow(category, month, week, document) {
-    const row = document ? createExistingDocumentRow(document) : createEmptyDocumentRow(category, month, week);
+  function createDocumentRow(category, month, week, doc) {
+    const row = doc ? createExistingDocumentRow(doc) : createEmptyDocumentRow(category, month, week);
     appElements.documentList.appendChild(row);
   }
   
-  // Função para criar linha de documento existente
-  function createExistingDocumentRow(document) {
+  // Função para criar linha de documento existente - FUNÇÃO CORRIGIDA
+  function createExistingDocumentRow(doc) {  // Mudado 'document' para 'doc'
     const tr = document.createElement('tr');
     
-    const categoryKey = getCategoryKey(document.category);
+    const categoryKey = getCategoryKey(doc.category);  // Mudado 'document' para 'doc'
     const categoryInfo = DOCUMENT_TYPES[categoryKey];
     
     // Criar nome do documento
     let documentName = categoryInfo.name;
-    if (categoryInfo.needsWeek && document.week) {
-      documentName += ` - ${document.week}ª SEMANA`;
+    if (categoryInfo.needsWeek && doc.week) {  // Mudado 'document' para 'doc'
+      documentName += ` - ${doc.week}ª SEMANA`;  // Mudado 'document' para 'doc'
     }
-    documentName += ` - ${MONTH_NAMES[document.month - 1]}`;
+    documentName += ` - ${MONTH_NAMES[doc.month - 1]}`;  // Mudado 'document' para 'doc'
     
     tr.innerHTML = `
       <td>${documentName}</td>
-      <td>${formatDate(document.uploadDate)}</td>
+      <td>${formatDate(doc.uploadDate)}</td>  <!-- Mudado 'document' para 'doc' -->
       <td><span class="status-badge complete">Completo</span></td>
       <td class="table-actions">
-        <button class="action-btn view-btn" data-id="${document.id}" data-url="${document.fileUrl}">
+        <button class="action-btn view-btn" data-id="${doc.id}" data-url="${doc.fileUrl}">  <!-- Mudado 'document' para 'doc' -->
           <i class="fas fa-eye"></i>
         </button>
-        <button class="action-btn download-btn" data-id="${document.id}" data-url="${document.fileUrl}">
+        <button class="action-btn download-btn" data-id="${doc.id}" data-url="${doc.fileUrl}">  <!-- Mudado 'document' para 'doc' -->
           <i class="fas fa-download"></i>
         </button>
-        <button class="action-btn delete-btn" data-id="${document.id}">
+        <button class="action-btn delete-btn" data-id="${doc.id}">  <!-- Mudado 'document' para 'doc' -->
           <i class="fas fa-trash"></i>
         </button>
       </td>
     `;
     
     // Adicionar eventos aos botões
-    tr.querySelector('.view-btn').addEventListener('click', () => viewDocument(document.fileUrl));
-    tr.querySelector('.download-btn').addEventListener('click', () => downloadDocument(document.fileUrl, documentName));
-    tr.querySelector('.delete-btn').addEventListener('click', () => deleteDocument(document.id));
+    tr.querySelector('.view-btn').addEventListener('click', () => viewDocument(doc.fileUrl));  // Mudado 'document' para 'doc'
+    tr.querySelector('.download-btn').addEventListener('click', () => downloadDocument(doc.fileUrl, documentName));  // Mudado 'document' para 'doc'
+    tr.querySelector('.delete-btn').addEventListener('click', () => deleteDocument(doc.id));  // Mudado 'document' para 'doc'
     
     return tr;
   }
