@@ -6,42 +6,48 @@ const DOCUMENT_TYPES = {
       name: 'AULAS',
       icon: 'fas fa-chalkboard-teacher',
       monthlyCount: 5,  // Máximo de 5 documentos por mês
-      needsWeek: true   // Usa semanas para identificar documentos
+      needsWeek: true,  // Usa semanas para identificar documentos
+      annual: false
     },
     PLANO_DE_SESSAO: {
       id: 'plano-de-sessao',
       name: 'PLANO DE SESSÃO',
       icon: 'fas fa-clipboard-list',
       monthlyCount: 5,  // Máximo de 5 documentos por mês
-      needsWeek: true
+      needsWeek: true,
+      annual: false
     },
     QTA: {
       id: 'qta',
       name: 'QTA',
       icon: 'fas fa-file-alt',
-      monthlyCount: 0, // anual - 1 por ano
-      needsWeek: false
+      monthlyCount: 1, // 1 documento por ano
+      needsWeek: false,
+      annual: true     // Documento anual, não mensal
     },
     QTM: {
       id: 'qtm',
       name: 'QTM',
       icon: 'fas fa-calendar-alt',
       monthlyCount: 1,
-      needsWeek: false
+      needsWeek: false,
+      annual: false
     },
     QTS: {
       id: 'qts',
       name: 'QTS',
       icon: 'fas fa-tasks',
       monthlyCount: 5,  // Máximo de 5 documentos por mês
-      needsWeek: true
+      needsWeek: true,
+      annual: false
     },
     RELATORIO_MENSAL: {
       id: 'relatorio-mensal',
       name: 'RELATÓRIO MENSAL',
       icon: 'fas fa-chart-bar',
       monthlyCount: 1,
-      needsWeek: false
+      needsWeek: false,
+      annual: false
     }
   };
   
@@ -197,15 +203,26 @@ const DOCUMENT_TYPES = {
       const categoryKey = getCategoryKey(category);
       const categoryInfo = DOCUMENT_TYPES[categoryKey];
       
-      // Obter documentos existentes
-      const snapshot = await db.collection('documents')
-        .where('category', '==', category)
-        .where('month', '==', month)
-        .get();
+      // Criar a consulta base
+      let query = db.collection('documents').where('category', '==', category);
+      
+      // Para documentos anuais como QTA, não filtrar por mês
+      if (!categoryInfo.annual) {
+        query = query.where('month', '==', month);
+      }
+      
+      // Executar a consulta
+      const snapshot = await query.get();
       
       const documents = {};
       snapshot.forEach(doc => {
         const data = doc.data();
+        
+        // Para documentos anuais, considerar apenas um documento para o ano atual
+        if (categoryInfo.annual && data.year !== 2025) {
+          return;
+        }
+        
         if (categoryInfo.needsWeek) {
           documents[data.week] = { ...data, id: doc.id };
         } else {
@@ -216,12 +233,8 @@ const DOCUMENT_TYPES = {
       // Verificar quantidade esperada de documentos
       let expectedCount = categoryInfo.monthlyCount;
       
-      // Para QTA, só verificamos uma vez por ano, no mês de Janeiro
-      if (categoryKey === 'QTA') {
-        expectedCount = month === 1 ? 1 : 0;
-      } 
       // Para categorias que usam semanas, limitar ao número de semanas configurado para o mês
-      else if (categoryInfo.needsWeek) {
+      if (categoryInfo.needsWeek) {
         expectedCount = Math.min(expectedCount, weeksPerMonth[month]);
       }
       
@@ -234,12 +247,9 @@ const DOCUMENT_TYPES = {
             createDocumentRow(category, month, week, doc);
           }
         } else {
-          // Documentos sem semana (QTM, Relatório Mensal)
+          // Documentos sem semana (QTM, QTA, Relatório Mensal)
           createDocumentRow(category, month, null, documents[1]);
         }
-      } else if (categoryKey === 'QTA' && month === 1) {
-        // QTA é anual, só mostramos em Janeiro
-        createDocumentRow(category, month, null, documents[1]);
       }
       
     } catch (error) {
@@ -265,7 +275,13 @@ const DOCUMENT_TYPES = {
     if (categoryInfo.needsWeek && doc.week) {
       documentName += ` - ${doc.week}ª SEMANA`;
     }
-    documentName += ` - ${MONTH_NAMES[doc.month - 1]}`;
+    
+    // Para documentos anuais, não incluir o mês no nome
+    if (categoryInfo.annual) {
+      documentName += ` - ${doc.year || '2025'}`;
+    } else {
+      documentName += ` - ${MONTH_NAMES[doc.month - 1]}`;
+    }
     
     tr.innerHTML = `
       <td>${documentName}</td>
@@ -304,21 +320,35 @@ const DOCUMENT_TYPES = {
     if (categoryInfo.needsWeek && week) {
       documentName += ` - ${week}ª SEMANA`;
     }
-    documentName += ` - ${MONTH_NAMES[month - 1]}`;
+    
+    // Para documentos anuais, não incluir o mês no nome
+    if (categoryInfo.annual) {
+      documentName += ` - 2025`;
+    } else {
+      documentName += ` - ${MONTH_NAMES[month - 1]}`;
+    }
     
     // Determinar status (pendente ou atrasado)
     const currentDate = new Date();
-    const documentMonth = month - 1; // Mês no JavaScript é 0-11
-    const documentYear = 2025; // Ano fixo para este exemplo
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
     
     let status = 'pending';
     let statusText = 'Pendente';
     
-    // Se o mês/ano do documento for anterior ao atual, está atrasado
-    if (documentYear < currentDate.getFullYear() || 
-        (documentYear === currentDate.getFullYear() && documentMonth < currentDate.getMonth())) {
-      status = 'overdue';
-      statusText = 'Atrasado';
+    // Verificar se está atrasado
+    if (categoryInfo.annual) {
+      // Para documentos anuais, verificar se o ano é anterior ao atual
+      if (2025 < currentYear) {
+        status = 'overdue';
+        statusText = 'Atrasado';
+      }
+    } else {
+      // Para documentos mensais, verificar se o mês/ano é anterior ao atual
+      if (2025 < currentYear || (2025 === currentYear && month < currentMonth)) {
+        status = 'overdue';
+        statusText = 'Atrasado';
+      }
     }
     
     tr.innerHTML = `
@@ -350,12 +380,20 @@ const DOCUMENT_TYPES = {
     const category = modalElements.category.value;
     const month = parseInt(modalElements.month.value);
     const categoryKey = getCategoryKey(category);
-    const needsWeek = DOCUMENT_TYPES[categoryKey].needsWeek;
+    const categoryInfo = DOCUMENT_TYPES[categoryKey];
     
     // Verificar se a categoria precisa de semana
-    modalElements.weekContainer.style.display = needsWeek ? 'block' : 'none';
+    modalElements.weekContainer.style.display = categoryInfo.needsWeek ? 'block' : 'none';
     
-    if (needsWeek) {
+    // Habilitar/desabilitar o seletor de mês para documentos anuais
+    modalElements.month.disabled = categoryInfo.annual;
+    
+    // Se for documento anual, forçar Janeiro como mês (só para organização)
+    if (categoryInfo.annual) {
+      modalElements.month.value = 1;
+    }
+    
+    if (categoryInfo.needsWeek) {
       // Limpar opções atuais
       modalElements.week.innerHTML = '';
       
@@ -455,18 +493,36 @@ const DOCUMENT_TYPES = {
       const category = modalElements.category.value;
       const month = parseInt(modalElements.month.value);
       const categoryKey = getCategoryKey(category);
-      const needsWeek = DOCUMENT_TYPES[categoryKey].needsWeek;
+      const categoryInfo = DOCUMENT_TYPES[categoryKey];
+      const needsWeek = categoryInfo.needsWeek;
+      const isAnnual = categoryInfo.annual;
       const week = needsWeek ? parseInt(modalElements.week.value) : null;
       
-      // Verificar se já existe documento para esta categoria/mês/semana
-      const querySnapshot = await db.collection('documents')
-        .where('category', '==', category)
-        .where('month', '==', month)
-        .where('week', '==', week)
-        .get();
+      // Consulta base para verificar documentos existentes
+      let queryRef = db.collection('documents')
+        .where('category', '==', category);
+      
+      // Adicionar filtros adicionais dependendo do tipo de documento
+      if (isAnnual) {
+        // Para documentos anuais, filtrar apenas pelo ano
+        queryRef = queryRef.where('year', '==', 2025);
+      } else {
+        // Para documentos mensais, filtrar pelo mês
+        queryRef = queryRef.where('month', '==', month);
+        
+        // Se precisar de semana, filtrar por semana também
+        if (needsWeek) {
+          queryRef = queryRef.where('week', '==', week);
+        }
+      }
+      
+      const querySnapshot = await queryRef.get();
       
       if (!querySnapshot.empty) {
-        const confirmOverwrite = confirm('Já existe um documento para esta categoria/mês/semana. Deseja substituí-lo?');
+        const confirmOverwrite = confirm('Já existe um documento para esta categoria' + 
+                                        (isAnnual ? '/ano' : '/mês' + 
+                                        (needsWeek ? '/semana' : '')) + 
+                                        '. Deseja substituí-lo?');
         if (!confirmOverwrite) return;
         
         // Excluir documento existente
@@ -486,10 +542,21 @@ const DOCUMENT_TYPES = {
       if (needsWeek) {
         fileName += `_${week}a_SEMANA`;
       }
-      fileName += `_${MONTH_NAMES[month - 1]}_2025`;
       
-      // Caminho no Storage
-      const storagePath = `documents/${category}/${month}/${fileName}.${file.name.split('.').pop()}`;
+      if (isAnnual) {
+        fileName += `_2025`;
+      } else {
+        fileName += `_${MONTH_NAMES[month - 1]}_2025`;
+      }
+      
+      // Caminho no Storage baseado no tipo de documento
+      let storagePath;
+      if (isAnnual) {
+        storagePath = `documents/${category}/2025/${fileName}.${file.name.split('.').pop()}`;
+      } else {
+        storagePath = `documents/${category}/${month}/${fileName}.${file.name.split('.').pop()}`;
+      }
+      
       const storageRef = storage.ref(storagePath);
       
       // Upload do arquivo
@@ -509,17 +576,26 @@ const DOCUMENT_TYPES = {
           // Upload completado com sucesso
           const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
           
-          // Salvar informações no Firestore
+          // Preparar dados para o Firestore
           const docData = {
             category,
-            month,
-            week,
             fileUrl: downloadURL,
             fileName: file.name,
             uploadDate: firebase.firestore.FieldValue.serverTimestamp(),
             uploadedBy: auth.currentUser.uid
           };
           
+          // Adicionar campos específicos por tipo
+          if (isAnnual) {
+            docData.year = 2025;
+          } else {
+            docData.month = month;
+            if (needsWeek) {
+              docData.week = week;
+            }
+          }
+          
+          // Salvar no Firestore
           await db.collection('documents').add(docData);
           
           // Fechar modal e recarregar documentos
