@@ -13,8 +13,11 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   <!-- Font Awesome para ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Chart.js para gráficos do dashboard -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- CSS da aplicação -->
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/dashboard.css">
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
 </head>
@@ -68,6 +71,9 @@
           <h3>Categorias</h3>
         </div>
         <ul class="category-list">
+          <li data-category="dashboard">
+            <i class="fas fa-tachometer-alt"></i> DASHBOARD
+          </li>
           <li data-category="aulas" class="active">
             <i class="fas fa-chalkboard-teacher"></i> AULAS
           </li>
@@ -117,6 +123,153 @@
             <button id="add-event-btn" class="btn btn-primary" style="display: none;">
               <i class="fas fa-plus"></i> Novo Evento
             </button>
+          </div>
+        </div>
+
+        <!-- Dashboard Container (inicialmente oculto) -->
+        <div id="dashboard-container" class="dashboard-container" style="display: none;">
+          <!-- Cabeçalho do dashboard -->
+          <div class="dashboard-header">
+            <h2>Dashboard</h2>
+            <div class="date-filter">
+              <select id="dashboard-month-filter" class="select-filter">
+                <option value="1">Janeiro</option>
+                <option value="2">Fevereiro</option>
+                <option value="3">Março</option>
+                <option value="4">Abril</option>
+                <option value="5">Maio</option>
+                <option value="6">Junho</option>
+                <option value="7">Julho</option>
+                <option value="8">Agosto</option>
+                <option value="9">Setembro</option>
+                <option value="10">Outubro</option>
+                <option value="11">Novembro</option>
+                <option value="12">Dezembro</option>
+              </select>
+              <span id="current-year">2025</span>
+            </div>
+          </div>
+
+          <!-- Cartões de resumo -->
+          <div class="summary-cards">
+            <div class="card" id="total-documents-card">
+              <div class="card-icon">
+                <i class="fas fa-file-alt"></i>
+              </div>
+              <div class="card-content">
+                <h3>Total de Documentos</h3>
+                <div class="card-value" id="total-documents-value">0</div>
+                <div class="card-footer">
+                  <span class="card-label">Previsto: </span>
+                  <span class="card-secondary-value" id="expected-documents-value">0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" id="complete-documents-card">
+              <div class="card-icon complete-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="card-content">
+                <h3>Completos</h3>
+                <div class="card-value" id="complete-documents-value">0</div>
+                <div class="progress-bar">
+                  <div class="progress" id="complete-progress" style="width: 0%"></div>
+                </div>
+                <div class="card-footer">
+                  <span id="complete-percentage">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" id="pending-documents-card">
+              <div class="card-icon pending-icon">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="card-content">
+                <h3>Pendentes</h3>
+                <div class="card-value" id="pending-documents-value">0</div>
+                <div class="progress-bar">
+                  <div class="progress pending-progress" id="pending-progress" style="width: 0%"></div>
+                </div>
+                <div class="card-footer">
+                  <span id="pending-percentage">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" id="overdue-documents-card">
+              <div class="card-icon overdue-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="card-content">
+                <h3>Atrasados</h3>
+                <div class="card-value" id="overdue-documents-value">0</div>
+                <div class="progress-bar">
+                  <div class="progress overdue-progress" id="overdue-progress" style="width: 0%"></div>
+                </div>
+                <div class="card-footer">
+                  <span id="overdue-percentage">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gráficos e listas -->
+          <div class="dashboard-main">
+            <!-- Painel esquerdo - Gráficos -->
+            <div class="dashboard-column">
+              <!-- Gráfico de progresso por categoria -->
+              <div class="dashboard-card">
+                <div class="card-header">
+                  <h3>Progresso por Categoria</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="category-chart"></canvas>
+                </div>
+              </div>
+
+              <!-- Gráfico de tendência mensal -->
+              <div class="dashboard-card">
+                <div class="card-header">
+                  <h3>Tendência Mensal</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="monthly-trend-chart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Painel direito - Listas -->
+            <div class="dashboard-column">
+              <!-- Próximos eventos -->
+              <div class="dashboard-card">
+                <div class="card-header">
+                  <h3>Próximos Eventos</h3>
+                  <a href="#" class="card-link" id="view-all-events">Ver Todos</a>
+                </div>
+                <div class="card-body">
+                  <div id="upcoming-events-list" class="dashboard-list">
+                    <!-- Eventos serão adicionados dinamicamente -->
+                    <div class="empty-list-message">Nenhum evento próximo encontrado</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Documentos pendentes/atrasados -->
+              <div class="dashboard-card">
+                <div class="card-header">
+                  <h3>Documentos Pendentes</h3>
+                  <a href="#" class="card-link" id="view-all-pending">Ver Todos</a>
+                </div>
+                <div class="card-body">
+                  <div id="pending-documents-list" class="dashboard-list">
+                    <!-- Documentos serão adicionados dinamicamente -->
+                    <div class="empty-list-message">Nenhum documento pendente encontrado</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -310,5 +463,6 @@
   <script src="js/firebase-config.js"></script>
   <script src="js/app.js"></script>
   <script src="js/calendar.js"></script>
+  <script src="js/dashboard.js"></script>
 </body>
 </html>
