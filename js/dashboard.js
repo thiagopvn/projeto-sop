@@ -18,12 +18,8 @@ let dashboardData = {
   let categoryChart = null;
   let monthlyTrendChart = null;
   
-  // Usar VALID_MONTHS já definido em app.js, não redeclarar
-  // Se não existir, cria uma versão local (não deve acontecer em uso normal)
-  if (typeof VALID_MONTHS === 'undefined') {
-    console.warn("VALID_MONTHS não encontrado no escopo global, criando localmente");
-    var VALID_MONTHS_LOCAL = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  }
+  // Referência para VALID_MONTHS definido em app.js
+  const VALID_MONTHS_LOCAL = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   
   // Inicializar dashboard quando a página carregar
   document.addEventListener('DOMContentLoaded', function() {
@@ -81,11 +77,14 @@ let dashboardData = {
     }
     
     // Adicionar evento ao seletor de mês para atualizar o dashboard quando estiver na tela do dashboard
-    document.getElementById('month-filter')?.addEventListener('change', function() {
-      if (currentCategory === 'dashboard') {
-        updateDashboard(false);
-      }
-    });
+    const monthFilter = document.getElementById('month-filter');
+    if (monthFilter) {
+      monthFilter.addEventListener('change', function() {
+        if (typeof currentCategory !== 'undefined' && currentCategory === 'dashboard') {
+          updateDashboard(false);
+        }
+      });
+    }
   }
   
   // Função principal para atualizar o dashboard
@@ -150,7 +149,7 @@ let dashboardData = {
       };
       
       // Verificar dependências necessárias
-      if (!db || !DOCUMENT_TYPES) {
+      if (!db || typeof DOCUMENT_TYPES === 'undefined') {
         console.error("Dependências necessárias não encontradas");
         return;
       }
@@ -158,7 +157,7 @@ let dashboardData = {
       // 1. Inicializar categorias
       const categories = {};
       Object.keys(DOCUMENT_TYPES).forEach(key => {
-        if (key !== 'CALENDARIO') {
+        if (key !== 'CALENDARIO' && key !== 'DASHBOARD') {
           const categoryId = DOCUMENT_TYPES[key].id;
           categories[categoryId] = {
             name: DOCUMENT_TYPES[key].name,
@@ -177,7 +176,7 @@ let dashboardData = {
       
       let expectedDocuments = 0;
       Object.keys(DOCUMENT_TYPES).forEach(key => {
-        if (key !== 'CALENDARIO') {
+        if (key !== 'CALENDARIO' && key !== 'DASHBOARD') {
           const categoryInfo = DOCUMENT_TYPES[key];
           const categoryId = categoryInfo.id;
           
@@ -366,7 +365,7 @@ let dashboardData = {
     
     let expectedCount = 0;
     Object.keys(DOCUMENT_TYPES).forEach(key => {
-      if (key !== 'CALENDARIO') {
+      if (key !== 'CALENDARIO' && key !== 'DASHBOARD') {
         const categoryInfo = DOCUMENT_TYPES[key];
         
         let isAvailable = true;
@@ -514,11 +513,17 @@ let dashboardData = {
   // Função para atualizar os cartões de resumo
   function updateSummaryCards() {
     // Atualizar valores de contagem
-    document.getElementById('total-documents-value').textContent = dashboardData.documents.complete;
-    document.getElementById('expected-documents-value').textContent = dashboardData.documents.expected;
-    document.getElementById('complete-documents-value').textContent = dashboardData.documents.complete;
-    document.getElementById('pending-documents-value').textContent = dashboardData.documents.pending;
-    document.getElementById('overdue-documents-value').textContent = dashboardData.documents.overdue;
+    const totalDocumentsValue = document.getElementById('total-documents-value');
+    const expectedDocumentsValue = document.getElementById('expected-documents-value');
+    const completeDocumentsValue = document.getElementById('complete-documents-value');
+    const pendingDocumentsValue = document.getElementById('pending-documents-value');
+    const overdueDocumentsValue = document.getElementById('overdue-documents-value');
+    
+    if (totalDocumentsValue) totalDocumentsValue.textContent = dashboardData.documents.complete;
+    if (expectedDocumentsValue) expectedDocumentsValue.textContent = dashboardData.documents.expected;
+    if (completeDocumentsValue) completeDocumentsValue.textContent = dashboardData.documents.complete;
+    if (pendingDocumentsValue) pendingDocumentsValue.textContent = dashboardData.documents.pending;
+    if (overdueDocumentsValue) overdueDocumentsValue.textContent = dashboardData.documents.overdue;
     
     // Calcular percentuais
     const total = dashboardData.documents.expected;
@@ -527,14 +532,22 @@ let dashboardData = {
     const overduePercent = total > 0 ? Math.round((dashboardData.documents.overdue / total) * 100) : 0;
     
     // Atualizar barras de progresso
-    document.getElementById('complete-progress').style.width = `${completePercent}%`;
-    document.getElementById('pending-progress').style.width = `${pendingPercent}%`;
-    document.getElementById('overdue-progress').style.width = `${overduePercent}%`;
+    const completeProgress = document.getElementById('complete-progress');
+    const pendingProgress = document.getElementById('pending-progress');
+    const overdueProgress = document.getElementById('overdue-progress');
+    
+    if (completeProgress) completeProgress.style.width = `${completePercent}%`;
+    if (pendingProgress) pendingProgress.style.width = `${pendingPercent}%`;
+    if (overdueProgress) overdueProgress.style.width = `${overduePercent}%`;
     
     // Atualizar rótulos de percentual
-    document.getElementById('complete-percentage').textContent = `${completePercent}%`;
-    document.getElementById('pending-percentage').textContent = `${pendingPercent}%`;
-    document.getElementById('overdue-percentage').textContent = `${overduePercent}%`;
+    const completePercentage = document.getElementById('complete-percentage');
+    const pendingPercentage = document.getElementById('pending-percentage');
+    const overduePercentage = document.getElementById('overdue-percentage');
+    
+    if (completePercentage) completePercentage.textContent = `${completePercent}%`;
+    if (pendingPercentage) pendingPercentage.textContent = `${pendingPercent}%`;
+    if (overduePercentage) overduePercentage.textContent = `${overduePercent}%`;
   }
   
   // Função para atualizar a lista de eventos próximos
