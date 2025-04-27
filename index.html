@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOP - Sistema de Organização de Documentos</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <!-- Font Awesome para ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- CSS da aplicação -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="assets/brasao.png" type="image/png">
+</head>
+<body>
+  <!-- Container de Login -->
+  <div id="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <img src="assets/brasao.png" alt="Brasão" class="brasao">
+        <h1>SOP - 2025</h1>
+        <p>Sistema de Organização de Documentos</p>
+      </div>
+      <div class="login-form">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="Seu email">
+        </div>
+        <div class="input-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" placeholder="Sua senha">
+        </div>
+        <button id="login-btn" class="btn btn-primary">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container Principal da Aplicação -->
+  <div id="app-container" style="display: none;">
+    <!-- Barra de navegação -->
+    <nav class="navbar">
+      <div class="nav-brand">
+        <img src="assets/brasao.png" alt="Brasão" class="brasao-small">
+        <h2>SOP - 2025</h2>
+      </div>
+      <div class="nav-menu">
+        <div class="user-info">
+          <span id="user-name">Usuário</span>
+          <button id="logout-btn" class="btn btn-outline">Sair</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Conteúdo principal -->
+    <main class="main-content">
+      <!-- Barra lateral -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h3>Categorias</h3>
+        </div>
+        <ul class="category-list">
+          <li data-category="aulas" class="active">
+            <i class="fas fa-chalkboard-teacher"></i> AULAS
+          </li>
+          <li data-category="plano-de-sessao">
+            <i class="fas fa-clipboard-list"></i> PLANO DE SESSÃO
+          </li>
+          <li data-category="qta">
+            <i class="fas fa-file-alt"></i> QTA
+          </li>
+          <li data-category="qtm">
+            <i class="fas fa-calendar-alt"></i> QTM
+          </li>
+          <li data-category="qts">
+            <i class="fas fa-tasks"></i> QTS
+          </li>
+          <li data-category="relatorio-mensal">
+            <i class="fas fa-chart-bar"></i> RELATÓRIO MENSAL
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Área de conteúdo -->
+      <section class="content-area">
+        <div class="content-header">
+          <h2 id="category-title">AULAS</h2>
+          <div class="content-actions">
+            <select id="month-filter" class="select-filter">
+              <option value="1">Janeiro</option>
+              <option value="2">Fevereiro</option>
+              <option value="3">Março</option>
+              <option value="4">Abril</option>
+              <option value="5">Maio</option>
+              <option value="6">Junho</option>
+              <option value="7">Julho</option>
+              <option value="8">Agosto</option>
+              <option value="9">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+            <button id="upload-btn" class="btn btn-primary">
+              <i class="fas fa-upload"></i> Upload
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabela de documentos -->
+        <div class="document-list-container">
+          <table class="document-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Data de Upload</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="document-list">
+              <!-- Os itens da tabela serão inseridos dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Informações de status -->
+        <div class="status-info">
+          <div class="status-item">
+            <div class="status-icon complete"></div>
+            <span>Completo</span>
+          </div>
+          <div class="status-item">
+            <div class="status-icon pending"></div>
+            <span>Pendente</span>
+          </div>
+          <div class="status-item">
+            <div class="status-icon overdue"></div>
+            <span>Atrasado</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal de Upload -->
+    <div id="upload-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Upload de Documento</h3>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="document-category">Categoria</label>
+            <select id="document-category" disabled>
+              <option value="aulas">AULAS</option>
+              <option value="plano-de-sessao">PLANO DE SESSÃO</option>
+              <option value="qta">QTA</option>
+              <option value="qtm">QTM</option>
+              <option value="qts">QTS</option>
+              <option value="relatorio-mensal">RELATÓRIO MENSAL</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="document-month">Mês</label>
+            <select id="document-month">
+              <option value="1">Janeiro</option>
+              <option value="2">Fevereiro</option>
+              <option value="3">Março</option>
+              <option value="4">Abril</option>
+              <option value="5">Maio</option>
+              <option value="6">Junho</option>
+              <option value="7">Julho</option>
+              <option value="8">Agosto</option>
+              <option value="9">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div id="week-container" class="input-group" style="display: none;">
+            <label for="document-week">Semana</label>
+            <select id="document-week">
+              <option value="1">1ª Semana</option>
+              <option value="2">2ª Semana</option>
+              <option value="3">3ª Semana</option>
+              <option value="4">4ª Semana</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="document-file">Arquivo</label>
+            <input type="file" id="document-file" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-upload" class="btn btn-outline">Cancelar</button>
+          <button id="confirm-upload" class="btn btn-primary">Upload</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts da aplicação -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
