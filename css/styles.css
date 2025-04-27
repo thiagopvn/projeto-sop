@@ -12,6 +12,13 @@
     --gray-color: #9e9e9e;
     --border-radius: 4px;
     --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    
+    /* Cores para tipos de eventos do calendário */
+    --event-visita: #4CAF50;
+    --event-formatura: #2196F3;
+    --event-instrucao: #FF9800;
+    --event-reuniao: #9C27B0;
+    --event-outro: #795548;
   }
   
   * {
@@ -54,6 +61,15 @@
   .btn-outline:hover {
     background-color: var(--primary-color);
     color: white;
+  }
+  
+  .btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+  }
+  
+  .btn-danger:hover {
+    background-color: #d32f2f;
   }
   
   /* Login Container - Atualizado para centralizar */
@@ -105,7 +121,8 @@
   }
   
   .input-group input,
-  .input-group select {
+  .input-group select,
+  .input-group textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
@@ -397,13 +414,13 @@
     gap: 10px;
   }
   
-  .close-modal {
+  .close-modal, .close-event-modal, .close-config-modal {
     font-size: 1.5rem;
     cursor: pointer;
     color: var(--gray-color);
   }
   
-  .close-modal:hover {
+  .close-modal:hover, .close-event-modal:hover, .close-config-modal:hover {
     color: var(--dark-color);
   }
   
@@ -492,14 +509,116 @@
   #save-config:hover {
     background-color: #3d8b40;
   }
-  
-  /* Close button para o modal de configuração */
-  .close-config-modal {
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--gray-color);
+
+  /* Estilos para o Calendário */
+  #calendar-container {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 20px;
+    margin-bottom: 20px;
   }
-  
-  .close-config-modal:hover {
-    color: var(--dark-color);
+
+  #calendar {
+    height: calc(100vh - 240px);
+    min-height: 600px;
+  }
+
+  /* Cores para os eventos no calendário */
+  .fc-event.event-visita {
+    background-color: var(--event-visita);
+    border-color: var(--event-visita);
+  }
+
+  .fc-event.event-formatura {
+    background-color: var(--event-formatura);
+    border-color: var(--event-formatura);
+  }
+
+  .fc-event.event-instrucao {
+    background-color: var(--event-instrucao);
+    border-color: var(--event-instrucao);
+  }
+
+  .fc-event.event-reuniao {
+    background-color: var(--event-reuniao);
+    border-color: var(--event-reuniao);
+  }
+
+  .fc-event.event-outro {
+    background-color: var(--event-outro);
+    border-color: var(--event-outro);
+  }
+
+  /* Estilos para o tooltip do calendário */
+  .event-tooltip {
+    position: absolute;
+    z-index: 1000;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    max-width: 300px;
+    display: none;
+  }
+
+  .event-tooltip-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+  }
+
+  .event-tooltip-time {
+    font-size: 14px;
+    color: var(--gray-color);
+    margin-bottom: 5px;
+  }
+
+  .event-tooltip-description {
+    font-size: 14px;
+    margin-top: 5px;
+  }
+
+  /* Status legenda para o calendário */
+  .calendar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+    margin-bottom: 10px;
+  }
+
+  .legend-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    margin-right: 5px;
+  }
+
+  .legend-color.visita {
+    background-color: var(--event-visita);
+  }
+
+  .legend-color.formatura {
+    background-color: var(--event-formatura);
+  }
+
+  .legend-color.instrucao {
+    background-color: var(--event-instrucao);
+  }
+
+  .legend-color.reuniao {
+    background-color: var(--event-reuniao);
+  }
+
+  .legend-color.outro {
+    background-color: var(--event-outro);
   }

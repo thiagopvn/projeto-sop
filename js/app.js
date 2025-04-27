@@ -23,7 +23,9 @@ const DOCUMENT_TYPES = {
       icon: 'fas fa-file-alt',
       monthlyCount: 1, // 1 documento por ano
       needsWeek: false,
-      annual: true     // Documento anual, não mensal
+      annual: true,     // Documento anual, não mensal
+      // Definir meses em que o QTA deve aparecer (todos exceto Janeiro e Fevereiro)
+      visibleMonths: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     QTM: {
       id: 'qtm',
@@ -48,6 +50,11 @@ const DOCUMENT_TYPES = {
       monthlyCount: 1,
       needsWeek: false,
       annual: false
+    },
+    CALENDARIO: {
+      id: 'calendario',
+      name: 'CALENDÁRIO',
+      icon: 'fas fa-calendar-day'
     }
   };
   
@@ -82,7 +89,10 @@ const DOCUMENT_TYPES = {
     categoryTitle: document.getElementById('category-title'),
     monthFilter: document.getElementById('month-filter'),
     uploadBtn: document.getElementById('upload-btn'),
+    addEventBtn: document.getElementById('add-event-btn'),
     documentList: document.getElementById('document-list'),
+    documentContainer: document.getElementById('document-container'),
+    calendarContainer: document.getElementById('calendar-container'),
     categoryItems: document.querySelectorAll('.category-list li')
   };
   
@@ -133,8 +143,30 @@ const DOCUMENT_TYPES = {
       currentCategory = item.getAttribute('data-category');
       appElements.categoryTitle.textContent = DOCUMENT_TYPES[getCategoryKey(currentCategory)].name;
       
-      // Carregar documentos da categoria
-      loadDocumentsByCategory(currentCategory, currentMonth);
+      // Verificar se é a categoria de calendário
+      if (currentCategory === 'calendario') {
+        // Ocultar elementos de documentos
+        appElements.documentContainer.style.display = 'none';
+        appElements.monthFilter.style.display = 'none';
+        appElements.uploadBtn.style.display = 'none';
+        
+        // Exibir elementos de calendário
+        appElements.calendarContainer.style.display = 'block';
+        appElements.addEventBtn.style.display = 'inline-flex';
+        return;
+      } else {
+        // Ocultar elementos de calendário
+        appElements.calendarContainer.style.display = 'none';
+        appElements.addEventBtn.style.display = 'none';
+        
+        // Exibir elementos de documentos
+        appElements.documentContainer.style.display = 'block';
+        appElements.monthFilter.style.display = 'inline-flex';
+        appElements.uploadBtn.style.display = 'inline-flex';
+        
+        // Carregar documentos da categoria
+        loadDocumentsByCategory(currentCategory, currentMonth);
+      }
     });
   });
   
@@ -185,7 +217,9 @@ const DOCUMENT_TYPES = {
       appElements.monthFilter.value = currentMonth;
       
       // Carregar documentos da categoria atual
-      loadDocumentsByCategory(currentCategory, currentMonth);
+      if (currentCategory !== 'calendario') {
+        loadDocumentsByCategory(currentCategory, currentMonth);
+      }
       
       // Atualizar nome do usuário
       if (auth.currentUser) {
@@ -202,6 +236,17 @@ const DOCUMENT_TYPES = {
       appElements.documentList.innerHTML = '';
       const categoryKey = getCategoryKey(category);
       const categoryInfo = DOCUMENT_TYPES[categoryKey];
+      
+      // Se for a categoria de calendário, não fazer nada
+      if (category === 'calendario') {
+        return;
+      }
+      
+      // Verificar se é um documento anual (QTA) e se deve ser exibido no mês atual
+      if (categoryInfo.annual && categoryInfo.visibleMonths && !categoryInfo.visibleMonths.includes(month)) {
+        // Se for QTA e o mês atual for Janeiro ou Fevereiro, não exibir nada
+        return;
+      }
       
       // Criar a consulta base
       let query = db.collection('documents').where('category', '==', category);
@@ -388,9 +433,9 @@ const DOCUMENT_TYPES = {
     // Habilitar/desabilitar o seletor de mês para documentos anuais
     modalElements.month.disabled = categoryInfo.annual;
     
-    // Se for documento anual, forçar Janeiro como mês (só para organização)
-    if (categoryInfo.annual) {
-      modalElements.month.value = 1;
+    // Se for documento anual, definir um mês visível padrão (Março)
+    if (categoryInfo.annual && categoryInfo.visibleMonths) {
+      modalElements.month.value = categoryInfo.visibleMonths[0]; // Usar o primeiro mês visível (Março)
     }
     
     if (categoryInfo.needsWeek) {
@@ -415,6 +460,15 @@ const DOCUMENT_TYPES = {
       category = currentCategory;
       month = currentMonth;
       week = null;
+    }
+    
+    const categoryKey = getCategoryKey(category);
+    const categoryInfo = DOCUMENT_TYPES[categoryKey];
+    
+    // Se for um documento anual (QTA) e o mês atual não for visível
+    if (categoryInfo.annual && categoryInfo.visibleMonths && !categoryInfo.visibleMonths.includes(month)) {
+      // Definir um mês visível padrão (Março)
+      month = categoryInfo.visibleMonths[0];
     }
     
     // Configurar valores do modal
@@ -497,6 +551,12 @@ const DOCUMENT_TYPES = {
       const needsWeek = categoryInfo.needsWeek;
       const isAnnual = categoryInfo.annual;
       const week = needsWeek ? parseInt(modalElements.week.value) : null;
+      
+      // Verificar se o mês é válido para documentos anuais (QTA)
+      if (isAnnual && categoryInfo.visibleMonths && !categoryInfo.visibleMonths.includes(month)) {
+        alert('Este documento não está disponível para o mês selecionado.');
+        return;
+      }
       
       // Consulta base para verificar documentos existentes
       let queryRef = db.collection('documents')

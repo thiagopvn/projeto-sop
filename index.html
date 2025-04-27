@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <!-- CSS da aplicação -->
   <link rel="stylesheet" href="css/styles.css">
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
 </head>
 <body>
   <!-- Container de Login -->
@@ -84,6 +86,9 @@
           <li data-category="relatorio-mensal">
             <i class="fas fa-chart-bar"></i> RELATÓRIO MENSAL
           </li>
+          <li data-category="calendario">
+            <i class="fas fa-calendar-day"></i> CALENDÁRIO
+          </li>
         </ul>
       </aside>
 
@@ -109,11 +114,14 @@
             <button id="upload-btn" class="btn btn-primary">
               <i class="fas fa-upload"></i> Upload
             </button>
+            <button id="add-event-btn" class="btn btn-primary" style="display: none;">
+              <i class="fas fa-plus"></i> Novo Evento
+            </button>
           </div>
         </div>
 
         <!-- Tabela de documentos -->
-        <div class="document-list-container">
+        <div id="document-container" class="document-list-container">
           <table class="document-table">
             <thead>
               <tr>
@@ -127,6 +135,11 @@
               <!-- Os itens da tabela serão inseridos dinamicamente -->
             </tbody>
           </table>
+        </div>
+
+        <!-- Container do Calendário (inicialmente oculto) -->
+        <div id="calendar-container" style="display: none;">
+          <div id="calendar"></div>
         </div>
 
         <!-- Informações de status -->
@@ -244,10 +257,58 @@
       </div>
     </div>
 
+    <!-- Modal de Evento -->
+    <div id="event-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="event-modal-title">Novo Evento</h3>
+          <span class="close-event-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="event-title">Título do Evento</label>
+            <input type="text" id="event-title" placeholder="Título do evento">
+          </div>
+          <div class="input-group">
+            <label for="event-date">Data</label>
+            <input type="date" id="event-date">
+          </div>
+          <div class="input-group">
+            <label for="event-time">Hora</label>
+            <input type="time" id="event-time">
+          </div>
+          <div class="input-group">
+            <label for="event-description">Descrição/Observações</label>
+            <textarea id="event-description" rows="4" placeholder="Detalhes do evento"></textarea>
+          </div>
+          <div class="input-group">
+            <label for="event-type">Tipo de Evento</label>
+            <select id="event-type">
+              <option value="visita">Visita</option>
+              <option value="formatura">Formatura</option>
+              <option value="instrucao">Instrução</option>
+              <option value="reuniao">Reunião</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="delete-event" class="btn btn-danger" style="display: none;">Excluir</button>
+          <button id="cancel-event" class="btn btn-outline">Cancelar</button>
+          <button id="save-event" class="btn btn-primary">Salvar</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
+  <!-- FullCalendar Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/locales/pt-br.js"></script>
+  
   <!-- Scripts da aplicação -->
   <script src="js/firebase-config.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/calendar.js"></script>
 </body>
 </html>
