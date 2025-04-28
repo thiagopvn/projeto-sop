@@ -1,4 +1,4 @@
-// operacao-simulada.js - Script para gerenciar a Operação Simulada
+// operacao-simulada.js - Versão corrigida
 
 // Variáveis globais
 let currentOperacaoId = null;
@@ -6,54 +6,12 @@ let isOperacaoEditMode = false;
 
 // Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-  // Adicionar evento para a categoria Operação Simulada
+  // Configurar eventos da operação simulada
   setupOperacaoSimuladaEvents();
 });
 
 // Configurar os eventos da aba Operação Simulada
 function setupOperacaoSimuladaEvents() {
-  // Obter referência ao item da barra lateral
-  const operacaoSimuladaItem = document.querySelector('li[data-category="operacao-simulada"]');
-  
-  if (operacaoSimuladaItem) {
-    // Adicionar evento de clique ao item da barra lateral
-    operacaoSimuladaItem.addEventListener('click', function() {
-      // Atualizar a categoria ativa no menu
-      const allCategoryItems = document.querySelectorAll('.category-list li');
-      allCategoryItems.forEach(item => item.classList.remove('active'));
-      operacaoSimuladaItem.classList.add('active');
-      
-      // Atualizar o título da página
-      const categoryTitle = document.getElementById('category-title');
-      if (categoryTitle) {
-        categoryTitle.textContent = 'OPERAÇÃO SIMULADA';
-      }
-      
-      // Ocultar outros containers
-      if (typeof hideAllContainers === 'function') {
-        hideAllContainers();
-      } else {
-        // Backup caso a função não esteja disponível
-        hideOperacaoContainers();
-      }
-      
-      // Mostrar o container da operação simulada
-      const operacaoContainer = document.getElementById('operacao-simulada-container');
-      if (operacaoContainer) {
-        operacaoContainer.style.display = 'block';
-      }
-      
-      // Mostrar o botão de upload específico
-      const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
-      if (uploadOperacaoBtn) {
-        uploadOperacaoBtn.style.display = 'inline-flex';
-      }
-      
-      // Carregar documentos da operação simulada
-      loadOperacoes();
-    });
-  }
-  
   // Evento para o botão de upload
   const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
   if (uploadOperacaoBtn) {
@@ -77,40 +35,6 @@ function setupOperacaoSimuladaEvents() {
   if (saveOperacaoBtn) {
     saveOperacaoBtn.addEventListener('click', saveOperacao);
   }
-}
-
-// Função para ocultar todos os containers (backup)
-function hideOperacaoContainers() {
-  const containers = [
-    'dashboard-container',
-    'document-container',
-    'calendar-container',
-    'livro-ordens-container',
-    'operacao-simulada-container'
-  ];
-  
-  containers.forEach(id => {
-    const container = document.getElementById(id);
-    if (container) {
-      container.style.display = 'none';
-    }
-  });
-  
-  // Ocultar botões e filtros
-  const elementsToHide = [
-    'month-filter',
-    'upload-btn',
-    'add-event-btn',
-    'upload-ordem-btn',
-    'upload-operacao-btn'
-  ];
-  
-  elementsToHide.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.style.display = 'none';
-    }
-  });
 }
 
 // Função para carregar documentos da Operação Simulada
@@ -183,10 +107,21 @@ function createOperacaoRow(id, operacao) {
   let dataFormatada = '-';
   if (operacao.data) {
     try {
-      const data = new Date(operacao.data);
-      const dia = data.getDate().toString().padStart(2, '0');
-      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-      const ano = data.getFullYear();
+      let dataObj;
+      if (typeof operacao.data === 'string') {
+        dataObj = new Date(operacao.data);
+      } else if (operacao.data instanceof Date) {
+        dataObj = operacao.data;
+      } else if (operacao.data.toDate && typeof operacao.data.toDate === 'function') {
+        // Para Timestamp do Firestore
+        dataObj = operacao.data.toDate();
+      } else {
+        throw new Error('Formato de data desconhecido');
+      }
+      
+      const dia = dataObj.getDate().toString().padStart(2, '0');
+      const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+      const ano = dataObj.getFullYear();
       dataFormatada = `${dia}/${mes}/${ano}`;
     } catch (e) {
       console.error('Erro ao formatar data:', e);

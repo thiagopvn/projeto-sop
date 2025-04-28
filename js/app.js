@@ -15,78 +15,77 @@ let currentMonth = 3; // Alterado para começar em março (mês 3)
 
 // Constantes para categorias de documentos
 const DOCUMENT_TYPES = {
-    DASHBOARD: {
-      id: 'dashboard',
-      name: 'DASHBOARD',
-      icon: 'fas fa-tachometer-alt'
-    },
-    AULAS: {
-      id: 'aulas',
-      name: 'AULAS',
-      icon: 'fas fa-chalkboard-teacher',
-      monthlyCount: 5,  // Máximo de 5 documentos por mês
-      needsWeek: true,  // Usa semanas para identificar documentos
-      annual: false
-    },
-    PLANO_DE_SESSAO: {
-      id: 'plano-de-sessao',
-      name: 'PLANO DE SESSÃO',
-      icon: 'fas fa-clipboard-list',
-      monthlyCount: 5,  // Máximo de 5 documentos por mês
-      needsWeek: true,
-      annual: false
-    },
-    QTA: {
-      id: 'qta',
-      name: 'QTA',
-      icon: 'fas fa-file-alt',
-      monthlyCount: 1, // 1 documento por ano
-      needsWeek: false,
-      annual: true,     // Documento anual, não mensal
-      // Definir meses em que o QTA deve aparecer (todos exceto Janeiro e Fevereiro)
-      visibleMonths: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    },
-    QTM: {
-      id: 'qtm',
-      name: 'QTM',
-      icon: 'fas fa-calendar-alt',
-      monthlyCount: 1,
-      needsWeek: false,
-      annual: false
-    },
-    QTS: {
-      id: 'qts',
-      name: 'QTS',
-      icon: 'fas fa-tasks',
-      monthlyCount: 5,  // Máximo de 5 documentos por mês
-      needsWeek: true,
-      annual: false
-    },
-    RELATORIO_MENSAL: {
-      id: 'relatorio-mensal',
-      name: 'RELATÓRIO MENSAL',
-      icon: 'fas fa-chart-bar',
-      monthlyCount: 1,
-      needsWeek: false,
-      annual: false
-    },
-    LIVRO_DE_ORDENS: {
-      id: 'livro-de-ordens',
-      name: 'LIVRO DE ORDENS',
-      icon: 'fas fa-book'
-    },
-    OPERACAO_SIMULADA: {
-      id: 'operacao-simulada',
-      name: 'OPERAÇÃO SIMULADA',
-      icon: 'fas fa-shield-alt'
-    },
-    CALENDARIO: {
-      id: 'calendario',
-      name: 'CALENDÁRIO',
-      icon: 'fas fa-calendar-day'
-    }
-  };
-  
+  DASHBOARD: {
+    id: 'dashboard',
+    name: 'DASHBOARD',
+    icon: 'fas fa-tachometer-alt'
+  },
+  AULAS: {
+    id: 'aulas',
+    name: 'AULAS',
+    icon: 'fas fa-chalkboard-teacher',
+    monthlyCount: 5,  // Máximo de 5 documentos por mês
+    needsWeek: true,  // Usa semanas para identificar documentos
+    annual: false
+  },
+  PLANO_DE_SESSAO: {
+    id: 'plano-de-sessao',
+    name: 'PLANO DE SESSÃO',
+    icon: 'fas fa-clipboard-list',
+    monthlyCount: 5,  // Máximo de 5 documentos por mês
+    needsWeek: true,
+    annual: false
+  },
+  QTA: {
+    id: 'qta',
+    name: 'QTA',
+    icon: 'fas fa-file-alt',
+    monthlyCount: 1, // 1 documento por ano
+    needsWeek: false,
+    annual: true,     // Documento anual, não mensal
+    // Definir meses em que o QTA deve aparecer (todos exceto Janeiro e Fevereiro)
+    visibleMonths: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  },
+  QTM: {
+    id: 'qtm',
+    name: 'QTM',
+    icon: 'fas fa-calendar-alt',
+    monthlyCount: 1,
+    needsWeek: false,
+    annual: false
+  },
+  QTS: {
+    id: 'qts',
+    name: 'QTS',
+    icon: 'fas fa-tasks',
+    monthlyCount: 5,  // Máximo de 5 documentos por mês
+    needsWeek: true,
+    annual: false
+  },
+  RELATORIO_MENSAL: {
+    id: 'relatorio-mensal',
+    name: 'RELATÓRIO MENSAL',
+    icon: 'fas fa-chart-bar',
+    monthlyCount: 1,
+    needsWeek: false,
+    annual: false
+  },
+  LIVRO_DE_ORDENS: {
+    id: 'livro-de-ordens',
+    name: 'LIVRO DE ORDENS',
+    icon: 'fas fa-book'
+  },
+  OPERACAO_SIMULADA: {
+    id: 'operacao-simulada',
+    name: 'OPERAÇÃO SIMULADA',
+    icon: 'fas fa-shield-alt'
+  },
+  CALENDARIO: {
+    id: 'calendario',
+    name: 'CALENDÁRIO',
+    icon: 'fas fa-calendar-day'
+  }
+};
 
 // Nomes dos meses
 const MONTH_NAMES = [
@@ -336,6 +335,41 @@ function hideAllContainers() {
       element.style.display = 'none';
     }
   });
+  
+  // Verificar se há cabeçalhos duplicados e removê-los
+  cleanupDuplicateHeaders();
+}
+
+// Função para limpar cabeçalhos duplicados que podem estar causando a exibição incorreta
+function cleanupDuplicateHeaders() {
+  const tables = document.querySelectorAll('.document-table');
+  
+  tables.forEach(table => {
+    // Verificar se há mais de um cabeçalho na tabela
+    const headers = table.querySelectorAll('thead');
+    if (headers.length > 1) {
+      // Manter apenas o primeiro cabeçalho
+      for (let i = 1; i < headers.length; i++) {
+        headers[i].remove();
+      }
+    }
+    
+    // Verificar se há linhas duplicadas no corpo da tabela
+    const tbody = table.querySelector('tbody');
+    if (tbody) {
+      const rows = tbody.querySelectorAll('tr');
+      const uniqueRows = new Set();
+      
+      rows.forEach(row => {
+        const rowContent = row.textContent.trim();
+        if (uniqueRows.has(rowContent)) {
+          row.remove();
+        } else {
+          uniqueRows.add(rowContent);
+        }
+      });
+    }
+  });
 }
 
 // Eventos de modal
@@ -473,11 +507,13 @@ async function loadDocumentsByCategory(category, month) {
   try {
     if (!appElements.documentList) return;
     
+    // Limpar a lista antes de carregar novos documentos
     appElements.documentList.innerHTML = '';
+    
     const categoryKey = getCategoryKey(category);
     const categoryInfo = DOCUMENT_TYPES[categoryKey];
     
-    // Se for a categoria de calendário ou dashboard, não fazer nada
+    // Se for a categoria de calendário, dashboard, livro de ordens ou operação simulada, não fazer nada
     if (category === 'calendario' || category === 'dashboard' || 
         category === 'livro-de-ordens' || category === 'operacao-simulada') {
       return;
