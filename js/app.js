@@ -15,67 +15,78 @@ let currentMonth = 3; // Alterado para começar em março (mês 3)
 
 // Constantes para categorias de documentos
 const DOCUMENT_TYPES = {
-  DASHBOARD: {
-    id: 'dashboard',
-    name: 'DASHBOARD',
-    icon: 'fas fa-tachometer-alt'
-  },
-  AULAS: {
-    id: 'aulas',
-    name: 'AULAS',
-    icon: 'fas fa-chalkboard-teacher',
-    monthlyCount: 5,  // Máximo de 5 documentos por mês
-    needsWeek: true,  // Usa semanas para identificar documentos
-    annual: false
-  },
-  PLANO_DE_SESSAO: {
-    id: 'plano-de-sessao',
-    name: 'PLANO DE SESSÃO',
-    icon: 'fas fa-clipboard-list',
-    monthlyCount: 5,  // Máximo de 5 documentos por mês
-    needsWeek: true,
-    annual: false
-  },
-  QTA: {
-    id: 'qta',
-    name: 'QTA',
-    icon: 'fas fa-file-alt',
-    monthlyCount: 1, // 1 documento por ano
-    needsWeek: false,
-    annual: true,     // Documento anual, não mensal
-    // Definir meses em que o QTA deve aparecer (todos exceto Janeiro e Fevereiro)
-    visibleMonths: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-  },
-  QTM: {
-    id: 'qtm',
-    name: 'QTM',
-    icon: 'fas fa-calendar-alt',
-    monthlyCount: 1,
-    needsWeek: false,
-    annual: false
-  },
-  QTS: {
-    id: 'qts',
-    name: 'QTS',
-    icon: 'fas fa-tasks',
-    monthlyCount: 5,  // Máximo de 5 documentos por mês
-    needsWeek: true,
-    annual: false
-  },
-  RELATORIO_MENSAL: {
-    id: 'relatorio-mensal',
-    name: 'RELATÓRIO MENSAL',
-    icon: 'fas fa-chart-bar',
-    monthlyCount: 1,
-    needsWeek: false,
-    annual: false
-  },
-  CALENDARIO: {
-    id: 'calendario',
-    name: 'CALENDÁRIO',
-    icon: 'fas fa-calendar-day'
-  }
-};
+    DASHBOARD: {
+      id: 'dashboard',
+      name: 'DASHBOARD',
+      icon: 'fas fa-tachometer-alt'
+    },
+    AULAS: {
+      id: 'aulas',
+      name: 'AULAS',
+      icon: 'fas fa-chalkboard-teacher',
+      monthlyCount: 5,  // Máximo de 5 documentos por mês
+      needsWeek: true,  // Usa semanas para identificar documentos
+      annual: false
+    },
+    PLANO_DE_SESSAO: {
+      id: 'plano-de-sessao',
+      name: 'PLANO DE SESSÃO',
+      icon: 'fas fa-clipboard-list',
+      monthlyCount: 5,  // Máximo de 5 documentos por mês
+      needsWeek: true,
+      annual: false
+    },
+    QTA: {
+      id: 'qta',
+      name: 'QTA',
+      icon: 'fas fa-file-alt',
+      monthlyCount: 1, // 1 documento por ano
+      needsWeek: false,
+      annual: true,     // Documento anual, não mensal
+      // Definir meses em que o QTA deve aparecer (todos exceto Janeiro e Fevereiro)
+      visibleMonths: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    QTM: {
+      id: 'qtm',
+      name: 'QTM',
+      icon: 'fas fa-calendar-alt',
+      monthlyCount: 1,
+      needsWeek: false,
+      annual: false
+    },
+    QTS: {
+      id: 'qts',
+      name: 'QTS',
+      icon: 'fas fa-tasks',
+      monthlyCount: 5,  // Máximo de 5 documentos por mês
+      needsWeek: true,
+      annual: false
+    },
+    RELATORIO_MENSAL: {
+      id: 'relatorio-mensal',
+      name: 'RELATÓRIO MENSAL',
+      icon: 'fas fa-chart-bar',
+      monthlyCount: 1,
+      needsWeek: false,
+      annual: false
+    },
+    LIVRO_DE_ORDENS: {
+      id: 'livro-de-ordens',
+      name: 'LIVRO DE ORDENS',
+      icon: 'fas fa-book'
+    },
+    OPERACAO_SIMULADA: {
+      id: 'operacao-simulada',
+      name: 'OPERAÇÃO SIMULADA',
+      icon: 'fas fa-shield-alt'
+    },
+    CALENDARIO: {
+      id: 'calendario',
+      name: 'CALENDÁRIO',
+      icon: 'fas fa-calendar-day'
+    }
+  };
+  
 
 // Nomes dos meses
 const MONTH_NAMES = [

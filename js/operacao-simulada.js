@@ -2,7 +2,7 @@
 
 // Variáveis globais
 let currentOperacaoId = null;
-let isEditMode = false;
+let isOperacaoEditMode = false; // Renomeada para evitar conflitos
 
 // Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
@@ -87,40 +87,6 @@ function setupOperacaoSimuladaEvents() {
         uploadOperacaoBtn.style.display = 'none';
       }
     });
-  });
-}
-
-// Função para ocultar todos os containers
-function hideAllContainers() {
-  const containers = [
-    'dashboard-container',
-    'document-container',
-    'calendar-container',
-    'livro-ordens-container',
-    'operacao-simulada-container'
-  ];
-  
-  containers.forEach(id => {
-    const container = document.getElementById(id);
-    if (container) {
-      container.style.display = 'none';
-    }
-  });
-  
-  // Ocultar botões e filtros
-  const elementsToHide = [
-    'month-filter',
-    'upload-btn',
-    'add-event-btn',
-    'upload-ordem-btn',
-    'upload-operacao-btn'
-  ];
-  
-  elementsToHide.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.style.display = 'none';
-    }
   });
 }
 
@@ -283,7 +249,7 @@ async function openOperacaoModal(operacaoId = null) {
   
   // Definir valores iniciais
   currentOperacaoId = null;
-  isEditMode = false;
+  isOperacaoEditMode = false; // Usando a variável renomeada
   
   // Definir data atual como padrão
   const today = new Date();
@@ -294,7 +260,7 @@ async function openOperacaoModal(operacaoId = null) {
   
   if (operacaoId) {
     // Modo de edição
-    isEditMode = true;
+    isOperacaoEditMode = true; // Usando a variável renomeada
     currentOperacaoId = operacaoId;
     title.textContent = 'Editar Documento';
     fileContainer.style.display = 'none';
@@ -377,7 +343,7 @@ async function saveOperacao() {
   
   try {
     // Atualizar documento existente
-    if (isEditMode && currentOperacaoId) {
+    if (isOperacaoEditMode && currentOperacaoId) {
       await db.collection('operacao-simulada').doc(currentOperacaoId).update({
         nome: nome,
         data: data,
