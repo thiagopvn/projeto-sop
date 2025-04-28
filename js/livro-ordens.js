@@ -25,6 +25,32 @@ const ordemModalElements = {
 
 // Inicializar eventos quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
+  // Inicializar elementos após o carregamento completo da página
+  setTimeout(() => {
+    initOrdemElements();
+    setupOrdemEvents();
+  }, 500);
+});
+
+// Inicializar elementos do Livro de Ordens
+function initOrdemElements() {
+  ordemElements.container = document.getElementById('livro-ordens-container');
+  ordemElements.list = document.getElementById('livro-ordens-list');
+  ordemElements.uploadBtn = document.getElementById('upload-ordem-btn');
+
+  ordemModalElements.modal = document.getElementById('ordem-modal');
+  ordemModalElements.title = document.getElementById('ordem-modal-title');
+  ordemModalElements.nome = document.getElementById('ordem-nome');
+  ordemModalElements.data = document.getElementById('ordem-data');
+  ordemModalElements.fileContainer = document.getElementById('ordem-file-container');
+  ordemModalElements.file = document.getElementById('ordem-file');
+  ordemModalElements.cancelBtn = document.getElementById('cancel-ordem');
+  ordemModalElements.saveBtn = document.getElementById('save-ordem');
+  ordemModalElements.closeBtn = document.querySelector('.close-ordem-modal');
+}
+
+// Configurar eventos do Livro de Ordens
+function setupOrdemEvents() {
   // Verificar se os elementos existem
   if (!ordemElements.uploadBtn || !ordemModalElements.modal) return;
 
@@ -84,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadOrdens();
     });
   }
-});
+}
 
 // Função para carregar documentos do Livro de Ordens
 async function loadOrdens() {
@@ -94,7 +120,20 @@ async function loadOrdens() {
     // Limpar lista atual
     ordemElements.list.innerHTML = '';
     
-    // Consultar documentos do tipo "livro-de-ordens"
+    // Verificar se o Firestore está disponível
+    if (typeof db === 'undefined') {
+      console.error("Firebase não está disponível");
+      ordemElements.list.innerHTML = `
+        <tr>
+          <td colspan="3" class="empty-list-message">
+            Erro ao carregar os documentos. Firebase não está disponível.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    
+    // Consultar documentos do tipo "livro-ordens"
     const snapshot = await db.collection('livro-ordens')
       .orderBy('data', 'desc')
       .get();
@@ -120,7 +159,13 @@ async function loadOrdens() {
     
   } catch (error) {
     console.error('Erro ao carregar Livro de Ordens:', error);
-    alert('Erro ao carregar documentos do Livro de Ordens.');
+    ordemElements.list.innerHTML = `
+      <tr>
+        <td colspan="3" class="empty-list-message">
+          Erro ao carregar documentos: ${error.message}
+        </td>
+      </tr>
+    `;
   }
 }
 
@@ -184,12 +229,15 @@ function createOrdemRow(id, ordem) {
 
 // Função para abrir o modal de upload/edição
 async function openOrdemModal(ordemId) {
-  if (!ordemModalElements.modal) return;
+  if (!ordemModalElements.modal) {
+    console.error("Modal não encontrado");
+    return;
+  }
   
   // Resetar valores
   ordemModalElements.nome.value = '';
   ordemModalElements.data.value = '';
-  ordemModalElements.file.value = '';
+  if (ordemModalElements.file) ordemModalElements.file.value = '';
   currentOrdemId = null;
   isEditMode = false;
   
@@ -261,6 +309,12 @@ async function saveOrdem() {
       return;
     }
     
+    // Verificar autenticação
+    if (!auth.currentUser) {
+      alert('Usuário não autenticado. Por favor, faça login novamente.');
+      return;
+    }
+    
     // Se for edição
     if (isEditMode && currentOrdemId) {
       await db.collection('livro-ordens').doc(currentOrdemId).update({
@@ -281,58 +335,104 @@ async function saveOrdem() {
       return;
     }
     
-    // Criar nome de arquivo
+    // Criar nome de arquivo seguro removendo caracteres especiais
+    const safeNome = nome.replace(/[^a-z0-9]/gi, '_');
     const fileExt = file.name.split('.').pop();
-    const fileName = `livro-ordens/${Date.now()}_${nome.replace(/[^a-z0-9]/gi, '_')}.${fileExt}`;
+    const fileName = `livro-ordens/${Date.now()}_${safeNome}.${fileExt}`;
     
-    // Upload do arquivo
-    const storageRef = storage.ref(fileName);
-    const uploadTask = storageRef.put(file);
+    // Verificar se storageRef existe
+    if (!storage) {
+      console.error('Firebase Storage não inicializado');
+      alert('Erro: Firebase Storage não está disponível.');
+      return;
+    }
     
-    // Monitorar progresso
-    uploadTask.on('state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        console.log(`Upload progress: ${progress}%`);
-      },
-      (error) => {
-        console.error('Erro no upload:', error);
-        alert('Erro ao fazer upload do arquivo.');
-      },
-      async () => {
-        // Upload concluído com sucesso
-        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-        
-        // Salvar no Firestore
-        await db.collection('livro-ordens').add({
-          nome,
-          data,
-          fileName: file.name,
-          fileUrl: downloadURL,
-          uploadedBy: auth.currentUser.uid,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        closeOrdemModal();
-        loadOrdens();
-      }
-    );
+    try {
+      // Upload do arquivo com tratamento de erro específico
+      console.log(`Iniciando upload para: ${fileName}`);
+      const storageRef = storage.ref(fileName);
+      const uploadTask = storageRef.put(file);
+      
+      // Monitorar progresso
+      uploadTask.on('state_changed',
+        // Progresso
+        (snapshot) => {
+          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          console.log(`Upload progress: ${progress}%`);
+        },
+        // Erro
+        (error) => {
+          console.error('Erro no upload:', error);
+          // Mensagem de erro detalhada
+          let mensagemErro = 'Erro ao fazer upload do arquivo.';
+          
+          if (error.code === 'storage/unauthorized') {
+            mensagemErro = 'Erro de permissão: Você não tem autorização para fazer upload neste local.';
+          } else if (error.code === 'storage/canceled') {
+            mensagemErro = 'Upload cancelado.';
+          } else if (error.code === 'storage/unknown') {
+            mensagemErro = `Erro desconhecido: ${error.message}`;
+          }
+          
+          alert(mensagemErro);
+        },
+        // Upload completo
+        async () => {
+          try {
+            console.log('Upload concluído, obtendo URL de download...');
+            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+            
+            console.log('Salvando dados no Firestore...');
+            // Salvar no Firestore
+            await db.collection('livro-ordens').add({
+              nome,
+              data,
+              fileName: file.name,
+              fileUrl: downloadURL,
+              uploadedBy: auth.currentUser.uid,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            console.log('Documento salvo com sucesso!');
+            closeOrdemModal();
+            loadOrdens();
+          } catch (innerError) {
+            console.error('Erro ao finalizar o processo:', innerError);
+            alert(`Erro ao salvar o documento: ${innerError.message}`);
+          }
+        }
+      );
+    } catch (uploadError) {
+      console.error('Erro ao iniciar upload:', uploadError);
+      alert(`Erro ao iniciar upload: ${uploadError.message}`);
+    }
     
   } catch (error) {
-    console.error('Erro ao salvar documento:', error);
-    alert('Erro ao salvar o documento.');
+    console.error('Erro global ao salvar documento:', error);
+    alert(`Erro ao processar a operação: ${error.message}`);
   }
 }
 
 // Função para baixar documento
 function downloadOrdem(url, name) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  if (!url) {
+    console.error('URL de download não disponível');
+    alert('URL de download não disponível para este documento.');
+    return;
+  }
+  
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Erro ao baixar documento:', error);
+    alert('Erro ao baixar o documento.');
+  }
 }
 
 // Função para excluir documento
@@ -341,6 +441,12 @@ async function deleteOrdem(id) {
     const confirmDelete = confirm('Tem certeza que deseja excluir este documento?');
     if (!confirmDelete) return;
     
+    // Verificar autenticação
+    if (!auth.currentUser) {
+      alert('Usuário não autenticado. Por favor, faça login novamente.');
+      return;
+    }
+    
     // Obter referência do documento
     const docRef = db.collection('livro-ordens').doc(id);
     const doc = await docRef.get();
@@ -348,10 +454,15 @@ async function deleteOrdem(id) {
     if (doc.exists) {
       const fileUrl = doc.data().fileUrl;
       
-      // Excluir arquivo do Storage
+      // Excluir arquivo do Storage com tratamento de erros
       if (fileUrl) {
-        const fileRef = storage.refFromURL(fileUrl);
-        await fileRef.delete();
+        try {
+          const fileRef = storage.refFromURL(fileUrl);
+          await fileRef.delete();
+        } catch (storageError) {
+          console.error('Erro ao excluir arquivo do Storage:', storageError);
+          // Continuar mesmo se não conseguir excluir o arquivo (pode já ter sido excluído)
+        }
       }
       
       // Excluir documento do Firestore
@@ -362,6 +473,6 @@ async function deleteOrdem(id) {
     }
   } catch (error) {
     console.error('Erro ao excluir documento:', error);
-    alert('Erro ao excluir o documento.');
+    alert(`Erro ao excluir o documento: ${error.message}`);
   }
 }
