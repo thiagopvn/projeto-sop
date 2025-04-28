@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     initOrdemElements();
     setupOrdemEvents();
+    setupNavigationEvents();
   }, 500);
 });
 
@@ -47,6 +48,76 @@ function initOrdemElements() {
   ordemModalElements.cancelBtn = document.getElementById('cancel-ordem');
   ordemModalElements.saveBtn = document.getElementById('save-ordem');
   ordemModalElements.closeBtn = document.querySelector('.close-ordem-modal');
+}
+
+// Configurar eventos de navegação para todas as categorias
+function setupNavigationEvents() {
+  const allCategoryItems = document.querySelectorAll('.category-list li');
+  
+  allCategoryItems.forEach(item => {
+    item.addEventListener('click', function() {
+      const category = this.getAttribute('data-category');
+      
+      // Limpar qualquer conteúdo duplicado de Livro de Ordens
+      cleanupLivroOrdensContent();
+      
+      // Se não estamos na aba Livro de Ordens, ocultar seus elementos específicos
+      if (category !== 'livro-de-ordens') {
+        if (ordemElements.container) ordemElements.container.style.display = 'none';
+        if (ordemElements.uploadBtn) ordemElements.uploadBtn.style.display = 'none';
+      }
+    });
+  });
+}
+
+// Limpar qualquer conteúdo duplicado de Livro de Ordens
+function cleanupLivroOrdensContent() {
+  // Remover todas as linhas extras de Livro de Ordens que possam ter sido adicionadas a outras categorias
+  const allDocumentLists = document.querySelectorAll('#document-list');
+  if (allDocumentLists.length > 0) {
+    allDocumentLists.forEach(list => {
+      const headerRows = list.querySelectorAll('tr:has(th)');
+      const livroOrdensRows = list.querySelectorAll('tr:has(td:first-child:contains("Nome do Documento"))');
+      
+      // Remover linhas de cabeçalho e conteúdo do Livro de Ordens
+      headerRows.forEach(row => {
+        if (row.textContent.includes('Nome do Documento') && row.textContent.includes('Data')) {
+          row.remove();
+        }
+      });
+      
+      livroOrdensRows.forEach(row => row.remove());
+      
+      // Remover também linhas de documentos que pertencem ao Livro de Ordens
+      const documentRows = list.querySelectorAll('tr');
+      documentRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 0) {
+          // Identificar documentos do Livro de Ordens por padrões específicos
+          const docTypes = [
+            'RECEPÇÃO E TESTE DE MATERIAIS OPERACIONAIS',
+            'NORMAS PARA PLANEJAMENTO E CONDUTA',
+            'INCÊNDIOS ENVOLVENDO VEÍCULOS',
+            'NPCI - 2025',
+            'OPERAÇÃO DE PREVENÇÃO',
+            'PROGRAMA DE QUALIFICAÇÃO OPERACIONAL',
+            'REPROGRAMAÇÃO DOS RÁDIOS'
+          ];
+          
+          let isLivroOrdens = false;
+          docTypes.forEach(type => {
+            if (cells[0] && cells[0].textContent.includes(type)) {
+              isLivroOrdens = true;
+            }
+          });
+          
+          if (isLivroOrdens) {
+            row.remove();
+          }
+        }
+      });
+    });
+  }
 }
 
 // Configurar eventos do Livro de Ordens
@@ -76,6 +147,9 @@ function setupOrdemEvents() {
   const livroOrdensCategory = document.querySelector('li[data-category="livro-de-ordens"]');
   if (livroOrdensCategory) {
     livroOrdensCategory.addEventListener('click', function() {
+      // Limpar qualquer conteúdo duplicado
+      cleanupLivroOrdensContent();
+      
       // Atualizar o título da página
       const categoryTitle = document.getElementById('category-title');
       if (categoryTitle) {
@@ -476,3 +550,10 @@ async function deleteOrdem(id) {
     alert(`Erro ao excluir o documento: ${error.message}`);
   }
 }
+
+// Executar limpeza inicial para remover conteúdo duplicado
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    cleanupLivroOrdensContent();
+  }, 1000);
+});
