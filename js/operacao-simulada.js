@@ -1,4 +1,4 @@
-// operacao-simulada.js - Versão corrigida
+// operacao-simulada.js - Script para gerenciar a Operação Simulada
 
 // Variáveis globais
 let currentOperacaoId = null;
@@ -6,18 +6,53 @@ let isOperacaoEditMode = false;
 
 // Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-  // Configurar eventos da operação simulada
+  // Adicionar evento para a categoria Operação Simulada
   setupOperacaoSimuladaEvents();
 });
 
 // Configurar os eventos da aba Operação Simulada
 function setupOperacaoSimuladaEvents() {
+  // Obter referência ao item da barra lateral
+  const operacaoSimuladaItem = document.querySelector('li[data-category="operacao-simulada"]');
+  
+  if (operacaoSimuladaItem) {
+    // Adicionar evento de clique ao item da barra lateral
+    operacaoSimuladaItem.addEventListener('click', function() {
+      // Atualizar a categoria ativa no menu
+      const allCategoryItems = document.querySelectorAll('.category-list li');
+      allCategoryItems.forEach(item => item.classList.remove('active'));
+      operacaoSimuladaItem.classList.add('active');
+      
+      // Atualizar o título da página
+      const categoryTitle = document.getElementById('category-title');
+      if (categoryTitle) {
+        categoryTitle.textContent = 'OPERAÇÃO SIMULADA';
+      }
+      
+      // Ocultar outros containers
+      hideAllContainers();
+      
+      // Mostrar o container da operação simulada
+      const operacaoSimuladaContainer = document.getElementById('operacao-simulada-container');
+      if (operacaoSimuladaContainer) {
+        operacaoSimuladaContainer.style.display = 'block';
+      }
+      
+      // Mostrar o botão de upload específico
+      const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
+      if (uploadOperacaoBtn) {
+        uploadOperacaoBtn.style.display = 'inline-flex';
+      }
+      
+      // Carregar documentos da operação simulada
+      loadOperacoes();
+    });
+  }
+  
   // Evento para o botão de upload
   const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
   if (uploadOperacaoBtn) {
-    uploadOperacaoBtn.addEventListener('click', function() {
-      openOperacaoModal();
-    });
+    uploadOperacaoBtn.addEventListener('click', openOperacaoModal);
   }
   
   // Eventos para o modal
@@ -35,6 +70,58 @@ function setupOperacaoSimuladaEvents() {
   if (saveOperacaoBtn) {
     saveOperacaoBtn.addEventListener('click', saveOperacao);
   }
+  
+  // Adicionar eventos para outros itens da navegação para ocultar o container da operação simulada
+  const otherCategories = document.querySelectorAll('.category-list li:not([data-category="operacao-simulada"])');
+  otherCategories.forEach(item => {
+    item.addEventListener('click', function() {
+      // Ocultar o container da operação simulada
+      const operacaoSimuladaContainer = document.getElementById('operacao-simulada-container');
+      if (operacaoSimuladaContainer) {
+        operacaoSimuladaContainer.style.display = 'none';
+      }
+      
+      // Ocultar o botão de upload específico
+      const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
+      if (uploadOperacaoBtn) {
+        uploadOperacaoBtn.style.display = 'none';
+      }
+    });
+  });
+}
+
+// Função auxiliar para ocultar todos os containers
+function hideAllContainers() {
+  const containers = [
+    'dashboard-container',
+    'document-container',
+    'calendar-container',
+    'livro-ordens-container',
+    'operacao-simulada-container'
+  ];
+  
+  containers.forEach(id => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.style.display = 'none';
+    }
+  });
+  
+  // Ocultar botões e filtros
+  const elementsToHide = [
+    'month-filter',
+    'upload-btn',
+    'add-event-btn',
+    'upload-ordem-btn',
+    'upload-operacao-btn'
+  ];
+  
+  elementsToHide.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
 }
 
 // Função para carregar documentos da Operação Simulada
