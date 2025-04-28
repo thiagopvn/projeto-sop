@@ -101,6 +101,8 @@ const appElements = {
   documentList: document.getElementById('document-list'),
   documentContainer: document.getElementById('document-container'),
   calendarContainer: document.getElementById('calendar-container'),
+  uploadOrdemBtn: document.getElementById('upload-ordem-btn'),
+  uploadOperacaoBtn: document.getElementById('upload-operacao-btn'),
   categoryItems: document.querySelectorAll('.category-list li')
 };
 
@@ -177,16 +179,12 @@ appElements.categoryItems.forEach(item => {
     // Atualizar categoria atual
     currentCategory = newCategory;
     appElements.categoryTitle.textContent = currentCategory === 'dashboard' ? 'DASHBOARD' : 
-                                           DOCUMENT_TYPES[getCategoryKey(currentCategory)].name;
+                                           (currentCategory === 'operacao-simulada' ? 'OPERAÇÃO SIMULADA' :
+                                           (currentCategory === 'livro-de-ordens' ? 'LIVRO DE ORDENS' :
+                                           DOCUMENT_TYPES[getCategoryKey(currentCategory)].name));
     
     // Ocultar primeiro todos os containers principais
-    if (appElements.documentContainer) appElements.documentContainer.style.display = 'none';
-    if (appElements.calendarContainer) appElements.calendarContainer.style.display = 'none';
-    if (document.getElementById('dashboard-container')) document.getElementById('dashboard-container').style.display = 'none';
-    
-    // Ocultar botões e filtros que não são necessários para todos os modos
-    if (appElements.uploadBtn) appElements.uploadBtn.style.display = 'none';
-    if (appElements.addEventBtn) appElements.addEventBtn.style.display = 'none';
+    hideAllContainers();
     
     // Verificar se é a categoria de calendário
     if (currentCategory === 'calendario') {
@@ -223,7 +221,50 @@ appElements.categoryItems.forEach(item => {
       if (typeof updateDashboard === 'function') {
         updateDashboard(true);
       }
-    } else {
+    } 
+    // Verificar se é a categoria de livro de ordens
+    else if (currentCategory === 'livro-de-ordens') {
+      // Ocultar filtro de mês
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
+      
+      // Exibir container do livro de ordens
+      const livroOrdensContainer = document.getElementById('livro-ordens-container');
+      if (livroOrdensContainer) livroOrdensContainer.style.display = 'block';
+      
+      // Exibir botão de upload específico
+      if (appElements.uploadOrdemBtn) appElements.uploadOrdemBtn.style.display = 'inline-flex';
+      
+      // Ocultar informações de status
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'none';
+      
+      // Carregar documentos do livro de ordens
+      if (typeof loadOrdens === 'function') {
+        loadOrdens();
+      }
+    }
+    // Verificar se é a categoria de operação simulada
+    else if (currentCategory === 'operacao-simulada') {
+      // Ocultar filtro de mês
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
+      
+      // Exibir container da operação simulada
+      const operacaoContainer = document.getElementById('operacao-simulada-container');
+      if (operacaoContainer) operacaoContainer.style.display = 'block';
+      
+      // Exibir botão de upload específico
+      if (appElements.uploadOperacaoBtn) appElements.uploadOperacaoBtn.style.display = 'inline-flex';
+      
+      // Ocultar informações de status
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'none';
+      
+      // Carregar documentos da operação simulada
+      if (typeof loadOperacoes === 'function') {
+        loadOperacoes();
+      }
+    }
+    else {
       // Para todas as outras categorias (documentos)
       
       // Exibir elementos de documentos
@@ -248,6 +289,40 @@ if (appElements.monthFilter) {
       updateDashboard(false);
     } else {
       loadDocumentsByCategory(currentCategory, currentMonth);
+    }
+  });
+}
+
+// Função para ocultar todos os containers
+function hideAllContainers() {
+  const containers = [
+    'dashboard-container',
+    'document-container',
+    'calendar-container',
+    'livro-ordens-container',
+    'operacao-simulada-container'
+  ];
+  
+  containers.forEach(id => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.style.display = 'none';
+    }
+  });
+  
+  // Ocultar botões e filtros
+  const elementsToHide = [
+    'month-filter',
+    'upload-btn',
+    'add-event-btn',
+    'upload-ordem-btn',
+    'upload-operacao-btn'
+  ];
+  
+  elementsToHide.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
     }
   });
 }
@@ -349,20 +424,11 @@ async function loadDocuments() {
     }
     
     // Esconder elementos de documentos e calendário
-    if (appElements.documentContainer) {
-      appElements.documentContainer.style.display = 'none';
-    }
+    hideAllContainers();
+    
+    // Mostrar filtro de mês para o dashboard
     if (appElements.monthFilter) {
-      appElements.monthFilter.style.display = 'inline-flex'; // Alterado para mostrar o filtro
-    }
-    if (appElements.uploadBtn) {
-      appElements.uploadBtn.style.display = 'none';
-    }
-    if (appElements.calendarContainer) {
-      appElements.calendarContainer.style.display = 'none';
-    }
-    if (appElements.addEventBtn) {
-      appElements.addEventBtn.style.display = 'none';
+      appElements.monthFilter.style.display = 'inline-flex';
     }
     
     // Mostrar dashboard
@@ -401,7 +467,8 @@ async function loadDocumentsByCategory(category, month) {
     const categoryInfo = DOCUMENT_TYPES[categoryKey];
     
     // Se for a categoria de calendário ou dashboard, não fazer nada
-    if (category === 'calendario' || category === 'dashboard') {
+    if (category === 'calendario' || category === 'dashboard' || 
+        category === 'livro-de-ordens' || category === 'operacao-simulada') {
       return;
     }
     
