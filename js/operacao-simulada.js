@@ -2,7 +2,7 @@
 
 // Variáveis globais
 let currentOperacaoId = null;
-let isOperacaoEditMode = false; // Renomeada para evitar conflitos
+let isOperacaoEditMode = false;
 
 // Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
@@ -30,7 +30,12 @@ function setupOperacaoSimuladaEvents() {
       }
       
       // Ocultar outros containers
-      hideAllContainers();
+      if (typeof hideAllContainers === 'function') {
+        hideAllContainers();
+      } else {
+        // Backup caso a função não esteja disponível
+        hideOperacaoContainers();
+      }
       
       // Mostrar o container da operação simulada
       const operacaoContainer = document.getElementById('operacao-simulada-container');
@@ -52,7 +57,9 @@ function setupOperacaoSimuladaEvents() {
   // Evento para o botão de upload
   const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
   if (uploadOperacaoBtn) {
-    uploadOperacaoBtn.addEventListener('click', openOperacaoModal);
+    uploadOperacaoBtn.addEventListener('click', function() {
+      openOperacaoModal();
+    });
   }
   
   // Eventos para o modal
@@ -70,23 +77,39 @@ function setupOperacaoSimuladaEvents() {
   if (saveOperacaoBtn) {
     saveOperacaoBtn.addEventListener('click', saveOperacao);
   }
+}
+
+// Função para ocultar todos os containers (backup)
+function hideOperacaoContainers() {
+  const containers = [
+    'dashboard-container',
+    'document-container',
+    'calendar-container',
+    'livro-ordens-container',
+    'operacao-simulada-container'
+  ];
   
-  // Adicionar eventos para outros itens da navegação para ocultar o container da operação simulada
-  const otherCategories = document.querySelectorAll('.category-list li:not([data-category="operacao-simulada"])');
-  otherCategories.forEach(item => {
-    item.addEventListener('click', function() {
-      // Ocultar o container da operação simulada
-      const operacaoContainer = document.getElementById('operacao-simulada-container');
-      if (operacaoContainer) {
-        operacaoContainer.style.display = 'none';
-      }
-      
-      // Ocultar o botão de upload específico
-      const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
-      if (uploadOperacaoBtn) {
-        uploadOperacaoBtn.style.display = 'none';
-      }
-    });
+  containers.forEach(id => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.style.display = 'none';
+    }
+  });
+  
+  // Ocultar botões e filtros
+  const elementsToHide = [
+    'month-filter',
+    'upload-btn',
+    'add-event-btn',
+    'upload-ordem-btn',
+    'upload-operacao-btn'
+  ];
+  
+  elementsToHide.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    }
   });
 }
 
@@ -159,11 +182,15 @@ function createOperacaoRow(id, operacao) {
   // Formatar data
   let dataFormatada = '-';
   if (operacao.data) {
-    const data = new Date(operacao.data);
-    const dia = data.getDate().toString().padStart(2, '0');
-    const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-    const ano = data.getFullYear();
-    dataFormatada = `${dia}/${mes}/${ano}`;
+    try {
+      const data = new Date(operacao.data);
+      const dia = data.getDate().toString().padStart(2, '0');
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+      const ano = data.getFullYear();
+      dataFormatada = `${dia}/${mes}/${ano}`;
+    } catch (e) {
+      console.error('Erro ao formatar data:', e);
+    }
   }
   
   tr.innerHTML = `
@@ -187,42 +214,50 @@ function createOperacaoRow(id, operacao) {
   
   // Adicionar eventos aos botões
   const viewBtn = tr.querySelector('.view-btn');
-  viewBtn.setAttribute('data-id', id);
-  viewBtn.setAttribute('data-url', operacao.fileUrl || '');
-  viewBtn.addEventListener('click', function() {
-    const url = this.getAttribute('data-url');
-    if (url) {
-      window.open(url, '_blank');
-    } else {
-      alert('URL do documento não disponível.');
-    }
-  });
+  if (viewBtn) {
+    viewBtn.setAttribute('data-id', id);
+    viewBtn.setAttribute('data-url', operacao.fileUrl || '');
+    viewBtn.addEventListener('click', function() {
+      const url = this.getAttribute('data-url');
+      if (url && url.trim() !== '') {
+        window.open(url, '_blank');
+      } else {
+        alert('URL do documento não disponível.');
+      }
+    });
+  }
   
   const editBtn = tr.querySelector('.edit-btn');
-  editBtn.setAttribute('data-id', id);
-  editBtn.addEventListener('click', function() {
-    const docId = this.getAttribute('data-id');
-    openOperacaoModal(docId);
-  });
+  if (editBtn) {
+    editBtn.setAttribute('data-id', id);
+    editBtn.addEventListener('click', function() {
+      const docId = this.getAttribute('data-id');
+      openOperacaoModal(docId);
+    });
+  }
   
   const downloadBtn = tr.querySelector('.download-btn');
-  downloadBtn.setAttribute('data-id', id);
-  downloadBtn.setAttribute('data-url', operacao.fileUrl || '');
-  downloadBtn.addEventListener('click', function() {
-    const url = this.getAttribute('data-url');
-    if (url) {
-      downloadOperacao(url, operacao.nome || 'documento');
-    } else {
-      alert('URL do documento não disponível para download.');
-    }
-  });
+  if (downloadBtn) {
+    downloadBtn.setAttribute('data-id', id);
+    downloadBtn.setAttribute('data-url', operacao.fileUrl || '');
+    downloadBtn.addEventListener('click', function() {
+      const url = this.getAttribute('data-url');
+      if (url && url.trim() !== '') {
+        downloadOperacao(url, operacao.nome || 'documento');
+      } else {
+        alert('URL do documento não disponível para download.');
+      }
+    });
+  }
   
   const deleteBtn = tr.querySelector('.delete-btn');
-  deleteBtn.setAttribute('data-id', id);
-  deleteBtn.addEventListener('click', function() {
-    const docId = this.getAttribute('data-id');
-    deleteOperacao(docId);
-  });
+  if (deleteBtn) {
+    deleteBtn.setAttribute('data-id', id);
+    deleteBtn.addEventListener('click', function() {
+      const docId = this.getAttribute('data-id');
+      deleteOperacao(docId);
+    });
+  }
   
   return tr;
 }
@@ -237,33 +272,33 @@ async function openOperacaoModal(operacaoId = null) {
   const fileContainer = document.getElementById('operacao-file-container');
   const fileInput = document.getElementById('operacao-file');
   
-  if (!modal || !title || !nomeInput || !dataInput || !fileContainer) {
+  if (!modal || !title || !nomeInput || !dataInput) {
     console.error('Erro: Elementos do modal não encontrados.');
     return;
   }
   
   // Limpar campos
   nomeInput.value = '';
-  dataInput.value = '';
+  if (dataInput) dataInput.value = '';
   if (fileInput) fileInput.value = '';
   
   // Definir valores iniciais
   currentOperacaoId = null;
-  isOperacaoEditMode = false; // Usando a variável renomeada
+  isOperacaoEditMode = false;
   
   // Definir data atual como padrão
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
-  dataInput.value = `${year}-${month}-${day}`;
+  if (dataInput) dataInput.value = `${year}-${month}-${day}`;
   
   if (operacaoId) {
     // Modo de edição
-    isOperacaoEditMode = true; // Usando a variável renomeada
+    isOperacaoEditMode = true;
     currentOperacaoId = operacaoId;
     title.textContent = 'Editar Documento';
-    fileContainer.style.display = 'none';
+    if (fileContainer) fileContainer.style.display = 'none';
     
     try {
       // Buscar dados do documento
@@ -274,15 +309,33 @@ async function openOperacaoModal(operacaoId = null) {
         const data = doc.data();
         
         // Preencher campos
-        nomeInput.value = data.nome || '';
+        if (nomeInput) nomeInput.value = data.nome || '';
         
         // Formatar data para o input
-        if (data.data) {
-          const dataObj = new Date(data.data);
-          const year = dataObj.getFullYear();
-          const month = String(dataObj.getMonth() + 1).padStart(2, '0');
-          const day = String(dataObj.getDate()).padStart(2, '0');
-          dataInput.value = `${year}-${month}-${day}`;
+        if (dataInput && data.data) {
+          // Garantir que data.data é uma string ou objeto Date
+          let dataObj;
+          try {
+            if (typeof data.data === 'string') {
+              dataObj = new Date(data.data);
+            } else if (data.data instanceof Date) {
+              dataObj = data.data;
+            } else if (data.data.toDate && typeof data.data.toDate === 'function') {
+              // Para Timestamp do Firestore
+              dataObj = data.data.toDate();
+            } else {
+              throw new Error('Formato de data desconhecido');
+            }
+            
+            const year = dataObj.getFullYear();
+            const month = String(dataObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dataObj.getDate()).padStart(2, '0');
+            dataInput.value = `${year}-${month}-${day}`;
+          } catch (error) {
+            console.error('Erro ao processar data:', error);
+            // Usar a data atual como fallback
+            dataInput.value = `${year}-${month}-${day}`;
+          }
         }
       } else {
         console.warn('Documento não encontrado:', operacaoId);
@@ -294,11 +347,11 @@ async function openOperacaoModal(operacaoId = null) {
   } else {
     // Modo de novo documento
     title.textContent = 'Upload de Documento';
-    fileContainer.style.display = 'block';
+    if (fileContainer) fileContainer.style.display = 'block';
   }
   
   // Exibir modal
-  modal.style.display = 'block';
+  if (modal) modal.style.display = 'block';
 }
 
 // Função para fechar o modal
@@ -336,7 +389,7 @@ async function saveOperacao() {
   }
   
   // Verificar autenticação
-  if (!auth.currentUser) {
+  if (!auth || !auth.currentUser) {
     alert('Usuário não autenticado. Por favor, faça login novamente.');
     return;
   }
@@ -357,11 +410,12 @@ async function saveOperacao() {
     }
     
     // Upload de novo documento
-    const file = fileInput.files[0];
-    if (!file) {
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
       alert('Por favor, selecione um arquivo.');
       return;
     }
+    
+    const file = fileInput.files[0];
     
     // Criar nome de arquivo seguro
     const safeNome = nome.replace(/[^a-z0-9]/gi, '_');
@@ -437,7 +491,7 @@ async function saveOperacao() {
 
 // Função para baixar documento
 function downloadOperacao(url, name) {
-  if (!url) {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
     alert('URL do documento não disponível.');
     return;
   }
@@ -445,7 +499,7 @@ function downloadOperacao(url, name) {
   try {
     const a = document.createElement('a');
     a.href = url;
-    a.download = name;
+    a.download = name || 'documento';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -469,7 +523,7 @@ async function deleteOperacao(id) {
   
   try {
     // Verificar autenticação
-    if (!auth.currentUser) {
+    if (!auth || !auth.currentUser) {
       alert('Usuário não autenticado. Por favor, faça login novamente.');
       return;
     }
@@ -482,7 +536,7 @@ async function deleteOperacao(id) {
       const data = doc.data();
       
       // Excluir arquivo do Storage
-      if (data.fileUrl) {
+      if (data.fileUrl && typeof data.fileUrl === 'string' && data.fileUrl.trim() !== '') {
         try {
           const fileRef = storage.refFromURL(data.fileUrl);
           await fileRef.delete();
