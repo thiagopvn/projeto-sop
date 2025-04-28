@@ -95,10 +95,12 @@
           <li data-category="livro-de-ordens">
             <i class="fas fa-book"></i> LIVRO DE ORDENS
           </li>
+          <li data-category="operacao-simulada">
+            <i class="fas fa-shield-alt"></i> OPERAÇÃO SIMULADA
+          </li>
           <li data-category="calendario">
             <i class="fas fa-calendar-day"></i> CALENDÁRIO
           </li>
-          
         </ul>
       </aside>
 
@@ -127,6 +129,9 @@
               <i class="fas fa-plus"></i> Novo Evento
             </button>
             <button id="upload-ordem-btn" class="btn btn-primary" style="display: none;">
+              <i class="fas fa-upload"></i> Upload de Documento
+            </button>
+            <button id="upload-operacao-btn" class="btn btn-primary" style="display: none;">
               <i class="fas fa-upload"></i> Upload de Documento
             </button>
           </div>
@@ -291,6 +296,24 @@
                 </tr>
               </thead>
               <tbody id="livro-ordens-list">
+                <!-- Os itens da tabela serão inseridos dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Container da Operação Simulada (inicialmente oculto) -->
+        <div id="operacao-simulada-container" style="display: none;">
+          <div class="document-list-container">
+            <table class="document-table">
+              <thead>
+                <tr>
+                  <th>Nome do Documento</th>
+                  <th>Data</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="operacao-simulada-list">
                 <!-- Os itens da tabela serão inseridos dinamicamente -->
               </tbody>
             </table>
@@ -480,6 +503,34 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Upload/Edição de Operação Simulada -->
+    <div id="operacao-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="operacao-modal-title">Upload de Documento</h3>
+          <span class="close-operacao-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="operacao-nome">Nome do Documento</label>
+            <input type="text" id="operacao-nome" placeholder="Nome do documento">
+          </div>
+          <div class="input-group">
+            <label for="operacao-data">Data</label>
+            <input type="date" id="operacao-data">
+          </div>
+          <div class="input-group" id="operacao-file-container">
+            <label for="operacao-file">Arquivo</label>
+            <input type="file" id="operacao-file" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-operacao" class="btn btn-outline">Cancelar</button>
+          <button id="save-operacao" class="btn btn-primary">Salvar</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- FullCalendar Scripts -->
@@ -492,5 +543,6 @@
   <script src="js/calendar.js"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/livro-ordens.js"></script>
+  <script src="js/operacao-simulada.js"></script>
 </body>
 </html>
