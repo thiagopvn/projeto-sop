@@ -95,6 +95,9 @@
           <li data-category="calendario">
             <i class="fas fa-calendar-day"></i> CALENDÁRIO
           </li>
+          <li data-category="livro-de-ordens">
+            <i class="fas fa-book"></i> LIVRO DE ORDENS
+          </li>
         </ul>
       </aside>
 
@@ -121,6 +124,9 @@
             </button>
             <button id="add-event-btn" class="btn btn-primary" style="display: none;">
               <i class="fas fa-plus"></i> Novo Evento
+            </button>
+            <button id="upload-ordem-btn" class="btn btn-primary" style="display: none;">
+              <i class="fas fa-upload"></i> Upload de Documento
             </button>
           </div>
         </div>
@@ -270,6 +276,24 @@
         <!-- Container do Calendário (inicialmente oculto) -->
         <div id="calendar-container" style="display: none;">
           <div id="calendar"></div>
+        </div>
+
+        <!-- Container do Livro de Ordens (inicialmente oculto) -->
+        <div id="livro-ordens-container" style="display: none;">
+          <div class="document-list-container">
+            <table class="document-table">
+              <thead>
+                <tr>
+                  <th>Nome do Documento</th>
+                  <th>Data</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="livro-ordens-list">
+                <!-- Os itens da tabela serão inseridos dinamicamente -->
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Informações de status -->
@@ -427,6 +451,34 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Upload/Edição de Livro de Ordens -->
+    <div id="ordem-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="ordem-modal-title">Upload de Documento</h3>
+          <span class="close-ordem-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="ordem-nome">Nome do Documento</label>
+            <input type="text" id="ordem-nome" placeholder="Nome do documento">
+          </div>
+          <div class="input-group">
+            <label for="ordem-data">Data</label>
+            <input type="date" id="ordem-data">
+          </div>
+          <div class="input-group" id="ordem-file-container">
+            <label for="ordem-file">Arquivo</label>
+            <input type="file" id="ordem-file" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-ordem" class="btn btn-outline">Cancelar</button>
+          <button id="save-ordem" class="btn btn-primary">Salvar</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- FullCalendar Scripts -->
@@ -438,5 +490,6 @@
   <script src="js/app.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/dashboard.js"></script>
+  <script src="js/livro-ordens.js"></script>
 </body>
 </html>
