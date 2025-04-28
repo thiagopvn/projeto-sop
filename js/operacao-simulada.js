@@ -52,7 +52,7 @@ function setupOperacaoSimuladaEvents() {
   // Evento para o botão de upload
   const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
   if (uploadOperacaoBtn) {
-    uploadOperacaoBtn.addEventListener('click', openOperacaoModal);
+    uploadOperacaoBtn.addEventListener('click', () => openOperacaoModal());
   }
   
   // Eventos para o modal
@@ -264,7 +264,6 @@ function createOperacaoRow(id, operacao) {
   if (downloadBtn) {
     downloadBtn.addEventListener('click', function() {
       const url = this.getAttribute('data-url');
-      const docId = this.getAttribute('data-id');
       if (url && url.trim() !== '') {
         downloadOperacao(url, operacao.nome || 'documento');
       } else {
@@ -338,8 +337,8 @@ async function openOperacaoModal(operacaoId = null) {
         // Formatar data para o input
         if (dataInput && data.data) {
           // Garantir que data.data é uma string ou objeto Date
-          let dataObj;
           try {
+            let dataObj;
             if (typeof data.data === 'string') {
               dataObj = new Date(data.data);
             } else if (data.data instanceof Date) {

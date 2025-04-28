@@ -52,7 +52,7 @@ function setupLivroOrdensEvents() {
   // Evento para o botão de upload
   const uploadOrdemBtn = document.getElementById('upload-ordem-btn');
   if (uploadOrdemBtn) {
-    uploadOrdemBtn.addEventListener('click', openOrdemModal);
+    uploadOrdemBtn.addEventListener('click', () => openOrdemModal());
   }
   
   // Eventos para o modal
@@ -96,7 +96,8 @@ function hideAllContainers() {
     'dashboard-container',
     'document-container',
     'calendar-container',
-    'livro-ordens-container'
+    'livro-ordens-container',
+    'operacao-simulada-container'
   ];
   
   containers.forEach(id => {
@@ -111,7 +112,8 @@ function hideAllContainers() {
     'month-filter',
     'upload-btn',
     'add-event-btn',
-    'upload-ordem-btn'
+    'upload-ordem-btn',
+    'upload-operacao-btn'
   ];
   
   elementsToHide.forEach(id => {
@@ -191,27 +193,45 @@ function createOrdemRow(id, ordem) {
   // Formatar data
   let dataFormatada = '-';
   if (ordem.data) {
-    const data = new Date(ordem.data);
-    const dia = data.getDate().toString().padStart(2, '0');
-    const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-    const ano = data.getFullYear();
-    dataFormatada = `${dia}/${mes}/${ano}`;
+    try {
+      let dataObj;
+      if (typeof ordem.data === 'string') {
+        dataObj = new Date(ordem.data);
+      } else if (ordem.data instanceof Date) {
+        dataObj = ordem.data;
+      } else if (ordem.data.toDate && typeof ordem.data.toDate === 'function') {
+        // Para Timestamp do Firestore
+        dataObj = ordem.data.toDate();
+      } else {
+        throw new Error('Formato de data desconhecido');
+      }
+      
+      const dia = dataObj.getDate().toString().padStart(2, '0');
+      const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+      const ano = dataObj.getFullYear();
+      dataFormatada = `${dia}/${mes}/${ano}`;
+    } catch (e) {
+      console.error('Erro ao formatar data:', e);
+    }
   }
+  
+  // Verificar se fileUrl é uma string válida
+  const fileUrl = ordem.fileUrl && typeof ordem.fileUrl === 'string' ? ordem.fileUrl : '';
   
   tr.innerHTML = `
     <td>${ordem.nome || 'Documento sem nome'}</td>
     <td>${dataFormatada}</td>
     <td class="table-actions">
-      <button class="action-btn view-btn" title="Visualizar">
+      ${fileUrl ? `<button class="action-btn view-btn" title="Visualizar" data-id="${id}" data-url="${fileUrl}">
         <i class="fas fa-eye"></i>
-      </button>
-      <button class="action-btn edit-btn" title="Editar">
+      </button>` : ''}
+      <button class="action-btn edit-btn" title="Editar" data-id="${id}">
         <i class="fas fa-edit"></i>
       </button>
-      <button class="action-btn download-btn" title="Baixar">
+      ${fileUrl ? `<button class="action-btn download-btn" title="Baixar" data-id="${id}" data-url="${fileUrl}">
         <i class="fas fa-download"></i>
-      </button>
-      <button class="action-btn delete-btn" title="Excluir">
+      </button>` : ''}
+      <button class="action-btn delete-btn" title="Excluir" data-id="${id}">
         <i class="fas fa-trash"></i>
       </button>
     </td>
@@ -219,42 +239,48 @@ function createOrdemRow(id, ordem) {
   
   // Adicionar eventos aos botões
   const viewBtn = tr.querySelector('.view-btn');
-  viewBtn.setAttribute('data-id', id);
-  viewBtn.setAttribute('data-url', ordem.fileUrl || '');
-  viewBtn.addEventListener('click', function() {
-    const url = this.getAttribute('data-url');
-    if (url) {
-      window.open(url, '_blank');
-    } else {
-      alert('URL do documento não disponível.');
-    }
-  });
+  if (viewBtn) {
+    viewBtn.addEventListener('click', function() {
+      const url = this.getAttribute('data-url');
+      if (url && url.trim() !== '') {
+        window.open(url, '_blank');
+      } else {
+        alert('URL do documento não disponível.');
+      }
+    });
+  }
   
   const editBtn = tr.querySelector('.edit-btn');
-  editBtn.setAttribute('data-id', id);
-  editBtn.addEventListener('click', function() {
-    const docId = this.getAttribute('data-id');
-    openOrdemModal(docId);
-  });
+  if (editBtn) {
+    editBtn.addEventListener('click', function() {
+      const docId = this.getAttribute('data-id');
+      if (docId) {
+        openOrdemModal(docId);
+      }
+    });
+  }
   
   const downloadBtn = tr.querySelector('.download-btn');
-  downloadBtn.setAttribute('data-id', id);
-  downloadBtn.setAttribute('data-url', ordem.fileUrl || '');
-  downloadBtn.addEventListener('click', function() {
-    const url = this.getAttribute('data-url');
-    if (url) {
-      downloadOrdem(url, ordem.nome || 'documento');
-    } else {
-      alert('URL do documento não disponível para download.');
-    }
-  });
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function() {
+      const url = this.getAttribute('data-url');
+      if (url && url.trim() !== '') {
+        downloadOrdem(url, ordem.nome || 'documento');
+      } else {
+        alert('URL do documento não disponível para download.');
+      }
+    });
+  }
   
   const deleteBtn = tr.querySelector('.delete-btn');
-  deleteBtn.setAttribute('data-id', id);
-  deleteBtn.addEventListener('click', function() {
-    const docId = this.getAttribute('data-id');
-    deleteOrdem(docId);
-  });
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', function() {
+      const docId = this.getAttribute('data-id');
+      if (docId) {
+        deleteOrdem(docId);
+      }
+    });
+  }
   
   return tr;
 }
@@ -310,11 +336,28 @@ async function openOrdemModal(ordemId = null) {
         
         // Formatar data para o input
         if (data.data) {
-          const dataObj = new Date(data.data);
-          const year = dataObj.getFullYear();
-          const month = String(dataObj.getMonth() + 1).padStart(2, '0');
-          const day = String(dataObj.getDate()).padStart(2, '0');
-          dataInput.value = `${year}-${month}-${day}`;
+          try {
+            let dataObj;
+            if (typeof data.data === 'string') {
+              dataObj = new Date(data.data);
+            } else if (data.data instanceof Date) {
+              dataObj = data.data;
+            } else if (data.data.toDate && typeof data.data.toDate === 'function') {
+              // Para Timestamp do Firestore
+              dataObj = data.data.toDate();
+            } else {
+              throw new Error('Formato de data desconhecido');
+            }
+            
+            const year = dataObj.getFullYear();
+            const month = String(dataObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dataObj.getDate()).padStart(2, '0');
+            dataInput.value = `${year}-${month}-${day}`;
+          } catch (error) {
+            console.error('Erro ao processar data:', error);
+            // Usar a data atual como fallback
+            dataInput.value = `${year}-${month}-${day}`;
+          }
         }
       } else {
         console.warn('Documento não encontrado:', ordemId);
@@ -368,7 +411,7 @@ async function saveOrdem() {
   }
   
   // Verificar autenticação
-  if (!auth.currentUser) {
+  if (!auth || !auth.currentUser) {
     alert('Usuário não autenticado. Por favor, faça login novamente.');
     return;
   }
@@ -376,10 +419,21 @@ async function saveOrdem() {
   try {
     // Atualizar documento existente
     if (isEditMode && currentOrdemId) {
-      await db.collection('livro-ordens').doc(currentOrdemId).update({
+      // Obter documento atual para preservar fileUrl
+      const docRef = db.collection('livro-ordens').doc(currentOrdemId);
+      const docSnap = await docRef.get();
+      let fileUrl = '';
+      
+      if (docSnap.exists) {
+        const docData = docSnap.data();
+        fileUrl = docData.fileUrl || '';
+      }
+      
+      await docRef.update({
         nome: nome,
         data: data,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        fileUrl: fileUrl // Garantir que a URL do arquivo seja preservada
       });
       
       alert('Documento atualizado com sucesso!');
@@ -389,11 +443,12 @@ async function saveOrdem() {
     }
     
     // Upload de novo documento
-    const file = fileInput.files[0];
-    if (!file) {
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
       alert('Por favor, selecione um arquivo.');
       return;
     }
+    
+    const file = fileInput.files[0];
     
     // Criar nome de arquivo seguro
     const safeNome = nome.replace(/[^a-z0-9]/gi, '_');
@@ -441,6 +496,11 @@ async function saveOrdem() {
           // Obter URL de download
           const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
           
+          // Verificar se a URL de download é uma string válida
+          if (!downloadURL || typeof downloadURL !== 'string') {
+            throw new Error('URL de download inválida.');
+          }
+          
           // Salvar no Firestore
           await db.collection('livro-ordens').add({
             nome: nome,
@@ -469,7 +529,8 @@ async function saveOrdem() {
 
 // Função para baixar documento
 function downloadOrdem(url, name) {
-  if (!url) {
+  // Verificar se a URL é válida antes de tentar o download
+  if (!url || typeof url !== 'string' || url.trim() === '') {
     alert('URL do documento não disponível.');
     return;
   }
@@ -478,9 +539,14 @@ function downloadOrdem(url, name) {
     const a = document.createElement('a');
     a.href = url;
     a.download = name;
+    a.rel = 'noopener noreferrer'; // Adicionar segurança
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    
+    // Remover o elemento após um breve atraso
+    setTimeout(() => {
+      document.body.removeChild(a);
+    }, 100);
   } catch (error) {
     console.error('Erro ao baixar documento:', error);
     alert('Erro ao baixar o documento.');
@@ -501,7 +567,7 @@ async function deleteOrdem(id) {
   
   try {
     // Verificar autenticação
-    if (!auth.currentUser) {
+    if (!auth || !auth.currentUser) {
       alert('Usuário não autenticado. Por favor, faça login novamente.');
       return;
     }
@@ -514,7 +580,7 @@ async function deleteOrdem(id) {
       const data = doc.data();
       
       // Excluir arquivo do Storage
-      if (data.fileUrl) {
+      if (data.fileUrl && typeof data.fileUrl === 'string' && data.fileUrl.trim() !== '') {
         try {
           const fileRef = storage.refFromURL(data.fileUrl);
           await fileRef.delete();
