@@ -215,30 +215,31 @@ function createOperacaoRow(id, operacao) {
     }
   }
   
+  // Verificar e garantir que fileUrl seja uma string válida ou estabelecer um valor padrão
+  const fileUrl = operacao.fileUrl && typeof operacao.fileUrl === 'string' ? operacao.fileUrl : '';
+  
   tr.innerHTML = `
     <td>${operacao.nome || 'Documento sem nome'}</td>
     <td>${dataFormatada}</td>
     <td class="table-actions">
-      <button class="action-btn view-btn" title="Visualizar">
+      ${fileUrl ? `<button class="action-btn view-btn" title="Visualizar" data-id="${id}" data-url="${fileUrl}">
         <i class="fas fa-eye"></i>
-      </button>
-      <button class="action-btn edit-btn" title="Editar">
+      </button>` : ''}
+      <button class="action-btn edit-btn" title="Editar" data-id="${id}">
         <i class="fas fa-edit"></i>
       </button>
-      <button class="action-btn download-btn" title="Baixar">
+      ${fileUrl ? `<button class="action-btn download-btn" title="Baixar" data-id="${id}" data-url="${fileUrl}">
         <i class="fas fa-download"></i>
-      </button>
-      <button class="action-btn delete-btn" title="Excluir">
+      </button>` : ''}
+      <button class="action-btn delete-btn" title="Excluir" data-id="${id}">
         <i class="fas fa-trash"></i>
       </button>
     </td>
   `;
   
-  // Adicionar eventos aos botões
+  // Adicionar eventos aos botões de forma mais segura
   const viewBtn = tr.querySelector('.view-btn');
   if (viewBtn) {
-    viewBtn.setAttribute('data-id', id);
-    viewBtn.setAttribute('data-url', operacao.fileUrl || '');
     viewBtn.addEventListener('click', function() {
       const url = this.getAttribute('data-url');
       if (url && url.trim() !== '') {
@@ -251,19 +252,19 @@ function createOperacaoRow(id, operacao) {
   
   const editBtn = tr.querySelector('.edit-btn');
   if (editBtn) {
-    editBtn.setAttribute('data-id', id);
     editBtn.addEventListener('click', function() {
       const docId = this.getAttribute('data-id');
-      openOperacaoModal(docId);
+      if (docId) {
+        openOperacaoModal(docId);
+      }
     });
   }
   
   const downloadBtn = tr.querySelector('.download-btn');
   if (downloadBtn) {
-    downloadBtn.setAttribute('data-id', id);
-    downloadBtn.setAttribute('data-url', operacao.fileUrl || '');
     downloadBtn.addEventListener('click', function() {
       const url = this.getAttribute('data-url');
+      const docId = this.getAttribute('data-id');
       if (url && url.trim() !== '') {
         downloadOperacao(url, operacao.nome || 'documento');
       } else {
@@ -274,10 +275,11 @@ function createOperacaoRow(id, operacao) {
   
   const deleteBtn = tr.querySelector('.delete-btn');
   if (deleteBtn) {
-    deleteBtn.setAttribute('data-id', id);
     deleteBtn.addEventListener('click', function() {
       const docId = this.getAttribute('data-id');
-      deleteOperacao(docId);
+      if (docId) {
+        deleteOperacao(docId);
+      }
     });
   }
   
@@ -419,10 +421,21 @@ async function saveOperacao() {
   try {
     // Atualizar documento existente
     if (isOperacaoEditMode && currentOperacaoId) {
-      await db.collection('operacao-simulada').doc(currentOperacaoId).update({
+      // Obter documento atual para preservar fileUrl
+      const docRef = db.collection('operacao-simulada').doc(currentOperacaoId);
+      const docSnap = await docRef.get();
+      let fileUrl = '';
+      
+      if (docSnap.exists) {
+        const docData = docSnap.data();
+        fileUrl = docData.fileUrl || '';
+      }
+      
+      await docRef.update({
         nome: nome,
         data: data,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        fileUrl: fileUrl // Garantir que a URL do arquivo seja preservada
       });
       
       alert('Documento atualizado com sucesso!');
@@ -485,6 +498,11 @@ async function saveOperacao() {
           // Obter URL de download
           const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
           
+          // Verificar se a URL de download é uma string válida
+          if (!downloadURL || typeof downloadURL !== 'string') {
+            throw new Error('URL de download inválida.');
+          }
+          
           // Salvar no Firestore
           await db.collection('operacao-simulada').add({
             nome: nome,
@@ -513,6 +531,7 @@ async function saveOperacao() {
 
 // Função para baixar documento
 function downloadOperacao(url, name) {
+  // Verificar se a URL é válida antes de tentar o download
   if (!url || typeof url !== 'string' || url.trim() === '') {
     alert('URL do documento não disponível.');
     return;
@@ -522,9 +541,14 @@ function downloadOperacao(url, name) {
     const a = document.createElement('a');
     a.href = url;
     a.download = name || 'documento';
+    a.rel = 'noopener noreferrer'; // Adicionar segurança
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    
+    // Remover o elemento após um breve atraso
+    setTimeout(() => {
+      document.body.removeChild(a);
+    }, 100);
   } catch (error) {
     console.error('Erro ao baixar documento:', error);
     alert('Erro ao baixar o documento.');
