@@ -3,70 +3,141 @@
 // Variáveis globais
 let currentOrdemId = null;
 let isEditMode = false;
-let isLoadingOrdens = false; // Flag para evitar carregamentos simultâneos
 
 // Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-  // Configurar apenas eventos do modal
-  setupOrdemModalEvents();
+  // Adicionar evento para a categoria Livro de Ordens
+  setupLivroOrdensEvents();
+});
+
+// Configurar os eventos da aba Livro de Ordens
+function setupLivroOrdensEvents() {
+  // Obter referência ao item da barra lateral
+  const livroOrdensItem = document.querySelector('li[data-category="livro-de-ordens"]');
   
-  // Configurar evento para o botão de upload
+  if (livroOrdensItem) {
+    // Adicionar evento de clique ao item da barra lateral
+    livroOrdensItem.addEventListener('click', function() {
+      // Atualizar a categoria ativa no menu
+      const allCategoryItems = document.querySelectorAll('.category-list li');
+      allCategoryItems.forEach(item => item.classList.remove('active'));
+      livroOrdensItem.classList.add('active');
+      
+      // Atualizar o título da página
+      const categoryTitle = document.getElementById('category-title');
+      if (categoryTitle) {
+        categoryTitle.textContent = 'LIVRO DE ORDENS';
+      }
+      
+      // Ocultar outros containers
+      hideAllContainers();
+      
+      // Mostrar o container do livro de ordens
+      const livroOrdensContainer = document.getElementById('livro-ordens-container');
+      if (livroOrdensContainer) {
+        livroOrdensContainer.style.display = 'block';
+      }
+      
+      // Mostrar o botão de upload específico
+      const uploadOrdemBtn = document.getElementById('upload-ordem-btn');
+      if (uploadOrdemBtn) {
+        uploadOrdemBtn.style.display = 'inline-flex';
+      }
+      
+      // Carregar documentos do livro de ordens
+      loadOrdens();
+    });
+  }
+  
+  // Evento para o botão de upload
   const uploadOrdemBtn = document.getElementById('upload-ordem-btn');
   if (uploadOrdemBtn) {
     uploadOrdemBtn.addEventListener('click', () => openOrdemModal());
   }
-});
-
-// Configurar eventos do modal
-function setupOrdemModalEvents() {
-  // Botão de fechar o modal
+  
+  // Eventos para o modal
   const closeOrdemModalBtn = document.querySelector('.close-ordem-modal');
   if (closeOrdemModalBtn) {
     closeOrdemModalBtn.addEventListener('click', closeOrdemModal);
   }
   
-  // Botão de cancelar
   const cancelOrdemBtn = document.getElementById('cancel-ordem');
   if (cancelOrdemBtn) {
     cancelOrdemBtn.addEventListener('click', closeOrdemModal);
   }
   
-  // Botão de salvar
   const saveOrdemBtn = document.getElementById('save-ordem');
   if (saveOrdemBtn) {
     saveOrdemBtn.addEventListener('click', saveOrdem);
   }
+  
+  // Adicionar eventos para outros itens da navegação para ocultar o container do livro de ordens
+  const otherCategories = document.querySelectorAll('.category-list li:not([data-category="livro-de-ordens"])');
+  otherCategories.forEach(item => {
+    item.addEventListener('click', function() {
+      // Ocultar o container do livro de ordens
+      const livroOrdensContainer = document.getElementById('livro-ordens-container');
+      if (livroOrdensContainer) {
+        livroOrdensContainer.style.display = 'none';
+      }
+      
+      // Ocultar o botão de upload específico
+      const uploadOrdemBtn = document.getElementById('upload-ordem-btn');
+      if (uploadOrdemBtn) {
+        uploadOrdemBtn.style.display = 'none';
+      }
+    });
+  });
+}
+
+// Função para ocultar todos os containers
+function hideAllContainers() {
+  const containers = [
+    'dashboard-container',
+    'document-container',
+    'calendar-container',
+    'livro-ordens-container',
+    'operacao-simulada-container'
+  ];
+  
+  containers.forEach(id => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.style.display = 'none';
+    }
+  });
+  
+  // Ocultar botões e filtros
+  const elementsToHide = [
+    'month-filter',
+    'upload-btn',
+    'add-event-btn',
+    'upload-ordem-btn',
+    'upload-operacao-btn'
+  ];
+  
+  elementsToHide.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
 }
 
 // Função para carregar documentos do Livro de Ordens
 async function loadOrdens() {
-  // Evitar carregamentos simultâneos
-  if (isLoadingOrdens) {
-    console.log('Já está carregando documentos, requisição ignorada');
+  // Obter referência à lista de documentos
+  const livroOrdensList = document.getElementById('livro-ordens-list');
+  
+  if (!livroOrdensList) {
+    console.error('Erro: Elemento livro-ordens-list não encontrado.');
     return;
   }
   
-  isLoadingOrdens = true;
+  // Limpar lista atual
+  livroOrdensList.innerHTML = '';
   
   try {
-    // Garantir que o container do Livro de Ordens seja exibido
-    const container = document.getElementById('livro-ordens-container');
-    if (container) {
-      container.style.display = 'block';
-    }
-    
-    // Recria a estrutura da tabela do zero para evitar duplicações
-    recreateOrdemTable();
-    
-    // Obter nova referência à lista de documentos após recriar a tabela
-    const livroOrdensList = document.getElementById('livro-ordens-list');
-    
-    if (!livroOrdensList) {
-      console.error('Erro: Elemento livro-ordens-list não encontrado após recriar a tabela.');
-      isLoadingOrdens = false;
-      return;
-    }
-    
     // Verificar se o Firestore está disponível
     if (typeof db === 'undefined') {
       console.error('Erro: Firebase não está disponível.');
@@ -77,7 +148,6 @@ async function loadOrdens() {
           </td>
         </tr>
       `;
-      isLoadingOrdens = false;
       return;
     }
     
@@ -95,67 +165,25 @@ async function loadOrdens() {
           </td>
         </tr>
       `;
-      isLoadingOrdens = false;
       return;
     }
-    
-    // Criar um fragmento de documento para melhorar o desempenho
-    const fragment = document.createDocumentFragment();
     
     // Adicionar cada documento à tabela
     snapshot.forEach(doc => {
       const data = doc.data();
       const tr = createOrdemRow(doc.id, data);
-      fragment.appendChild(tr);
+      livroOrdensList.appendChild(tr);
     });
-    
-    // Anexar todas as linhas de uma vez
-    livroOrdensList.appendChild(fragment);
-    
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
-    const livroOrdensList = document.getElementById('livro-ordens-list');
-    if (livroOrdensList) {
-      livroOrdensList.innerHTML = `
-        <tr>
-          <td colspan="3" style="text-align: center; padding: 20px;">
-            Erro ao carregar documentos: ${error.message}
-          </td>
-        </tr>
-      `;
-    }
-  } finally {
-    // Sempre resetar a flag de carregamento
-    isLoadingOrdens = false;
+    livroOrdensList.innerHTML = `
+      <tr>
+        <td colspan="3" style="text-align: center; padding: 20px;">
+          Erro ao carregar documentos: ${error.message}
+        </td>
+      </tr>
+    `;
   }
-}
-
-// Função para recriar a tabela do Livro de Ordens do zero
-function recreateOrdemTable() {
-  const container = document.getElementById('livro-ordens-container');
-  if (!container) return;
-  
-  // Limpar o conteúdo atual do container
-  container.innerHTML = '';
-  
-  // Criar nova tabela com estrutura limpa
-  const tableHTML = `
-    <table class="document-table">
-      <thead>
-        <tr>
-          <th>Nome do Documento</th>
-          <th>Data</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="livro-ordens-list">
-        <!-- Os itens da tabela serão inseridos dinamicamente -->
-      </tbody>
-    </table>
-  `;
-  
-  // Inserir a nova tabela no container
-  container.innerHTML = tableHTML;
 }
 
 // Função para criar linha da tabela
@@ -190,7 +218,6 @@ function createOrdemRow(id, ordem) {
   // Verificar se fileUrl é uma string válida
   const fileUrl = ordem.fileUrl && typeof ordem.fileUrl === 'string' ? ordem.fileUrl : '';
   
-  // Definir conteúdo da linha
   tr.innerHTML = `
     <td>${ordem.nome || 'Documento sem nome'}</td>
     <td>${dataFormatada}</td>
@@ -469,7 +496,7 @@ async function saveOrdem() {
           // Obter URL de download
           const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
           
-          // Verificar se a URL de download é válida
+          // Verificar se a URL de download é uma string válida
           if (!downloadURL || typeof downloadURL !== 'string') {
             throw new Error('URL de download inválida.');
           }
