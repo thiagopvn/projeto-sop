@@ -1056,3 +1056,12 @@ function formatDate(timestamp) {
   
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
+
+function clearTableContent(tableId) {
+  const tableBody = document.getElementById(tableId);
+  if (tableBody) {
+    tableBody.innerHTML = '';
+    return true;
+  }
+  return false;
+}
