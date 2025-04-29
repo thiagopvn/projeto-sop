@@ -7,10 +7,10 @@ let isLoadingOperacoes = false; // Flag para evitar carregamentos simultâneos
 
 // Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-  // Configurar apenas os eventos do modal
+  // Configurar apenas eventos do modal
   setupOperacaoModalEvents();
   
-  // Configurar o botão de upload
+  // Configurar evento para o botão de upload
   const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
   if (uploadOperacaoBtn) {
     uploadOperacaoBtn.addEventListener('click', () => openOperacaoModal());
@@ -48,19 +48,25 @@ async function loadOperacoes() {
   
   isLoadingOperacoes = true;
   
-  // Obter referência à lista de documentos
-  const operacaoList = document.getElementById('operacao-simulada-list');
-  
-  if (!operacaoList) {
-    console.error('Erro: Elemento operacao-simulada-list não encontrado.');
-    isLoadingOperacoes = false;
-    return;
-  }
-  
-  // Limpar completamente a lista atual
-  operacaoList.innerHTML = '';
-  
   try {
+    // Garantir que o container da Operação Simulada seja exibido
+    const container = document.getElementById('operacao-simulada-container');
+    if (container) {
+      container.style.display = 'block';
+    }
+    
+    // Recria a estrutura da tabela do zero para evitar duplicações
+    recreateOperacaoTable();
+    
+    // Obter nova referência à lista de documentos após recriar a tabela
+    const operacaoList = document.getElementById('operacao-simulada-list');
+    
+    if (!operacaoList) {
+      console.error('Erro: Elemento operacao-simulada-list não encontrado após recriar a tabela.');
+      isLoadingOperacoes = false;
+      return;
+    }
+    
     // Verificar se o Firestore está disponível
     if (typeof db === 'undefined') {
       console.error('Erro: Firebase não está disponível.');
@@ -108,17 +114,48 @@ async function loadOperacoes() {
     
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
-    operacaoList.innerHTML = `
-      <tr>
-        <td colspan="3" style="text-align: center; padding: 20px;">
-          Erro ao carregar documentos: ${error.message}
-        </td>
-      </tr>
-    `;
+    const operacaoList = document.getElementById('operacao-simulada-list');
+    if (operacaoList) {
+      operacaoList.innerHTML = `
+        <tr>
+          <td colspan="3" style="text-align: center; padding: 20px;">
+            Erro ao carregar documentos: ${error.message}
+          </td>
+        </tr>
+      `;
+    }
   } finally {
     // Sempre resetar a flag de carregamento
     isLoadingOperacoes = false;
   }
+}
+
+// Função para recriar a tabela da Operação Simulada do zero
+function recreateOperacaoTable() {
+  const container = document.getElementById('operacao-simulada-container');
+  if (!container) return;
+  
+  // Limpar o conteúdo atual do container
+  container.innerHTML = '';
+  
+  // Criar nova tabela com estrutura limpa
+  const tableHTML = `
+    <table class="document-table">
+      <thead>
+        <tr>
+          <th>Nome do Documento</th>
+          <th>Data</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="operacao-simulada-list">
+        <!-- Os itens da tabela serão inseridos dinamicamente -->
+      </tbody>
+    </table>
+  `;
+  
+  // Inserir a nova tabela no container
+  container.innerHTML = tableHTML;
 }
 
 // Função para criar linha da tabela
