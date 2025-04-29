@@ -7,10 +7,10 @@ let isLoadingOrdens = false; // Flag para evitar carregamentos simultâneos
 
 // Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-  // Configurar apenas os eventos do modal
+  // Configurar apenas eventos do modal
   setupOrdemModalEvents();
   
-  // Configurar o botão de upload
+  // Configurar evento para o botão de upload
   const uploadOrdemBtn = document.getElementById('upload-ordem-btn');
   if (uploadOrdemBtn) {
     uploadOrdemBtn.addEventListener('click', () => openOrdemModal());
@@ -48,19 +48,25 @@ async function loadOrdens() {
   
   isLoadingOrdens = true;
   
-  // Obter referência à lista de documentos
-  const livroOrdensList = document.getElementById('livro-ordens-list');
-  
-  if (!livroOrdensList) {
-    console.error('Erro: Elemento livro-ordens-list não encontrado.');
-    isLoadingOrdens = false;
-    return;
-  }
-  
-  // Limpar completamente a lista atual
-  livroOrdensList.innerHTML = '';
-  
   try {
+    // Garantir que o container do Livro de Ordens seja exibido
+    const container = document.getElementById('livro-ordens-container');
+    if (container) {
+      container.style.display = 'block';
+    }
+    
+    // Recria a estrutura da tabela do zero para evitar duplicações
+    recreateOrdemTable();
+    
+    // Obter nova referência à lista de documentos após recriar a tabela
+    const livroOrdensList = document.getElementById('livro-ordens-list');
+    
+    if (!livroOrdensList) {
+      console.error('Erro: Elemento livro-ordens-list não encontrado após recriar a tabela.');
+      isLoadingOrdens = false;
+      return;
+    }
+    
     // Verificar se o Firestore está disponível
     if (typeof db === 'undefined') {
       console.error('Erro: Firebase não está disponível.');
@@ -108,17 +114,48 @@ async function loadOrdens() {
     
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
-    livroOrdensList.innerHTML = `
-      <tr>
-        <td colspan="3" style="text-align: center; padding: 20px;">
-          Erro ao carregar documentos: ${error.message}
-        </td>
-      </tr>
-    `;
+    const livroOrdensList = document.getElementById('livro-ordens-list');
+    if (livroOrdensList) {
+      livroOrdensList.innerHTML = `
+        <tr>
+          <td colspan="3" style="text-align: center; padding: 20px;">
+            Erro ao carregar documentos: ${error.message}
+          </td>
+        </tr>
+      `;
+    }
   } finally {
     // Sempre resetar a flag de carregamento
     isLoadingOrdens = false;
   }
+}
+
+// Função para recriar a tabela do Livro de Ordens do zero
+function recreateOrdemTable() {
+  const container = document.getElementById('livro-ordens-container');
+  if (!container) return;
+  
+  // Limpar o conteúdo atual do container
+  container.innerHTML = '';
+  
+  // Criar nova tabela com estrutura limpa
+  const tableHTML = `
+    <table class="document-table">
+      <thead>
+        <tr>
+          <th>Nome do Documento</th>
+          <th>Data</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="livro-ordens-list">
+        <!-- Os itens da tabela serão inseridos dinamicamente -->
+      </tbody>
+    </table>
+  `;
+  
+  // Inserir a nova tabela no container
+  container.innerHTML = tableHTML;
 }
 
 // Função para criar linha da tabela
