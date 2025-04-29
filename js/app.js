@@ -12,22 +12,6 @@ let weeksPerMonth = {
 let currentUser = null;
 let currentCategory = 'dashboard'; // Definido como dashboard por padrão
 let currentMonth = 3; // Alterado para começar em março (mês 3)
-let isNavigating = false; // Flag para prevenir navegação múltipla
-
-// Funções de carregamento de módulos especializados
-// Estas variáveis serão preenchidas pelos módulos específicos
-let loadOrdens = window.loadOrdens || null;
-let loadOperacoes = window.loadOperacoes || null;
-
-// Função auxiliar para garantir que a limpeza de tabelas aconteça
-function clearTableContent(tableId) {
-  const tableBody = document.getElementById(tableId);
-  if (tableBody) {
-    tableBody.innerHTML = '';
-    return true;
-  }
-  return false;
-}
 
 // Constantes para categorias de documentos
 const DOCUMENT_TYPES = {
@@ -129,10 +113,6 @@ const appElements = {
   calendarContainer: document.getElementById('calendar-container'),
   uploadOrdemBtn: document.getElementById('upload-ordem-btn'),
   uploadOperacaoBtn: document.getElementById('upload-operacao-btn'),
-  livroOrdensContainer: document.getElementById('livro-ordens-container'),
-  livroOrdensList: document.getElementById('livro-ordens-list'),
-  operacaoSimuladaContainer: document.getElementById('operacao-simulada-container'),
-  operacaoSimuladaList: document.getElementById('operacao-simulada-list'),
   categoryItems: document.querySelectorAll('.category-list li')
 };
 
@@ -158,15 +138,6 @@ const configModalElements = {
 
 // Eventos de login e logout
 document.addEventListener('DOMContentLoaded', () => {
-  // Garantir acesso a funções de módulos especializados
-  if (window.loadOrdens && typeof window.loadOrdens === 'function') {
-    loadOrdens = window.loadOrdens;
-  }
-  
-  if (window.loadOperacoes && typeof window.loadOperacoes === 'function') {
-    loadOperacoes = window.loadOperacoes;
-  }
-  
   if (loginForm.loginBtn) {
     loginForm.loginBtn.addEventListener('click', () => {
       const email = loginForm.email.value;
@@ -198,13 +169,9 @@ if (appElements.logoutBtn) {
   });
 }
 
-// Eventos de navegação - Centralizado para prevenir duplicação
+// Eventos de navegação
 appElements.categoryItems.forEach(item => {
   item.addEventListener('click', () => {
-    // Prevenir cliques múltiplos em rápida sucessão
-    if (isNavigating) return;
-    isNavigating = true;
-    
     // Atualizar categoria ativa
     appElements.categoryItems.forEach(i => i.classList.remove('active'));
     item.classList.add('active');
@@ -231,144 +198,99 @@ appElements.categoryItems.forEach(item => {
     
     // Verificar se é a categoria de calendário
     if (currentCategory === 'calendario') {
-      handleCalendarTab();
+      // Ocultar filtro de mês
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
+      
+      // Exibir elementos de calendário
+      if (appElements.calendarContainer) appElements.calendarContainer.style.display = 'block';
+      if (appElements.addEventBtn) appElements.addEventBtn.style.display = 'inline-flex';
+      
+      // Ocultar informações de status
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'none';
+      
+      // Atualizar eventos do calendário
+      if (typeof calendar !== 'undefined' && calendar) {
+        calendar.refetchEvents();
+      }
     } 
     // Verificar se é a categoria de dashboard
     else if (currentCategory === 'dashboard') {
-      handleDashboardTab();
+      // Exibir filtro de mês
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'inline-flex';
+      
+      // Ocultar informações de status
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'none';
+      
+      // Exibir dashboard
+      const dashboardContainer = document.getElementById('dashboard-container');
+      if (dashboardContainer) dashboardContainer.style.display = 'block';
+      
+      // Atualizar dashboard
+      if (typeof updateDashboard === 'function') {
+        updateDashboard(true);
+      }
     } 
     // Verificar se é a categoria de livro de ordens
     else if (currentCategory === 'livro-de-ordens') {
-      handleLivroOrdensTab();
+      // Ocultar filtro de mês
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
+      
+      // Exibir container do livro de ordens
+      const livroOrdensContainer = document.getElementById('livro-ordens-container');
+      if (livroOrdensContainer) livroOrdensContainer.style.display = 'block';
+      
+      // Exibir botão de upload específico
+      if (appElements.uploadOrdemBtn) appElements.uploadOrdemBtn.style.display = 'inline-flex';
+      
+      // Ocultar informações de status
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'none';
+      
+      // Carregar documentos do livro de ordens
+      if (typeof loadOrdens === 'function') {
+        loadOrdens();
+      }
     }
     // Verificar se é a categoria de operação simulada
     else if (currentCategory === 'operacao-simulada') {
-      handleOperacaoSimuladaTab();
+      // Ocultar filtro de mês
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
+      
+      // Exibir container da operação simulada
+      const operacaoContainer = document.getElementById('operacao-simulada-container');
+      if (operacaoContainer) operacaoContainer.style.display = 'block';
+      
+      // Exibir botão de upload específico
+      if (appElements.uploadOperacaoBtn) appElements.uploadOperacaoBtn.style.display = 'inline-flex';
+      
+      // Ocultar informações de status
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'none';
+      
+      // Carregar documentos da operação simulada
+      if (typeof loadOperacoes === 'function') {
+        loadOperacoes();
+      }
     }
     else {
       // Para todas as outras categorias (documentos)
-      handleDocumentTab();
+      
+      // Exibir elementos de documentos
+      if (appElements.documentContainer) appElements.documentContainer.style.display = 'block';
+      if (appElements.monthFilter) appElements.monthFilter.style.display = 'inline-flex';
+      if (appElements.uploadBtn) appElements.uploadBtn.style.display = 'inline-flex';
+      
+      // Exibir informações de status
+      const statusInfo = document.querySelector('.status-info');
+      if (statusInfo) statusInfo.style.display = 'flex';
+      
+      // Carregar documentos da categoria
+      loadDocumentsByCategory(currentCategory, currentMonth);
     }
-    
-    // Liberar navegação após um breve atraso
-    setTimeout(() => {
-      isNavigating = false;
-    }, 300);
   });
 });
-
-// Handlers específicos para cada tipo de aba
-function handleCalendarTab() {
-  // Ocultar filtro de mês
-  if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
-  
-  // Exibir elementos de calendário
-  if (appElements.calendarContainer) appElements.calendarContainer.style.display = 'block';
-  if (appElements.addEventBtn) appElements.addEventBtn.style.display = 'inline-flex';
-  
-  // Ocultar informações de status
-  const statusInfo = document.querySelector('.status-info');
-  if (statusInfo) statusInfo.style.display = 'none';
-  
-  // Atualizar eventos do calendário
-  if (typeof calendar !== 'undefined' && calendar) {
-    calendar.refetchEvents();
-  }
-}
-
-function handleDashboardTab() {
-  // Exibir filtro de mês
-  if (appElements.monthFilter) appElements.monthFilter.style.display = 'inline-flex';
-  
-  // Ocultar informações de status
-  const statusInfo = document.querySelector('.status-info');
-  if (statusInfo) statusInfo.style.display = 'none';
-  
-  // Exibir dashboard
-  const dashboardContainer = document.getElementById('dashboard-container');
-  if (dashboardContainer) dashboardContainer.style.display = 'block';
-  
-  // Atualizar dashboard
-  if (typeof updateDashboard === 'function') {
-    updateDashboard(true);
-  }
-}
-
-function handleLivroOrdensTab() {
-  // Ocultar filtro de mês
-  if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
-  
-  // Limpar a tabela antes de exibir o container
-  if (appElements.livroOrdensList) {
-    appElements.livroOrdensList.innerHTML = '';
-  }
-  
-  // Exibir container do livro de ordens
-  if (appElements.livroOrdensContainer) {
-    appElements.livroOrdensContainer.style.display = 'block';
-  }
-  
-  // Exibir botão de upload específico
-  if (appElements.uploadOrdemBtn) {
-    appElements.uploadOrdemBtn.style.display = 'inline-flex';
-  }
-  
-  // Ocultar informações de status
-  const statusInfo = document.querySelector('.status-info');
-  if (statusInfo) statusInfo.style.display = 'none';
-  
-  // Carregar documentos do livro de ordens
-  if (typeof loadOrdens === 'function') {
-    loadOrdens();
-  } else {
-    console.error('Função loadOrdens não disponível');
-  }
-}
-
-function handleOperacaoSimuladaTab() {
-  // Ocultar filtro de mês
-  if (appElements.monthFilter) appElements.monthFilter.style.display = 'none';
-  
-  // Limpar a tabela antes de exibir o container
-  if (appElements.operacaoSimuladaList) {
-    appElements.operacaoSimuladaList.innerHTML = '';
-  }
-  
-  // Exibir container da operação simulada
-  if (appElements.operacaoSimuladaContainer) {
-    appElements.operacaoSimuladaContainer.style.display = 'block';
-  }
-  
-  // Exibir botão de upload específico
-  if (appElements.uploadOperacaoBtn) {
-    appElements.uploadOperacaoBtn.style.display = 'inline-flex';
-  }
-  
-  // Ocultar informações de status
-  const statusInfo = document.querySelector('.status-info');
-  if (statusInfo) statusInfo.style.display = 'none';
-  
-  // Carregar documentos da operação simulada
-  if (typeof loadOperacoes === 'function') {
-    loadOperacoes();
-  } else {
-    console.error('Função loadOperacoes não disponível');
-  }
-}
-
-function handleDocumentTab() {
-  // Exibir elementos de documentos
-  if (appElements.documentContainer) appElements.documentContainer.style.display = 'block';
-  if (appElements.monthFilter) appElements.monthFilter.style.display = 'inline-flex';
-  if (appElements.uploadBtn) appElements.uploadBtn.style.display = 'inline-flex';
-  
-  // Exibir informações de status
-  const statusInfo = document.querySelector('.status-info');
-  if (statusInfo) statusInfo.style.display = 'flex';
-  
-  // Carregar documentos da categoria
-  loadDocumentsByCategory(currentCategory, currentMonth);
-}
 
 if (appElements.monthFilter) {
   appElements.monthFilter.addEventListener('change', () => {
@@ -1087,7 +1009,7 @@ async function deleteDocument(id) {
     if (doc.exists) {
       const data = doc.data();
       
-      // Excluir arquivo do Storage (com melhor tratamento de erro)
+      // IMPORTANTE: Esta parte deve estar dentro de um try-catch separado
       if (data.fileUrl && typeof data.fileUrl === 'string' && data.fileUrl.trim() !== '') {
         try {
           const fileRef = storage.refFromURL(data.fileUrl);
@@ -1134,7 +1056,3 @@ function formatDate(timestamp) {
   
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
-
-// Exportar funções para os módulos especializados
-window.loadOrdens = typeof loadOrdens === 'function' ? loadOrdens : null;
-window.loadOperacoes = typeof loadOperacoes === 'function' ? loadOperacoes : null;
