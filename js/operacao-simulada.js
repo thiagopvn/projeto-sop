@@ -3,70 +3,141 @@
 // Variáveis globais
 let currentOperacaoId = null;
 let isOperacaoEditMode = false;
-let isLoadingOperacoes = false; // Flag para evitar carregamentos simultâneos
 
 // Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-  // Configurar apenas eventos do modal
-  setupOperacaoModalEvents();
+  // Adicionar evento para a categoria Operação Simulada
+  setupOperacaoSimuladaEvents();
+});
+
+// Configurar os eventos da aba Operação Simulada
+function setupOperacaoSimuladaEvents() {
+  // Obter referência ao item da barra lateral
+  const operacaoSimuladaItem = document.querySelector('li[data-category="operacao-simulada"]');
   
-  // Configurar evento para o botão de upload
+  if (operacaoSimuladaItem) {
+    // Adicionar evento de clique ao item da barra lateral
+    operacaoSimuladaItem.addEventListener('click', function() {
+      // Atualizar a categoria ativa no menu
+      const allCategoryItems = document.querySelectorAll('.category-list li');
+      allCategoryItems.forEach(item => item.classList.remove('active'));
+      operacaoSimuladaItem.classList.add('active');
+      
+      // Atualizar o título da página
+      const categoryTitle = document.getElementById('category-title');
+      if (categoryTitle) {
+        categoryTitle.textContent = 'OPERAÇÃO SIMULADA';
+      }
+      
+      // Ocultar outros containers
+      hideAllContainers();
+      
+      // Mostrar o container da operação simulada
+      const operacaoSimuladaContainer = document.getElementById('operacao-simulada-container');
+      if (operacaoSimuladaContainer) {
+        operacaoSimuladaContainer.style.display = 'block';
+      }
+      
+      // Mostrar o botão de upload específico
+      const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
+      if (uploadOperacaoBtn) {
+        uploadOperacaoBtn.style.display = 'inline-flex';
+      }
+      
+      // Carregar documentos da operação simulada
+      loadOperacoes();
+    });
+  }
+  
+  // Evento para o botão de upload
   const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
   if (uploadOperacaoBtn) {
     uploadOperacaoBtn.addEventListener('click', () => openOperacaoModal());
   }
-});
-
-// Configurar eventos do modal
-function setupOperacaoModalEvents() {
-  // Botão de fechar o modal
+  
+  // Eventos para o modal
   const closeOperacaoModalBtn = document.querySelector('.close-operacao-modal');
   if (closeOperacaoModalBtn) {
     closeOperacaoModalBtn.addEventListener('click', closeOperacaoModal);
   }
   
-  // Botão de cancelar
   const cancelOperacaoBtn = document.getElementById('cancel-operacao');
   if (cancelOperacaoBtn) {
     cancelOperacaoBtn.addEventListener('click', closeOperacaoModal);
   }
   
-  // Botão de salvar
   const saveOperacaoBtn = document.getElementById('save-operacao');
   if (saveOperacaoBtn) {
     saveOperacaoBtn.addEventListener('click', saveOperacao);
   }
+  
+  // Adicionar eventos para outros itens da navegação para ocultar o container da operação simulada
+  const otherCategories = document.querySelectorAll('.category-list li:not([data-category="operacao-simulada"])');
+  otherCategories.forEach(item => {
+    item.addEventListener('click', function() {
+      // Ocultar o container da operação simulada
+      const operacaoSimuladaContainer = document.getElementById('operacao-simulada-container');
+      if (operacaoSimuladaContainer) {
+        operacaoSimuladaContainer.style.display = 'none';
+      }
+      
+      // Ocultar o botão de upload específico
+      const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
+      if (uploadOperacaoBtn) {
+        uploadOperacaoBtn.style.display = 'none';
+      }
+    });
+  });
+}
+
+// Função auxiliar para ocultar todos os containers
+function hideAllContainers() {
+  const containers = [
+    'dashboard-container',
+    'document-container',
+    'calendar-container',
+    'livro-ordens-container',
+    'operacao-simulada-container'
+  ];
+  
+  containers.forEach(id => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.style.display = 'none';
+    }
+  });
+  
+  // Ocultar botões e filtros
+  const elementsToHide = [
+    'month-filter',
+    'upload-btn',
+    'add-event-btn',
+    'upload-ordem-btn',
+    'upload-operacao-btn'
+  ];
+  
+  elementsToHide.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
 }
 
 // Função para carregar documentos da Operação Simulada
 async function loadOperacoes() {
-  // Evitar carregamentos simultâneos
-  if (isLoadingOperacoes) {
-    console.log('Já está carregando documentos, requisição ignorada');
+  // Obter referência à lista de documentos
+  const operacaoList = document.getElementById('operacao-simulada-list');
+  
+  if (!operacaoList) {
+    console.error('Erro: Elemento operacao-simulada-list não encontrado.');
     return;
   }
   
-  isLoadingOperacoes = true;
+  // Limpar lista atual
+  operacaoList.innerHTML = '';
   
   try {
-    // Garantir que o container da Operação Simulada seja exibido
-    const container = document.getElementById('operacao-simulada-container');
-    if (container) {
-      container.style.display = 'block';
-    }
-    
-    // Recria a estrutura da tabela do zero para evitar duplicações
-    recreateOperacaoTable();
-    
-    // Obter nova referência à lista de documentos após recriar a tabela
-    const operacaoList = document.getElementById('operacao-simulada-list');
-    
-    if (!operacaoList) {
-      console.error('Erro: Elemento operacao-simulada-list não encontrado após recriar a tabela.');
-      isLoadingOperacoes = false;
-      return;
-    }
-    
     // Verificar se o Firestore está disponível
     if (typeof db === 'undefined') {
       console.error('Erro: Firebase não está disponível.');
@@ -77,7 +148,6 @@ async function loadOperacoes() {
           </td>
         </tr>
       `;
-      isLoadingOperacoes = false;
       return;
     }
     
@@ -95,67 +165,25 @@ async function loadOperacoes() {
           </td>
         </tr>
       `;
-      isLoadingOperacoes = false;
       return;
     }
-    
-    // Criar um fragmento de documento para melhorar o desempenho
-    const fragment = document.createDocumentFragment();
     
     // Adicionar cada documento à tabela
     snapshot.forEach(doc => {
       const data = doc.data();
       const tr = createOperacaoRow(doc.id, data);
-      fragment.appendChild(tr);
+      operacaoList.appendChild(tr);
     });
-    
-    // Anexar todas as linhas de uma vez
-    operacaoList.appendChild(fragment);
-    
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
-    const operacaoList = document.getElementById('operacao-simulada-list');
-    if (operacaoList) {
-      operacaoList.innerHTML = `
-        <tr>
-          <td colspan="3" style="text-align: center; padding: 20px;">
-            Erro ao carregar documentos: ${error.message}
-          </td>
-        </tr>
-      `;
-    }
-  } finally {
-    // Sempre resetar a flag de carregamento
-    isLoadingOperacoes = false;
+    operacaoList.innerHTML = `
+      <tr>
+        <td colspan="3" style="text-align: center; padding: 20px;">
+          Erro ao carregar documentos: ${error.message}
+        </td>
+      </tr>
+    `;
   }
-}
-
-// Função para recriar a tabela da Operação Simulada do zero
-function recreateOperacaoTable() {
-  const container = document.getElementById('operacao-simulada-container');
-  if (!container) return;
-  
-  // Limpar o conteúdo atual do container
-  container.innerHTML = '';
-  
-  // Criar nova tabela com estrutura limpa
-  const tableHTML = `
-    <table class="document-table">
-      <thead>
-        <tr>
-          <th>Nome do Documento</th>
-          <th>Data</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="operacao-simulada-list">
-        <!-- Os itens da tabela serão inseridos dinamicamente -->
-      </tbody>
-    </table>
-  `;
-  
-  // Inserir a nova tabela no container
-  container.innerHTML = tableHTML;
 }
 
 // Função para criar linha da tabela
@@ -187,10 +215,9 @@ function createOperacaoRow(id, operacao) {
     }
   }
   
-  // Verificar se fileUrl é uma string válida
+  // Verificar e garantir que fileUrl seja uma string válida ou estabelecer um valor padrão
   const fileUrl = operacao.fileUrl && typeof operacao.fileUrl === 'string' ? operacao.fileUrl : '';
   
-  // Definir conteúdo da linha
   tr.innerHTML = `
     <td>${operacao.nome || 'Documento sem nome'}</td>
     <td>${dataFormatada}</td>
@@ -210,7 +237,7 @@ function createOperacaoRow(id, operacao) {
     </td>
   `;
   
-  // Adicionar eventos aos botões
+  // Adicionar eventos aos botões de forma mais segura
   const viewBtn = tr.querySelector('.view-btn');
   if (viewBtn) {
     viewBtn.addEventListener('click', function() {
@@ -309,6 +336,7 @@ async function openOperacaoModal(operacaoId = null) {
         
         // Formatar data para o input
         if (dataInput && data.data) {
+          // Garantir que data.data é uma string ou objeto Date
           try {
             let dataObj;
             if (typeof data.data === 'string') {
@@ -469,7 +497,7 @@ async function saveOperacao() {
           // Obter URL de download
           const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
           
-          // Verificar se a URL de download é válida
+          // Verificar se a URL de download é uma string válida
           if (!downloadURL || typeof downloadURL !== 'string') {
             throw new Error('URL de download inválida.');
           }
