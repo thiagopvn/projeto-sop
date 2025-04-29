@@ -285,13 +285,39 @@
         </div>
 
         <!-- Container do Livro de Ordens (inicialmente oculto) -->
-        <div id="livro-ordens-container" class="document-list-container" style="display: none;">
-          <!-- A tabela será gerada dinamicamente pelo JavaScript -->
+        <div id="livro-ordens-container" style="display: none;">
+          <div class="document-list-container">
+            <table class="document-table">
+              <thead>
+                <tr>
+                  <th>Nome do Documento</th>
+                  <th>Data</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="livro-ordens-list">
+                <!-- Os itens da tabela serão inseridos dinamicamente -->
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Container da Operação Simulada (inicialmente oculto) -->
-        <div id="operacao-simulada-container" class="document-list-container" style="display: none;">
-          <!-- A tabela será gerada dinamicamente pelo JavaScript -->
+        <div id="operacao-simulada-container" style="display: none;">
+          <div class="document-list-container">
+            <table class="document-table">
+              <thead>
+                <tr>
+                  <th>Nome do Documento</th>
+                  <th>Data</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="operacao-simulada-list">
+                <!-- Os itens da tabela serão inseridos dinamicamente -->
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Informações de status -->
@@ -513,10 +539,10 @@
   
   <!-- Scripts da aplicação -->
   <script src="js/firebase-config.js"></script>
-  <script src="js/livro-ordens.js"></script>
-  <script src="js/operacao-simulada.js"></script>
   <script src="js/app.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/dashboard.js"></script>
+  <script src="js/livro-ordens.js"></script>
+  <script src="js/operacao-simulada.js"></script>
 </body>
 </html>
