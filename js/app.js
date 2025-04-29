@@ -895,8 +895,15 @@ async function uploadDocument() {
       const fileUrl = querySnapshot.docs[0].data().fileUrl;
       
       // Remover do Storage
-      const fileRef = storage.refFromURL(fileUrl);
-      await fileRef.delete();
+      try {
+        if (fileUrl && typeof fileUrl === 'string' && fileUrl.trim() !== '') {
+          const fileRef = storage.refFromURL(fileUrl);
+          await fileRef.delete();
+        }
+      } catch (storageError) {
+        console.warn('Aviso: Não foi possível excluir o arquivo original:', storageError);
+        // Continuar mesmo se falhar a exclusão do arquivo original
+      }
       
       // Remover do Firestore
       await db.collection('documents').doc(docId).delete();
@@ -989,7 +996,7 @@ function downloadDocument(url, name) {
   document.body.removeChild(a);
 }
 
-// Função para excluir documento
+// Função para excluir documento - ATUALIZADA para corrigir o problema com documentos inexistentes
 async function deleteDocument(id) {
   try {
     const confirmDelete = confirm('Tem certeza que deseja excluir este documento?');
@@ -1000,11 +1007,18 @@ async function deleteDocument(id) {
     const doc = await docRef.get();
     
     if (doc.exists) {
-      const fileUrl = doc.data().fileUrl;
+      const data = doc.data();
       
-      // Excluir arquivo do Storage
-      const fileRef = storage.refFromURL(fileUrl);
-      await fileRef.delete();
+      // Excluir arquivo do Storage (com melhor tratamento de erro)
+      if (data.fileUrl && typeof data.fileUrl === 'string' && data.fileUrl.trim() !== '') {
+        try {
+          const fileRef = storage.refFromURL(data.fileUrl);
+          await fileRef.delete();
+        } catch (storageError) {
+          console.warn('Aviso: Não foi possível excluir o arquivo do Storage:', storageError);
+          // Continuar mesmo se falhar a exclusão do arquivo
+        }
+      }
       
       // Excluir documento do Firestore
       await docRef.delete();
