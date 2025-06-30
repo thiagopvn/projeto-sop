@@ -883,31 +883,36 @@ async function uploadDocument() {
     
     const querySnapshot = await queryRef.get();
     
+        // ...existing code...
     if (!querySnapshot.empty) {
-      const confirmOverwrite = confirm('Já existe um documento para esta categoria' + 
-                                      (isAnnual ? '/ano' : '/mês' + 
-                                      (needsWeek ? '/semana' : '')) + 
-                                      '. Deseja substituí-lo?');
+      const confirmOverwrite = confirm(
+        'Já existe um documento para esta categoria' +
+        (isAnnual ? '/ano' : '/mês' + (needsWeek ? '/semana' : '')) +
+        '. Deseja substituí-lo?'
+      );
       if (!confirmOverwrite) return;
-      
-      // Excluir documento existente
-      const docId = querySnapshot.docs[0].id;
-      const fileUrl = querySnapshot.docs[0].data().fileUrl;
-      
-      // Remover do Storage
-      try {
-        if (fileUrl && typeof fileUrl === 'string' && fileUrl.trim() !== '') {
-          const fileRef = storage.refFromURL(fileUrl);
-          await fileRef.delete();
+    
+      // Excluir todos os documentos encontrados para evitar duplicações
+      for (const doc of querySnapshot.docs) {
+        const docId = doc.id;
+        const fileUrl = doc.data().fileUrl;
+    
+        try {
+          // Remover do Storage
+          if (fileUrl && typeof fileUrl === 'string' && fileUrl.trim() !== '') {
+            const fileRef = storage.refFromURL(fileUrl);
+            await fileRef.delete();
+          }
+    
+          // Remover do Firestore
+          await db.collection('documents').doc(docId).delete();
+        } catch (storageError) {
+          console.warn('Aviso: Não foi possível excluir o arquivo original:', storageError);
+          // Continuar mesmo se falhar a exclusão do arquivo original
         }
-      } catch (storageError) {
-        console.warn('Aviso: Não foi possível excluir o arquivo original:', storageError);
-        // Continuar mesmo se falhar a exclusão do arquivo original
       }
-      
-      // Remover do Firestore
-      await db.collection('documents').doc(docId).delete();
     }
+    // ...existing code...
     
     // Criar nome do arquivo
     let fileName = DOCUMENT_TYPES[categoryKey].name;
