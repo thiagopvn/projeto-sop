@@ -1,30 +1,16 @@
-// dashboard-improved.js - Dashboard melhorado com correções
-
-// Estado do dashboard
 let dashboardState = {
   data: {
-    documents: {
-      total: 0,
-      complete: 0,
-      pending: 0,
-      overdue: 0,
-      expected: 0
-    },
+    documents: { total: 0, complete: 0, pending: 0, overdue: 0, expected: 0 },
     categories: {},
     monthlyTrend: [],
     pendingDocuments: [],
     upcomingEvents: []
   },
-  charts: {
-    category: null,
-    monthlyTrend: null
-  },
+  charts: { category: null, monthlyTrend: null },
   isLoading: false
 };
 
-// Inicializar dashboard
 document.addEventListener('DOMContentLoaded', () => {
-  // Aguardar autenticação
   setTimeout(() => {
     if (typeof auth !== 'undefined' && auth.currentUser) {
       initializeDashboard();
@@ -32,14 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 
-// Função de inicialização
 function initializeDashboard() {
   setupDashboardNavigation();
 }
 
-// Configurar navegação do dashboard
 function setupDashboardNavigation() {
-  // Link "Ver Todos" para eventos
   const viewAllEvents = document.getElementById('view-all-events');
   if (viewAllEvents) {
     viewAllEvents.addEventListener('click', (e) => {
@@ -49,7 +32,6 @@ function setupDashboardNavigation() {
     });
   }
   
-  // Link "Ver Todos" para documentos pendentes
   const viewAllPending = document.getElementById('view-all-pending');
   if (viewAllPending) {
     viewAllPending.addEventListener('click', (e) => {
@@ -60,7 +42,6 @@ function setupDashboardNavigation() {
   }
 }
 
-// Destruir gráficos do dashboard
 function destroyDashboardCharts() {
   if (dashboardState.charts.category) {
     dashboardState.charts.category.destroy();
@@ -73,7 +54,6 @@ function destroyDashboardCharts() {
   }
 }
 
-// Atualizar dashboard
 async function updateDashboard(isInitialLoad) {
   if (dashboardState.isLoading) return;
   
@@ -85,15 +65,12 @@ async function updateDashboard(isInitialLoad) {
     
     const month = parseInt(monthFilter.value);
     
-    // Carregar dados
     await loadDashboardData(month);
     
-    // Verificar se ainda estamos no dashboard
     if (window.appState && window.appState.currentCategory !== 'dashboard') {
       return;
     }
     
-    // Inicializar ou atualizar componentes
     if (isInitialLoad || !dashboardState.charts.category || !dashboardState.charts.monthlyTrend) {
       destroyDashboardCharts();
       initializeCharts();
@@ -112,10 +89,8 @@ async function updateDashboard(isInitialLoad) {
   }
 }
 
-// Carregar dados do dashboard
 async function loadDashboardData(month) {
   try {
-    // Resetar dados
     dashboardState.data = {
       documents: { total: 0, complete: 0, pending: 0, overdue: 0, expected: 0 },
       categories: {},
@@ -124,13 +99,11 @@ async function loadDashboardData(month) {
       upcomingEvents: []
     };
     
-    // Verificar dependências
     if (!db || !window.DOCUMENT_TYPES) {
       console.error('Dependências não encontradas');
       return;
     }
     
-    // Inicializar categorias
     const categories = {};
     Object.keys(window.DOCUMENT_TYPES).forEach(key => {
       if (!['CALENDARIO', 'DASHBOARD', 'LIVRO_DE_ORDENS', 'OPERACAO_SIMULADA'].includes(key)) {
@@ -146,7 +119,6 @@ async function loadDashboardData(month) {
       }
     });
     
-    // Calcular documentos esperados
     const weeksConfig = typeof weeksPerMonth !== 'undefined' ? weeksPerMonth : 
                         {3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4};
     
@@ -174,24 +146,19 @@ async function loadDashboardData(month) {
       }
     });
     
-    // Carregar documentos do Firestore
     const documentsSnapshot = await db.collection('documents').get();
     
-    // Usar Set para evitar duplicações
     const processedDocs = new Set();
     let completeDocuments = 0;
     
     documentsSnapshot.forEach(doc => {
       const data = doc.data();
       
-      // Criar chave única
       const docKey = `${data.category}-${data.month || 'annual'}-${data.week || '0'}`;
       
-      // Evitar duplicações
       if (processedDocs.has(docKey)) return;
       processedDocs.add(docKey);
       
-      // Contar documentos do mês ou anuais
       if (data.month === month || (data.year === 2025 && !data.month)) {
         completeDocuments++;
         
@@ -202,7 +169,6 @@ async function loadDashboardData(month) {
       }
     });
     
-    // Calcular pendentes e atrasados
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
@@ -219,7 +185,6 @@ async function loadDashboardData(month) {
       const categoryInfo = window.DOCUMENT_TYPES[categoryKey];
       const pendingCount = Math.max(0, category.expected - category.complete);
       
-      // Verificar se está atrasado
       let isOverdue = false;
       if (categoryInfo.annual) {
         isOverdue = 2025 < currentYear;
@@ -233,10 +198,8 @@ async function loadDashboardData(month) {
         category.pending = pendingCount;
       }
       
-      // Adicionar documentos pendentes/atrasados à lista
       if (pendingCount > 0) {
         for (let i = 1; i <= pendingCount; i++) {
-          // Para documentos com semana, verificar se já existe
           if (categoryInfo.needsWeek) {
             const docKey = `${categoryId}-${month}-${i}`;
             if (processedDocs.has(docKey)) continue;
@@ -260,13 +223,10 @@ async function loadDashboardData(month) {
       }
     });
     
-    // Carregar eventos próximos
     await loadUpcomingEvents();
     
-    // Gerar dados de tendência mensal
     const monthlyTrend = generateMonthlyTrend(month, weeksConfig);
     
-    // Atualizar estado
     dashboardState.data = {
       documents: {
         total: completeDocuments,
@@ -286,7 +246,6 @@ async function loadDashboardData(month) {
   }
 }
 
-// Carregar eventos próximos
 async function loadUpcomingEvents() {
   try {
     const today = new Date();
@@ -318,17 +277,14 @@ async function loadUpcomingEvents() {
   }
 }
 
-// Gerar dados de tendência mensal
 function generateMonthlyTrend(currentMonth, weeksConfig) {
   const monthlyTrend = [];
-  const validMonths = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   
-  // Últimos 6 meses
   for (let i = 5; i >= 0; i--) {
     const month = currentMonth - i;
     if (month >= 3) {
       const monthExpected = getExpectedDocumentsForMonth(month, weeksConfig);
-      const completionRate = 0.7 + (Math.random() * 0.3); // Simulação
+      const completionRate = 0.7 + (Math.random() * 0.3);
       
       monthlyTrend.push({
         month: month,
@@ -341,7 +297,6 @@ function generateMonthlyTrend(currentMonth, weeksConfig) {
   return monthlyTrend;
 }
 
-// Calcular documentos esperados para um mês
 function getExpectedDocumentsForMonth(month, weeksConfig) {
   let expectedCount = 0;
   
@@ -367,9 +322,7 @@ function getExpectedDocumentsForMonth(month, weeksConfig) {
   return expectedCount;
 }
 
-// Inicializar gráficos
 function initializeCharts() {
-  // Gráfico de categorias
   const categoryCtx = document.getElementById('category-chart');
   if (categoryCtx && typeof Chart !== 'undefined') {
     dashboardState.charts.category = new Chart(categoryCtx, {
@@ -427,7 +380,6 @@ function initializeCharts() {
     });
   }
   
-  // Gráfico de tendência
   const trendCtx = document.getElementById('monthly-trend-chart');
   if (trendCtx && typeof Chart !== 'undefined') {
     dashboardState.charts.monthlyTrend = new Chart(trendCtx, {
@@ -475,11 +427,9 @@ function initializeCharts() {
   updateCharts();
 }
 
-// Atualizar gráficos
 function updateCharts() {
   if (!dashboardState.charts.category || !dashboardState.charts.monthlyTrend) return;
   
-  // Atualizar gráfico de categorias
   const categories = Object.values(dashboardState.data.categories);
   const validCategories = categories.filter(cat => cat.expected > 0);
   
@@ -494,7 +444,6 @@ function updateCharts() {
   dashboardState.charts.category.data.datasets[2].data = overdueData;
   dashboardState.charts.category.update();
   
-  // Atualizar gráfico de tendência
   const trendLabels = dashboardState.data.monthlyTrend.map(item => item.monthName);
   const trendData = dashboardState.data.monthlyTrend.map(item => item.value);
   
@@ -503,35 +452,29 @@ function updateCharts() {
   dashboardState.charts.monthlyTrend.update();
 }
 
-// Atualizar cards de resumo
 function updateSummaryCards() {
   const data = dashboardState.data.documents;
   
-  // Atualizar valores
   updateElementText('total-documents-value', data.complete);
   updateElementText('expected-documents-value', data.expected);
   updateElementText('complete-documents-value', data.complete);
   updateElementText('pending-documents-value', data.pending);
   updateElementText('overdue-documents-value', data.overdue);
   
-  // Calcular percentuais
   const total = data.expected || 1;
   const completePercent = Math.round((data.complete / total) * 100);
   const pendingPercent = Math.round((data.pending / total) * 100);
   const overduePercent = Math.round((data.overdue / total) * 100);
   
-  // Atualizar barras de progresso
   updateProgressBar('complete-progress', completePercent);
   updateProgressBar('pending-progress', pendingPercent);
   updateProgressBar('overdue-progress', overduePercent);
   
-  // Atualizar labels
   updateElementText('complete-percentage', `${completePercent}%`);
   updateElementText('pending-percentage', `${pendingPercent}%`);
   updateElementText('overdue-percentage', `${overduePercent}%`);
 }
 
-// Atualizar lista de eventos próximos
 function updateUpcomingEventsList() {
   const container = document.getElementById('upcoming-events-list');
   if (!container) return;
@@ -554,7 +497,6 @@ function updateUpcomingEventsList() {
   });
 }
 
-// Criar elemento de evento
 function createEventElement(event) {
   const div = document.createElement('div');
   div.className = 'p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer';
@@ -597,7 +539,6 @@ function createEventElement(event) {
   return div;
 }
 
-// Atualizar lista de documentos pendentes
 function updatePendingDocumentsList() {
   const container = document.getElementById('pending-documents-list');
   if (!container) return;
@@ -620,7 +561,6 @@ function updatePendingDocumentsList() {
   });
 }
 
-// Criar elemento de documento pendente
 function createPendingDocumentElement(doc) {
   const div = document.createElement('div');
   div.className = 'p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer';
@@ -676,8 +616,6 @@ function createPendingDocumentElement(doc) {
   return div;
 }
 
-// Funções auxiliares
-
 function updateElementText(id, text) {
   const element = document.getElementById(id);
   if (element) element.textContent = text;
@@ -727,6 +665,5 @@ function truncateText(text, maxLength) {
   return text.substring(0, maxLength) + '...';
 }
 
-// Exportar funções
 window.updateDashboard = updateDashboard;
 window.destroyDashboardCharts = destroyDashboardCharts;
