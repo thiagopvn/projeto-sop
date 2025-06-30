@@ -1,61 +1,45 @@
-// operacao-simulada.js - Script para gerenciar a Operação Simulada
-
-// Variáveis globais
 let currentOperacaoId = null;
 let isOperacaoEditMode = false;
 
-// Inicializar quando o documento estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-  // Adicionar evento para a categoria Operação Simulada
   setupOperacaoSimuladaEvents();
 });
 
-// Configurar os eventos da aba Operação Simulada
 function setupOperacaoSimuladaEvents() {
-  // Obter referência ao item da barra lateral
   const operacaoSimuladaItem = document.querySelector('li[data-category="operacao-simulada"]');
   
   if (operacaoSimuladaItem) {
-    // Adicionar evento de clique ao item da barra lateral
     operacaoSimuladaItem.addEventListener('click', function() {
-      // Atualizar a categoria ativa no menu
       const allCategoryItems = document.querySelectorAll('.category-list li');
       allCategoryItems.forEach(item => item.classList.remove('active'));
       operacaoSimuladaItem.classList.add('active');
       
-      // Atualizar o título da página
       const categoryTitle = document.getElementById('category-title');
       if (categoryTitle) {
         categoryTitle.textContent = 'OPERAÇÃO SIMULADA';
       }
       
-      // Ocultar outros containers
       hideAllContainers();
       
-      // Mostrar o container da operação simulada
       const operacaoSimuladaContainer = document.getElementById('operacao-simulada-container');
       if (operacaoSimuladaContainer) {
         operacaoSimuladaContainer.style.display = 'block';
       }
       
-      // Mostrar o botão de upload específico
       const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
       if (uploadOperacaoBtn) {
         uploadOperacaoBtn.style.display = 'inline-flex';
       }
       
-      // Carregar documentos da operação simulada
       loadOperacoes();
     });
   }
   
-  // Evento para o botão de upload
   const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
   if (uploadOperacaoBtn) {
     uploadOperacaoBtn.addEventListener('click', () => openOperacaoModal());
   }
   
-  // Eventos para o modal
   const closeOperacaoModalBtn = document.querySelector('.close-operacao-modal');
   if (closeOperacaoModalBtn) {
     closeOperacaoModalBtn.addEventListener('click', closeOperacaoModal);
@@ -70,27 +54,8 @@ function setupOperacaoSimuladaEvents() {
   if (saveOperacaoBtn) {
     saveOperacaoBtn.addEventListener('click', saveOperacao);
   }
-  
-  // Adicionar eventos para outros itens da navegação para ocultar o container da operação simulada
-  const otherCategories = document.querySelectorAll('.category-list li:not([data-category="operacao-simulada"])');
-  otherCategories.forEach(item => {
-    item.addEventListener('click', function() {
-      // Ocultar o container da operação simulada
-      const operacaoSimuladaContainer = document.getElementById('operacao-simulada-container');
-      if (operacaoSimuladaContainer) {
-        operacaoSimuladaContainer.style.display = 'none';
-      }
-      
-      // Ocultar o botão de upload específico
-      const uploadOperacaoBtn = document.getElementById('upload-operacao-btn');
-      if (uploadOperacaoBtn) {
-        uploadOperacaoBtn.style.display = 'none';
-      }
-    });
-  });
 }
 
-// Função auxiliar para ocultar todos os containers
 function hideAllContainers() {
   const containers = [
     'dashboard-container',
@@ -107,7 +72,6 @@ function hideAllContainers() {
     }
   });
   
-  // Ocultar botões e filtros
   const elementsToHide = [
     'month-filter',
     'upload-btn',
@@ -124,9 +88,7 @@ function hideAllContainers() {
   });
 }
 
-// Função para carregar documentos da Operação Simulada
 async function loadOperacoes() {
-  // Obter referência à lista de documentos
   const operacaoList = document.getElementById('operacao-simulada-list');
   
   if (!operacaoList) {
@@ -134,16 +96,14 @@ async function loadOperacoes() {
     return;
   }
   
-  // Limpar lista atual
   operacaoList.innerHTML = '';
   
   try {
-    // Verificar se o Firestore está disponível
     if (typeof db === 'undefined') {
       console.error('Erro: Firebase não está disponível.');
       operacaoList.innerHTML = `
         <tr>
-          <td colspan="3" style="text-align: center; padding: 20px;">
+          <td colspan="3" class="text-center py-8 text-gray-500">
             Erro ao carregar documentos. Firebase não está disponível.
           </td>
         </tr>
@@ -151,16 +111,14 @@ async function loadOperacoes() {
       return;
     }
     
-    // Consultar documentos da Operação Simulada
     const snapshot = await db.collection('operacao-simulada')
       .orderBy('data', 'desc')
       .get();
     
-    // Verificar se há resultados
     if (snapshot.empty) {
       operacaoList.innerHTML = `
         <tr>
-          <td colspan="3" style="text-align: center; padding: 20px;">
+          <td colspan="3" class="text-center py-8 text-gray-500">
             Nenhum documento encontrado.
           </td>
         </tr>
@@ -168,7 +126,6 @@ async function loadOperacoes() {
       return;
     }
     
-    // Adicionar cada documento à tabela
     snapshot.forEach(doc => {
       const data = doc.data();
       const tr = createOperacaoRow(doc.id, data);
@@ -178,7 +135,7 @@ async function loadOperacoes() {
     console.error('Erro ao carregar documentos:', error);
     operacaoList.innerHTML = `
       <tr>
-        <td colspan="3" style="text-align: center; padding: 20px;">
+        <td colspan="3" class="text-center py-8 text-red-500">
           Erro ao carregar documentos: ${error.message}
         </td>
       </tr>
@@ -186,11 +143,10 @@ async function loadOperacoes() {
   }
 }
 
-// Função para criar linha da tabela
 function createOperacaoRow(id, operacao) {
   const tr = document.createElement('tr');
+  tr.className = 'hover:bg-gray-50 transition-colors duration-150';
   
-  // Formatar data
   let dataFormatada = '-';
   if (operacao.data) {
     try {
@@ -200,7 +156,6 @@ function createOperacaoRow(id, operacao) {
       } else if (operacao.data instanceof Date) {
         dataObj = operacao.data;
       } else if (operacao.data.toDate && typeof operacao.data.toDate === 'function') {
-        // Para Timestamp do Firestore
         dataObj = operacao.data.toDate();
       } else {
         throw new Error('Formato de data desconhecido');
@@ -215,42 +170,44 @@ function createOperacaoRow(id, operacao) {
     }
   }
   
-  // Verificar e garantir que fileUrl seja uma string válida ou estabelecer um valor padrão
   const fileUrl = operacao.fileUrl && typeof operacao.fileUrl === 'string' ? operacao.fileUrl : '';
   
   tr.innerHTML = `
-    <td>${operacao.nome || 'Documento sem nome'}</td>
-    <td>${dataFormatada}</td>
-    <td class="table-actions">
-      ${fileUrl ? `<button class="action-btn view-btn" title="Visualizar" data-id="${id}" data-url="${fileUrl}">
+    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${operacao.nome || 'Documento sem nome'}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${dataFormatada}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+      ${fileUrl ? `<button class="action-view text-primary-600 hover:text-primary-900 mr-3" title="Visualizar" data-id="${id}" data-url="${fileUrl}">
         <i class="fas fa-eye"></i>
       </button>` : ''}
-      <button class="action-btn edit-btn" title="Editar" data-id="${id}">
+      <button class="action-edit text-blue-600 hover:text-blue-900 mr-3" title="Editar" data-id="${id}">
         <i class="fas fa-edit"></i>
       </button>
-      ${fileUrl ? `<button class="action-btn download-btn" title="Baixar" data-id="${id}" data-url="${fileUrl}">
+      ${fileUrl ? `<button class="action-download text-green-600 hover:text-green-900 mr-3" title="Baixar" data-id="${id}" data-url="${fileUrl}">
         <i class="fas fa-download"></i>
       </button>` : ''}
-      <button class="action-btn delete-btn" title="Excluir" data-id="${id}">
+      <button class="action-delete text-red-600 hover:text-red-900" title="Excluir" data-id="${id}">
         <i class="fas fa-trash"></i>
       </button>
     </td>
   `;
   
-  // Adicionar eventos aos botões de forma mais segura
-  const viewBtn = tr.querySelector('.view-btn');
+  const viewBtn = tr.querySelector('.action-view');
   if (viewBtn) {
     viewBtn.addEventListener('click', function() {
       const url = this.getAttribute('data-url');
       if (url && url.trim() !== '') {
         window.open(url, '_blank');
       } else {
-        alert('URL do documento não disponível.');
+        if (window.showNotification) {
+          window.showNotification('URL do documento não disponível.', 'error');
+        } else {
+          alert('URL do documento não disponível.');
+        }
       }
     });
   }
   
-  const editBtn = tr.querySelector('.edit-btn');
+  const editBtn = tr.querySelector('.action-edit');
   if (editBtn) {
     editBtn.addEventListener('click', function() {
       const docId = this.getAttribute('data-id');
@@ -260,19 +217,23 @@ function createOperacaoRow(id, operacao) {
     });
   }
   
-  const downloadBtn = tr.querySelector('.download-btn');
+  const downloadBtn = tr.querySelector('.action-download');
   if (downloadBtn) {
     downloadBtn.addEventListener('click', function() {
       const url = this.getAttribute('data-url');
       if (url && url.trim() !== '') {
         downloadOperacao(url, operacao.nome || 'documento');
       } else {
-        alert('URL do documento não disponível para download.');
+        if (window.showNotification) {
+          window.showNotification('URL do documento não disponível para download.', 'error');
+        } else {
+          alert('URL do documento não disponível para download.');
+        }
       }
     });
   }
   
-  const deleteBtn = tr.querySelector('.delete-btn');
+  const deleteBtn = tr.querySelector('.action-delete');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', function() {
       const docId = this.getAttribute('data-id');
@@ -285,9 +246,7 @@ function createOperacaoRow(id, operacao) {
   return tr;
 }
 
-// Função para abrir o modal de upload/edição
 async function openOperacaoModal(operacaoId = null) {
-  // Obter referências aos elementos do modal
   const modal = document.getElementById('operacao-modal');
   const title = document.getElementById('operacao-modal-title');
   const nomeInput = document.getElementById('operacao-nome');
@@ -300,16 +259,13 @@ async function openOperacaoModal(operacaoId = null) {
     return;
   }
   
-  // Limpar campos
   nomeInput.value = '';
   if (dataInput) dataInput.value = '';
   if (fileInput) fileInput.value = '';
   
-  // Definir valores iniciais
   currentOperacaoId = null;
   isOperacaoEditMode = false;
   
-  // Definir data atual como padrão
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -317,26 +273,21 @@ async function openOperacaoModal(operacaoId = null) {
   if (dataInput) dataInput.value = `${year}-${month}-${day}`;
   
   if (operacaoId) {
-    // Modo de edição
     isOperacaoEditMode = true;
     currentOperacaoId = operacaoId;
     title.textContent = 'Editar Documento';
     if (fileContainer) fileContainer.style.display = 'none';
     
     try {
-      // Buscar dados do documento
       const docRef = db.collection('operacao-simulada').doc(operacaoId);
       const doc = await docRef.get();
       
       if (doc.exists) {
         const data = doc.data();
         
-        // Preencher campos
         if (nomeInput) nomeInput.value = data.nome || '';
         
-        // Formatar data para o input
         if (dataInput && data.data) {
-          // Garantir que data.data é uma string ou objeto Date
           try {
             let dataObj;
             if (typeof data.data === 'string') {
@@ -344,7 +295,6 @@ async function openOperacaoModal(operacaoId = null) {
             } else if (data.data instanceof Date) {
               dataObj = data.data;
             } else if (data.data.toDate && typeof data.data.toDate === 'function') {
-              // Para Timestamp do Firestore
               dataObj = data.data.toDate();
             } else {
               throw new Error('Formato de data desconhecido');
@@ -356,7 +306,6 @@ async function openOperacaoModal(operacaoId = null) {
             dataInput.value = `${year}-${month}-${day}`;
           } catch (error) {
             console.error('Erro ao processar data:', error);
-            // Usar a data atual como fallback
             dataInput.value = `${year}-${month}-${day}`;
           }
         }
@@ -365,19 +314,20 @@ async function openOperacaoModal(operacaoId = null) {
       }
     } catch (error) {
       console.error('Erro ao buscar documento:', error);
-      alert('Erro ao buscar informações do documento.');
+      if (window.showNotification) {
+        window.showNotification('Erro ao buscar informações do documento.', 'error');
+      } else {
+        alert('Erro ao buscar informações do documento.');
+      }
     }
   } else {
-    // Modo de novo documento
     title.textContent = 'Upload de Documento';
     if (fileContainer) fileContainer.style.display = 'block';
   }
   
-  // Exibir modal
   if (modal) modal.style.display = 'block';
 }
 
-// Função para fechar o modal
 function closeOperacaoModal() {
   const modal = document.getElementById('operacao-modal');
   if (modal) {
@@ -385,9 +335,7 @@ function closeOperacaoModal() {
   }
 }
 
-// Função para salvar documento
 async function saveOperacao() {
-  // Obter dados do formulário
   const nomeInput = document.getElementById('operacao-nome');
   const dataInput = document.getElementById('operacao-data');
   const fileInput = document.getElementById('operacao-file');
@@ -400,27 +348,35 @@ async function saveOperacao() {
   const nome = nomeInput.value.trim();
   const data = dataInput.value;
   
-  // Validar campos
   if (!nome) {
-    alert('Por favor, informe o nome do documento.');
+    if (window.showNotification) {
+      window.showNotification('Por favor, informe o nome do documento.', 'error');
+    } else {
+      alert('Por favor, informe o nome do documento.');
+    }
     return;
   }
   
   if (!data) {
-    alert('Por favor, selecione a data do documento.');
+    if (window.showNotification) {
+      window.showNotification('Por favor, selecione a data do documento.', 'error');
+    } else {
+      alert('Por favor, selecione a data do documento.');
+    }
     return;
   }
   
-  // Verificar autenticação
   if (!auth || !auth.currentUser) {
-    alert('Usuário não autenticado. Por favor, faça login novamente.');
+    if (window.showNotification) {
+      window.showNotification('Usuário não autenticado. Por favor, faça login novamente.', 'error');
+    } else {
+      alert('Usuário não autenticado. Por favor, faça login novamente.');
+    }
     return;
   }
   
   try {
-    // Atualizar documento existente
     if (isOperacaoEditMode && currentOperacaoId) {
-      // Obter documento atual para preservar fileUrl
       const docRef = db.collection('operacao-simulada').doc(currentOperacaoId);
       const docSnap = await docRef.get();
       let fileUrl = '';
@@ -434,49 +390,52 @@ async function saveOperacao() {
         nome: nome,
         data: data,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        fileUrl: fileUrl // Garantir que a URL do arquivo seja preservada
+        fileUrl: fileUrl
       });
       
-      alert('Documento atualizado com sucesso!');
+      if (window.showNotification) {
+        window.showNotification('Documento atualizado com sucesso!', 'success');
+      } else {
+        alert('Documento atualizado com sucesso!');
+      }
       closeOperacaoModal();
       loadOperacoes();
       return;
     }
     
-    // Upload de novo documento
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-      alert('Por favor, selecione um arquivo.');
+      if (window.showNotification) {
+        window.showNotification('Por favor, selecione um arquivo.', 'error');
+      } else {
+        alert('Por favor, selecione um arquivo.');
+      }
       return;
     }
     
     const file = fileInput.files[0];
     
-    // Criar nome de arquivo seguro
     const safeNome = nome.replace(/[^a-z0-9]/gi, '_');
     const timestamp = Date.now();
     const fileExt = file.name.split('.').pop();
     const storagePath = `operacao-simulada/${timestamp}_${safeNome}.${fileExt}`;
     
-    // Verificar se o storage está disponível
     if (!storage) {
-      alert('Erro: Firebase Storage não está disponível.');
+      if (window.showNotification) {
+        window.showNotification('Erro: Firebase Storage não está disponível.', 'error');
+      } else {
+        alert('Erro: Firebase Storage não está disponível.');
+      }
       return;
     }
     
-    // Criar referência no storage
     const storageRef = storage.ref(storagePath);
-    
-    // Iniciar upload
     const uploadTask = storageRef.put(file);
     
-    // Monitorar progresso
     uploadTask.on('state_changed',
-      // Progresso
       (snapshot) => {
         const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
         console.log(`Upload: ${progress}%`);
       },
-      // Erro
       (error) => {
         console.error('Erro no upload:', error);
         
@@ -489,20 +448,20 @@ async function saveOperacao() {
           errorMessage = `Erro (${error.code}): ${error.message}`;
         }
         
-        alert(errorMessage);
+        if (window.showNotification) {
+          window.showNotification(errorMessage, 'error');
+        } else {
+          alert(errorMessage);
+        }
       },
-      // Sucesso
       async () => {
         try {
-          // Obter URL de download
           const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
           
-          // Verificar se a URL de download é uma string válida
           if (!downloadURL || typeof downloadURL !== 'string') {
             throw new Error('URL de download inválida.');
           }
           
-          // Salvar no Firestore
           await db.collection('operacao-simulada').add({
             nome: nome,
             data: data,
@@ -513,26 +472,40 @@ async function saveOperacao() {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
           
-          alert('Documento salvo com sucesso!');
+          if (window.showNotification) {
+            window.showNotification('Documento salvo com sucesso!', 'success');
+          } else {
+            alert('Documento salvo com sucesso!');
+          }
           closeOperacaoModal();
           loadOperacoes();
         } catch (error) {
           console.error('Erro ao salvar documento:', error);
-          alert(`Erro ao salvar documento: ${error.message}`);
+          if (window.showNotification) {
+            window.showNotification(`Erro ao salvar documento: ${error.message}`, 'error');
+          } else {
+            alert(`Erro ao salvar documento: ${error.message}`);
+          }
         }
       }
     );
   } catch (error) {
     console.error('Erro ao processar documento:', error);
-    alert(`Erro: ${error.message}`);
+    if (window.showNotification) {
+      window.showNotification(`Erro: ${error.message}`, 'error');
+    } else {
+      alert(`Erro: ${error.message}`);
+    }
   }
 }
 
-// Função para baixar documento
 function downloadOperacao(url, name) {
-  // Verificar se a URL é válida antes de tentar o download
   if (!url || typeof url !== 'string' || url.trim() === '') {
-    alert('URL do documento não disponível.');
+    if (window.showNotification) {
+      window.showNotification('URL do documento não disponível.', 'error');
+    } else {
+      alert('URL do documento não disponível.');
+    }
     return;
   }
   
@@ -540,21 +513,23 @@ function downloadOperacao(url, name) {
     const a = document.createElement('a');
     a.href = url;
     a.download = name || 'documento';
-    a.rel = 'noopener noreferrer'; // Adicionar segurança
+    a.rel = 'noopener noreferrer';
     document.body.appendChild(a);
     a.click();
     
-    // Remover o elemento após um breve atraso
     setTimeout(() => {
       document.body.removeChild(a);
     }, 100);
   } catch (error) {
     console.error('Erro ao baixar documento:', error);
-    alert('Erro ao baixar o documento.');
+    if (window.showNotification) {
+      window.showNotification('Erro ao baixar o documento.', 'error');
+    } else {
+      alert('Erro ao baixar o documento.');
+    }
   }
 }
 
-// Função para excluir documento
 async function deleteOperacao(id) {
   if (!id) {
     console.error('ID do documento não fornecido.');
@@ -567,40 +542,53 @@ async function deleteOperacao(id) {
   }
   
   try {
-    // Verificar autenticação
     if (!auth || !auth.currentUser) {
-      alert('Usuário não autenticado. Por favor, faça login novamente.');
+      if (window.showNotification) {
+        window.showNotification('Usuário não autenticado. Por favor, faça login novamente.', 'error');
+      } else {
+        alert('Usuário não autenticado. Por favor, faça login novamente.');
+      }
       return;
     }
     
-    // Obter referência do documento
     const docRef = db.collection('operacao-simulada').doc(id);
     const doc = await docRef.get();
     
     if (doc.exists) {
       const data = doc.data();
       
-      // Excluir arquivo do Storage
       if (data.fileUrl && typeof data.fileUrl === 'string' && data.fileUrl.trim() !== '') {
         try {
           const fileRef = storage.refFromURL(data.fileUrl);
           await fileRef.delete();
         } catch (storageError) {
           console.warn('Aviso: Não foi possível excluir o arquivo do Storage:', storageError);
-          // Continuar mesmo se falhar a exclusão do arquivo
         }
       }
       
-      // Excluir documento do Firestore
       await docRef.delete();
       
-      alert('Documento excluído com sucesso!');
+      if (window.showNotification) {
+        window.showNotification('Documento excluído com sucesso!', 'success');
+      } else {
+        alert('Documento excluído com sucesso!');
+      }
       loadOperacoes();
     } else {
-      alert('Documento não encontrado.');
+      if (window.showNotification) {
+        window.showNotification('Documento não encontrado.', 'error');
+      } else {
+        alert('Documento não encontrado.');
+      }
     }
   } catch (error) {
     console.error('Erro ao excluir documento:', error);
-    alert(`Erro ao excluir documento: ${error.message}`);
+    if (window.showNotification) {
+      window.showNotification(`Erro ao excluir documento: ${error.message}`, 'error');
+    } else {
+      alert(`Erro ao excluir documento: ${error.message}`);
+    }
   }
 }
+
+window.loadOperacoes = loadOperacoes;
