@@ -370,6 +370,11 @@ async function showDocuments(category) {
   elements.uploadBtn.style.display = 'flex';
   document.querySelector('.status-info').style.display = 'flex';
   
+  // Sincronizar o mês atual com o valor do filtro
+  if (elements.monthFilter) {
+    appState.currentMonth = parseInt(elements.monthFilter.value);
+  }
+  
   await loadDocumentsByCategory(category, appState.currentMonth);
 }
 
