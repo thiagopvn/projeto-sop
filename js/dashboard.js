@@ -1,7 +1,8 @@
-// dashboard.js - Script para o dashboard da aplicação
+// dashboard-improved.js - Dashboard melhorado com correções
 
-// Variáveis globais
-let dashboardData = {
+// Estado do dashboard
+let dashboardState = {
+  data: {
     documents: {
       total: 0,
       complete: 0,
@@ -13,380 +14,147 @@ let dashboardData = {
     monthlyTrend: [],
     pendingDocuments: [],
     upcomingEvents: []
-  };
-  
-  let categoryChart = null;
-  let monthlyTrendChart = null;
-  
-  // Referência para VALID_MONTHS definido em app.js
-  const VALID_MONTHS_LOCAL = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  
-  // Inicializar dashboard quando a página carregar
-  document.addEventListener('DOMContentLoaded', function() {
-    // Verificar estado de autenticação apenas após carregamento completo da página
-    setTimeout(function() {
-      if (typeof auth !== 'undefined' && auth.currentUser) {
-        initializeDashboard();
-      } else {
-        // Fallback - verificar novamente após um intervalo curto
-        setTimeout(function() {
-          if (typeof auth !== 'undefined' && auth.currentUser) {
-            initializeDashboard();
-          } else {
-            console.warn("Usuário não autenticado ou auth não disponível.");
-          }
-        }, 1000);
-      }
-    }, 500);
-  });
-  
-  // Função para inicializar o dashboard
-  function initializeDashboard() {
-    console.log("Inicializando dashboard...");
-    
-    // Configurar navegação
-    setupNavigation();
-    
-    // Carregar dados iniciais e inicializar gráficos
-    updateDashboard(true);
+  },
+  charts: {
+    category: null,
+    monthlyTrend: null
+  },
+  isLoading: false
+};
+
+// Inicializar dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  // Aguardar autenticação
+  setTimeout(() => {
+    if (typeof auth !== 'undefined' && auth.currentUser) {
+      initializeDashboard();
+    }
+  }, 1000);
+});
+
+// Função de inicialização
+function initializeDashboard() {
+  setupDashboardNavigation();
+}
+
+// Configurar navegação do dashboard
+function setupDashboardNavigation() {
+  // Link "Ver Todos" para eventos
+  const viewAllEvents = document.getElementById('view-all-events');
+  if (viewAllEvents) {
+    viewAllEvents.addEventListener('click', (e) => {
+      e.preventDefault();
+      const calendarTab = document.querySelector('li[data-category="calendario"]');
+      if (calendarTab) calendarTab.click();
+    });
   }
   
-  // Configurar navegação
-  function setupNavigation() {
-    // Configurar link "Ver Todos" para eventos
-    const viewAllEvents = document.getElementById('view-all-events');
-    if (viewAllEvents) {
-      viewAllEvents.addEventListener('click', function(e) {
-        e.preventDefault();
-        const calendarTab = document.querySelector('li[data-category="calendario"]');
-        if (calendarTab) calendarTab.click();
-      });
-    }
+  // Link "Ver Todos" para documentos pendentes
+  const viewAllPending = document.getElementById('view-all-pending');
+  if (viewAllPending) {
+    viewAllPending.addEventListener('click', (e) => {
+      e.preventDefault();
+      const aulasTab = document.querySelector('li[data-category="aulas"]');
+      if (aulasTab) aulasTab.click();
+    });
+  }
+}
+
+// Destruir gráficos do dashboard
+function destroyDashboardCharts() {
+  if (dashboardState.charts.category) {
+    dashboardState.charts.category.destroy();
+    dashboardState.charts.category = null;
+  }
+  
+  if (dashboardState.charts.monthlyTrend) {
+    dashboardState.charts.monthlyTrend.destroy();
+    dashboardState.charts.monthlyTrend = null;
+  }
+}
+
+// Atualizar dashboard
+async function updateDashboard(isInitialLoad) {
+  if (dashboardState.isLoading) return;
+  
+  try {
+    dashboardState.isLoading = true;
     
-    // Configurar link "Ver Todos" para documentos pendentes
-    const viewAllPending = document.getElementById('view-all-pending');
-    if (viewAllPending) {
-      viewAllPending.addEventListener('click', function(e) {
-        e.preventDefault();
-        const dashboardMonth = document.getElementById('month-filter')?.value || '3';
-        
-        // Navegar para a aba de aulas
-        const aulasTab = document.querySelector('li[data-category="aulas"]');
-        if (aulasTab) aulasTab.click();
-      });
-    }
-    
-    // Adicionar evento ao seletor de mês para atualizar o dashboard quando estiver na tela do dashboard
     const monthFilter = document.getElementById('month-filter');
-    if (monthFilter) {
-      monthFilter.addEventListener('change', function() {
-        if (typeof currentCategory !== 'undefined' && currentCategory === 'dashboard') {
-          updateDashboard(false);
-        }
-      });
-    }
-  }
-  
-  // Função para destruir gráficos quando sair do dashboard
-  function destroyDashboardCharts() {
-    if (categoryChart) {
-      categoryChart.destroy();
-      categoryChart = null;
+    if (!monthFilter) return;
+    
+    const month = parseInt(monthFilter.value);
+    
+    // Carregar dados
+    await loadDashboardData(month);
+    
+    // Verificar se ainda estamos no dashboard
+    if (window.appState && window.appState.currentCategory !== 'dashboard') {
+      return;
     }
     
-    if (monthlyTrendChart) {
-      monthlyTrendChart.destroy();
-      monthlyTrendChart = null;
+    // Inicializar ou atualizar componentes
+    if (isInitialLoad || !dashboardState.charts.category || !dashboardState.charts.monthlyTrend) {
+      destroyDashboardCharts();
+      initializeCharts();
+    } else {
+      updateCharts();
     }
+    
+    updateSummaryCards();
+    updateUpcomingEventsList();
+    updatePendingDocumentsList();
+    
+  } catch (error) {
+    console.error('Erro ao atualizar dashboard:', error);
+  } finally {
+    dashboardState.isLoading = false;
   }
-  
-  // Função principal para atualizar o dashboard
-  async function updateDashboard(isInitialLoad) {
-    try {
-      // Obter mês selecionado (agora usando apenas o seletor principal)
-      const monthFilter = document.getElementById('month-filter');
-      if (!monthFilter) return;
-      
-      const month = parseInt(monthFilter.value);
-      
-      // Verificar se o mês é válido usando a variável global ou a local
-      const validMonths = typeof VALID_MONTHS !== 'undefined' ? VALID_MONTHS : VALID_MONTHS_LOCAL;
-      
-      if (!validMonths.includes(month)) {
-        monthFilter.value = '3';
-        return updateDashboard(isInitialLoad);
-      }
-      
-      // Verificar se o Firebase está disponível
-      if (typeof db === 'undefined') {
-        console.error("Firebase não está disponível");
-        return;
-      }
-      
-      // Carregar dados
-      await loadDashboardData(month);
-      
-      // Verificar se ainda estamos na visualização de dashboard antes de inicializar/atualizar gráficos
-      if (typeof currentCategory !== 'undefined' && currentCategory !== 'dashboard') {
-        return;
-      }
-      
-      // Inicializar ou atualizar gráficos
-      if (isInitialLoad || !categoryChart || !monthlyTrendChart) {
-        // Certifique-se de destruir gráficos existentes primeiro
-        destroyDashboardCharts();
-        initializeCharts();
-      } else {
-        updateCharts();
-      }
-      
-      // Atualizar cards e listas
-      updateSummaryCards();
-      updateUpcomingEventsList();
-      updatePendingDocumentsList();
-      
-    } catch (error) {
-      console.error('Erro ao atualizar dashboard:', error);
+}
+
+// Carregar dados do dashboard
+async function loadDashboardData(month) {
+  try {
+    // Resetar dados
+    dashboardState.data = {
+      documents: { total: 0, complete: 0, pending: 0, overdue: 0, expected: 0 },
+      categories: {},
+      monthlyTrend: [],
+      pendingDocuments: [],
+      upcomingEvents: []
+    };
+    
+    // Verificar dependências
+    if (!db || !window.DOCUMENT_TYPES) {
+      console.error('Dependências não encontradas');
+      return;
     }
-  }
-  
-  // Função para carregar dados para o dashboard
-  async function loadDashboardData(month) {
-    try {
-      // Reinicializar dados
-      dashboardData = {
-        documents: {
+    
+    // Inicializar categorias
+    const categories = {};
+    Object.keys(window.DOCUMENT_TYPES).forEach(key => {
+      if (!['CALENDARIO', 'DASHBOARD', 'LIVRO_DE_ORDENS', 'OPERACAO_SIMULADA'].includes(key)) {
+        const categoryId = window.DOCUMENT_TYPES[key].id;
+        categories[categoryId] = {
+          name: window.DOCUMENT_TYPES[key].name,
           total: 0,
           complete: 0,
           pending: 0,
           overdue: 0,
           expected: 0
-        },
-        categories: {},
-        monthlyTrend: [],
-        pendingDocuments: [],
-        upcomingEvents: []
-      };
-      
-      // Verificar dependências necessárias
-      if (!db || typeof DOCUMENT_TYPES === 'undefined') {
-        console.error("Dependências necessárias não encontradas");
-        return;
+        };
       }
-      
-      // 1. Inicializar categorias
-      const categories = {};
-      Object.keys(DOCUMENT_TYPES).forEach(key => {
-        if (key !== 'CALENDARIO' && key !== 'DASHBOARD') {
-          const categoryId = DOCUMENT_TYPES[key].id;
-          categories[categoryId] = {
-            name: DOCUMENT_TYPES[key].name,
-            total: 0,
-            complete: 0,
-            pending: 0,
-            overdue: 0,
-            expected: 0
-          };
-        }
-      });
-      
-      // 2. Calcular documentos esperados
-      const weeksConfig = typeof weeksPerMonth !== 'undefined' ? weeksPerMonth : 
-                          {3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4};
-      
-      let expectedDocuments = 0;
-      Object.keys(DOCUMENT_TYPES).forEach(key => {
-        if (key !== 'CALENDARIO' && key !== 'DASHBOARD') {
-          const categoryInfo = DOCUMENT_TYPES[key];
-          const categoryId = categoryInfo.id;
-          
-          // Verificar disponibilidade para o mês
-          let isAvailable = true;
-          if (categoryInfo.annual && categoryInfo.visibleMonths) {
-            isAvailable = categoryInfo.visibleMonths.includes(month);
-          }
-          
-          if (isAvailable) {
-            // Calcular quantidade esperada
-            let expectedCount = categoryInfo.monthlyCount || 0;
-            
-            // Para categorias com semanas, ajustar pelo número configurado
-            if (categoryInfo.needsWeek) {
-              expectedCount = Math.min(expectedCount, weeksConfig[month] || 4);
-            }
-            
-            // Atualizar totais
-            expectedDocuments += expectedCount;
-            categories[categoryId].expected = expectedCount;
-          }
-        }
-      });
-      
-      // 3. Carregar documentos reais do Firestore
-      const documentsSnapshot = await db.collection('documents').get();
-      
-      let completeDocuments = 0;
-      documentsSnapshot.forEach(doc => {
-        const data = doc.data();
-        
-        // Contar apenas documentos do mês selecionado ou anuais
-        if (data.month === month || (data.year === 2025 && !data.month)) {
-          completeDocuments++;
-          
-          // Incrementar categoria
-          if (categories[data.category]) {
-            categories[data.category].total++;
-            categories[data.category].complete++;
-          }
-        }
-      });
-      
-      // 4. Calcular pendentes e atrasados
-      let pendingDocuments = [];
-      let overdueDocuments = [];
-      
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth() + 1;
-      const currentYear = currentDate.getFullYear();
-      
-      Object.keys(categories).forEach(categoryId => {
-        const category = categories[categoryId];
-        const categoryKey = getCategoryKey(categoryId);
-        
-        if (!categoryKey) return;
-        
-        const categoryInfo = DOCUMENT_TYPES[categoryKey];
-        const pendingCount = Math.max(0, category.expected - category.complete);
-        
-        // Verificar se está atrasado
-        let isOverdue = false;
-        if (categoryInfo.annual) {
-          isOverdue = 2025 < currentYear;
-        } else {
-          isOverdue = 2025 < currentYear || (2025 === currentYear && month < currentMonth);
-        }
-        
-        // Atualizar contagens
-        if (isOverdue) {
-          category.overdue = pendingCount;
-        } else {
-          category.pending = pendingCount;
-        }
-        
-        // Adicionar à lista de documentos pendentes/atrasados
-        for (let i = 1; i <= pendingCount; i++) {
-          // Para documentos que usam semana, verificar se já existe um documento para esta semana
-          let skip = false;
-          if (categoryInfo.needsWeek) {
-            documentsSnapshot.forEach(doc => {
-              const data = doc.data();
-              if (data.category === categoryId && data.month === month && data.week === i) {
-                skip = true;
-              }
-            });
-          }
-          
-          if (!skip) {
-            const docItem = {
-              category: categoryId,
-              categoryName: categoryInfo.name,
-              month: month,
-              monthName: MONTH_NAMES[month - 1],
-              status: isOverdue ? 'overdue' : 'pending',
-              week: categoryInfo.needsWeek ? i : null
-            };
-            
-            if (isOverdue) {
-              overdueDocuments.push(docItem);
-            } else {
-              pendingDocuments.push(docItem);
-            }
-          }
-        }
-      });
-      
-      // 5. Carregar eventos próximos
-      try {
-        const today = new Date();
-        const formattedDate = formatDateForQuery(today);
-        
-        const eventsSnapshot = await db.collection('events')
-          .where('date', '>=', formattedDate)
-          .orderBy('date')
-          .limit(5)
-          .get();
-        
-        const upcomingEvents = [];
-        eventsSnapshot.forEach(doc => {
-          const data = doc.data();
-          upcomingEvents.push({
-            id: doc.id,
-            title: data.title,
-            date: data.date,
-            time: data.time,
-            type: data.type || 'outro',
-            description: data.description || ''
-          });
-        });
-        
-        dashboardData.upcomingEvents = upcomingEvents;
-      } catch (error) {
-        console.error("Erro ao carregar eventos:", error);
-      }
-      
-      // 6. Gerar dados de tendência mensal
-      const monthlyTrend = [];
-      const validMonths = typeof VALID_MONTHS !== 'undefined' ? VALID_MONTHS : VALID_MONTHS_LOCAL;
-      const startMonth = Math.max(validMonths[0], month - 5);
-      
-      for (let i = 0; i < 6 && (startMonth + i) <= validMonths[validMonths.length - 1]; i++) {
-        const m = startMonth + i;
-        
-        // Simplificando: usar dados simulados consistentes
-        const completionRate = 0.5 + (i * 0.1);
-        const monthExpected = getExpectedDocumentsForMonth(m, weeksConfig);
-        const monthComplete = Math.round(monthExpected * completionRate);
-        
-        monthlyTrend.push({
-          month: m,
-          monthName: MONTH_NAMES[m - 1],
-          value: monthComplete
-        });
-      }
-      
-      // 7. Atualizar objeto de dados do dashboard
-      dashboardData = {
-        documents: {
-          total: completeDocuments,
-          complete: completeDocuments,
-          pending: pendingDocuments.length,
-          overdue: overdueDocuments.length,
-          expected: expectedDocuments
-        },
-        categories: categories,
-        monthlyTrend: monthlyTrend,
-        pendingDocuments: [...overdueDocuments, ...pendingDocuments.slice(0, 5)],
-        upcomingEvents: dashboardData.upcomingEvents
-      };
-      
-      console.log("Dados carregados:", dashboardData);
-      
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    }
-  }
-  
-  // Função para calcular documentos esperados para um mês
-  function getExpectedDocumentsForMonth(month, weeksConfig) {
-    // Usar a constante global ou local
-    const validMonths = typeof VALID_MONTHS !== 'undefined' ? VALID_MONTHS : VALID_MONTHS_LOCAL;
+    });
     
-    if (!validMonths.includes(month)) return 0;
+    // Calcular documentos esperados
+    const weeksConfig = typeof weeksPerMonth !== 'undefined' ? weeksPerMonth : 
+                        {3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4};
     
-    let expectedCount = 0;
-    Object.keys(DOCUMENT_TYPES).forEach(key => {
-      if (key !== 'CALENDARIO' && key !== 'DASHBOARD') {
-        const categoryInfo = DOCUMENT_TYPES[key];
+    let expectedDocuments = 0;
+    Object.keys(window.DOCUMENT_TYPES).forEach(key => {
+      if (!['CALENDARIO', 'DASHBOARD', 'LIVRO_DE_ORDENS', 'OPERACAO_SIMULADA'].includes(key)) {
+        const categoryInfo = window.DOCUMENT_TYPES[key];
+        const categoryId = categoryInfo.id;
         
         let isAvailable = true;
         if (categoryInfo.annual && categoryInfo.visibleMonths) {
@@ -394,341 +162,571 @@ let dashboardData = {
         }
         
         if (isAvailable) {
-          let categoryExpected = categoryInfo.monthlyCount || 0;
+          let expectedCount = categoryInfo.monthlyCount || 0;
+          
           if (categoryInfo.needsWeek) {
-            categoryExpected = Math.min(categoryExpected, weeksConfig[month] || 4);
+            expectedCount = Math.min(expectedCount, weeksConfig[month] || 4);
           }
-          expectedCount += categoryExpected;
+          
+          expectedDocuments += expectedCount;
+          categories[categoryId].expected = expectedCount;
         }
       }
     });
     
-    return expectedCount;
-  }
-  
-  // Função para inicializar os gráficos
-  function initializeCharts() {
-    // 1. Inicializar gráfico de categorias
-    const categoryCtx = document.getElementById('category-chart');
-    if (categoryCtx && typeof Chart !== 'undefined') {
-      categoryChart = new Chart(categoryCtx, {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: 'Completos',
-              backgroundColor: 'rgba(76, 175, 80, 0.6)',
-              borderColor: 'rgba(76, 175, 80, 1)',
-              borderWidth: 1,
-              data: []
-            },
-            {
-              label: 'Pendentes',
-              backgroundColor: 'rgba(255, 152, 0, 0.6)',
-              borderColor: 'rgba(255, 152, 0, 1)',
-              borderWidth: 1,
-              data: []
-            },
-            {
-              label: 'Atrasados',
-              backgroundColor: 'rgba(244, 67, 54, 0.6)',
-              borderColor: 'rgba(244, 67, 54, 1)',
-              borderWidth: 1,
-              data: []
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              stacked: true,
-              grid: { display: false }
-            },
-            y: {
-              stacked: true,
-              beginAtZero: true,
-              ticks: { precision: 0 }
-            }
-          },
-          plugins: {
-            legend: { position: 'bottom' }
-          }
+    // Carregar documentos do Firestore
+    const documentsSnapshot = await db.collection('documents').get();
+    
+    // Usar Set para evitar duplicações
+    const processedDocs = new Set();
+    let completeDocuments = 0;
+    
+    documentsSnapshot.forEach(doc => {
+      const data = doc.data();
+      
+      // Criar chave única
+      const docKey = `${data.category}-${data.month || 'annual'}-${data.week || '0'}`;
+      
+      // Evitar duplicações
+      if (processedDocs.has(docKey)) return;
+      processedDocs.add(docKey);
+      
+      // Contar documentos do mês ou anuais
+      if (data.month === month || (data.year === 2025 && !data.month)) {
+        completeDocuments++;
+        
+        if (categories[data.category]) {
+          categories[data.category].total++;
+          categories[data.category].complete++;
         }
-      });
-    }
-    
-    // 2. Inicializar gráfico de tendência mensal
-    const trendCtx = document.getElementById('monthly-trend-chart');
-    if (trendCtx && typeof Chart !== 'undefined') {
-      monthlyTrendChart = new Chart(trendCtx, {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: 'Documentos Completos',
-              data: [],
-              borderColor: 'rgba(13, 71, 161, 1)',
-              backgroundColor: 'rgba(13, 71, 161, 0.1)',
-              tension: 0.4,
-              fill: true
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { precision: 0 }
-            }
-          },
-          plugins: {
-            legend: { position: 'bottom' }
-          }
-        }
-      });
-    }
-    
-    // Atualizar dados dos gráficos
-    updateCharts();
-  }
-  
-  // Função para atualizar os gráficos
-  function updateCharts() {
-    // Verificar se os gráficos foram inicializados
-    if (!categoryChart || !monthlyTrendChart) {
-      console.warn("Gráficos não inicializados");
-      return;
-    }
-    
-    // 1. Atualizar gráfico de categorias
-    const categories = Object.values(dashboardData.categories);
-    const validCategories = categories.filter(cat => cat.expected > 0);
-    
-    const labels = validCategories.map(cat => cat.name);
-    const completeData = validCategories.map(cat => cat.complete);
-    const pendingData = validCategories.map(cat => cat.pending);
-    const overdueData = validCategories.map(cat => cat.overdue);
-    
-    categoryChart.data.labels = labels;
-    categoryChart.data.datasets[0].data = completeData;
-    categoryChart.data.datasets[1].data = pendingData;
-    categoryChart.data.datasets[2].data = overdueData;
-    categoryChart.update();
-    
-    // 2. Atualizar gráfico de tendência mensal
-    const trendLabels = dashboardData.monthlyTrend.map(item => item.monthName);
-    const trendData = dashboardData.monthlyTrend.map(item => item.value);
-    
-    monthlyTrendChart.data.labels = trendLabels;
-    monthlyTrendChart.data.datasets[0].data = trendData;
-    monthlyTrendChart.update();
-  }
-  
-  // Função para atualizar os cartões de resumo
-  function updateSummaryCards() {
-    // Atualizar valores de contagem
-    const totalDocumentsValue = document.getElementById('total-documents-value');
-    const expectedDocumentsValue = document.getElementById('expected-documents-value');
-    const completeDocumentsValue = document.getElementById('complete-documents-value');
-    const pendingDocumentsValue = document.getElementById('pending-documents-value');
-    const overdueDocumentsValue = document.getElementById('overdue-documents-value');
-    
-    if (totalDocumentsValue) totalDocumentsValue.textContent = dashboardData.documents.complete;
-    if (expectedDocumentsValue) expectedDocumentsValue.textContent = dashboardData.documents.expected;
-    if (completeDocumentsValue) completeDocumentsValue.textContent = dashboardData.documents.complete;
-    if (pendingDocumentsValue) pendingDocumentsValue.textContent = dashboardData.documents.pending;
-    if (overdueDocumentsValue) overdueDocumentsValue.textContent = dashboardData.documents.overdue;
-    
-    // Calcular percentuais
-    const total = dashboardData.documents.expected;
-    const completePercent = total > 0 ? Math.round((dashboardData.documents.complete / total) * 100) : 0;
-    const pendingPercent = total > 0 ? Math.round((dashboardData.documents.pending / total) * 100) : 0;
-    const overduePercent = total > 0 ? Math.round((dashboardData.documents.overdue / total) * 100) : 0;
-    
-    // Atualizar barras de progresso
-    const completeProgress = document.getElementById('complete-progress');
-    const pendingProgress = document.getElementById('pending-progress');
-    const overdueProgress = document.getElementById('overdue-progress');
-    
-    if (completeProgress) completeProgress.style.width = `${completePercent}%`;
-    if (pendingProgress) pendingProgress.style.width = `${pendingPercent}%`;
-    if (overdueProgress) overdueProgress.style.width = `${overduePercent}%`;
-    
-    // Atualizar rótulos de percentual
-    const completePercentage = document.getElementById('complete-percentage');
-    const pendingPercentage = document.getElementById('pending-percentage');
-    const overduePercentage = document.getElementById('overdue-percentage');
-    
-    if (completePercentage) completePercentage.textContent = `${completePercent}%`;
-    if (pendingPercentage) pendingPercentage.textContent = `${pendingPercent}%`;
-    if (overduePercentage) overduePercentage.textContent = `${overduePercent}%`;
-  }
-  
-  // Função para atualizar a lista de eventos próximos
-  function updateUpcomingEventsList() {
-    const eventsListEl = document.getElementById('upcoming-events-list');
-    if (!eventsListEl) return;
-    
-    eventsListEl.innerHTML = '';
-    
-    if (dashboardData.upcomingEvents.length === 0) {
-      eventsListEl.innerHTML = '<div class="empty-list-message">Nenhum evento próximo encontrado</div>';
-      return;
-    }
-    
-    // Adicionar cada evento à lista
-    dashboardData.upcomingEvents.forEach(event => {
-      const listItem = document.createElement('div');
-      listItem.className = 'list-item';
-      
-      // Formatar data
-      const eventDate = event.date ? new Date(event.date + (event.time ? 'T' + event.time : 'T00:00:00')) : new Date();
-      const formattedDate = formatDateForDisplay(eventDate);
-      
-      listItem.innerHTML = `
-        <div class="item-icon ${event.type}-icon">
-          <i class="${getEventIcon(event.type)}"></i>
-        </div>
-        <div class="item-content">
-          <div class="item-title">${event.title} <span class="badge badge-${event.type}">${capitalizeFirstLetter(event.type)}</span></div>
-          <div class="item-subtitle">${truncateText(event.description, 40)}</div>
-        </div>
-        <div class="item-date">${formattedDate}</div>
-      `;
-      
-      listItem.addEventListener('click', function() {
-        const calendarTab = document.querySelector('li[data-category="calendario"]');
-        if (calendarTab) calendarTab.click();
-      });
-      
-      eventsListEl.appendChild(listItem);
-    });
-  }
-  
-  // Função para atualizar a lista de documentos pendentes
-  function updatePendingDocumentsList() {
-    const documentsListEl = document.getElementById('pending-documents-list');
-    if (!documentsListEl) return;
-    
-    documentsListEl.innerHTML = '';
-    
-    if (dashboardData.pendingDocuments.length === 0) {
-      documentsListEl.innerHTML = '<div class="empty-list-message">Nenhum documento pendente encontrado</div>';
-      return;
-    }
-    
-    // Adicionar cada documento à lista
-    dashboardData.pendingDocuments.forEach(doc => {
-      const listItem = document.createElement('div');
-      listItem.className = 'list-item';
-      
-      // Nome do documento
-      let documentName = doc.categoryName;
-      if (doc.week) {
-        documentName += ` - ${doc.week}ª SEMANA`;
       }
+    });
+    
+    // Calcular pendentes e atrasados
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+    
+    const pendingDocuments = [];
+    const overdueDocuments = [];
+    
+    Object.keys(categories).forEach(categoryId => {
+      const category = categories[categoryId];
+      const categoryKey = window.getCategoryKey(categoryId);
       
-      // Verificar se é anual
-      const categoryKey = getCategoryKey(doc.category);
-      const isAnnual = categoryKey ? DOCUMENT_TYPES[categoryKey].annual : false;
+      if (!categoryKey) return;
       
-      if (isAnnual) {
-        documentName += ` - 2025`;
+      const categoryInfo = window.DOCUMENT_TYPES[categoryKey];
+      const pendingCount = Math.max(0, category.expected - category.complete);
+      
+      // Verificar se está atrasado
+      let isOverdue = false;
+      if (categoryInfo.annual) {
+        isOverdue = 2025 < currentYear;
       } else {
-        documentName += ` - ${doc.monthName}`;
+        isOverdue = 2025 < currentYear || (2025 === currentYear && month < currentMonth);
       }
       
-      listItem.innerHTML = `
-        <div class="item-icon ${doc.status}-icon">
-          <i class="${doc.status === 'overdue' ? 'fas fa-exclamation-triangle' : 'fas fa-clock'}"></i>
-        </div>
-        <div class="item-content">
-          <div class="item-title">${documentName} <span class="badge badge-${doc.status}">${doc.status === 'overdue' ? 'Atrasado' : 'Pendente'}</span></div>
-          <div class="item-subtitle">${doc.categoryName}</div>
-        </div>
-      `;
+      if (isOverdue) {
+        category.overdue = pendingCount;
+      } else {
+        category.pending = pendingCount;
+      }
       
-      listItem.addEventListener('click', function() {
-        // Configurar mês e navegar para a categoria
-        if (typeof currentMonth !== 'undefined') {
-          currentMonth = doc.month;
+      // Adicionar documentos pendentes/atrasados à lista
+      if (pendingCount > 0) {
+        for (let i = 1; i <= pendingCount; i++) {
+          // Para documentos com semana, verificar se já existe
+          if (categoryInfo.needsWeek) {
+            const docKey = `${categoryId}-${month}-${i}`;
+            if (processedDocs.has(docKey)) continue;
+          }
+          
+          const docItem = {
+            category: categoryId,
+            categoryName: categoryInfo.name,
+            month: month,
+            monthName: window.MONTH_NAMES[month - 1],
+            status: isOverdue ? 'overdue' : 'pending',
+            week: categoryInfo.needsWeek ? i : null
+          };
+          
+          if (isOverdue) {
+            overdueDocuments.push(docItem);
+          } else {
+            pendingDocuments.push(docItem);
+          }
         }
-        
-        const monthFilter = document.getElementById('month-filter');
-        if (monthFilter) monthFilter.value = doc.month;
-        
-        const categoryTab = document.querySelector(`li[data-category="${doc.category}"]`);
-        if (categoryTab) categoryTab.click();
-      });
-      
-      documentsListEl.appendChild(listItem);
-    });
-  }
-  
-  // Funções auxiliares
-  
-  // Obter a chave da categoria
-  function getCategoryKey(categoryId) {
-    const keys = Object.keys(DOCUMENT_TYPES);
-    for (const key of keys) {
-      if (DOCUMENT_TYPES[key].id === categoryId) {
-        return key;
       }
-    }
-    return null;
-  }
-  
-  // Formatar data para exibição
-  function formatDateForDisplay(date) {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    });
     
-    let timeStr = '';
-    if (date.getHours() + date.getMinutes() > 0) {
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      timeStr = ` ${hours}:${minutes}`;
-    }
+    // Carregar eventos próximos
+    await loadUpcomingEvents();
     
-    return `${day}/${month}${timeStr}`;
-  }
-  
-  // Formatar data para consulta
-  function formatDateForQuery(date) {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
+    // Gerar dados de tendência mensal
+    const monthlyTrend = generateMonthlyTrend(month, weeksConfig);
     
-    return `${year}-${month}-${day}`;
-  }
-  
-  // Obter ícone para tipo de evento
-  function getEventIcon(eventType) {
-    const icons = {
-      'visita': 'fas fa-building',
-      'formatura': 'fas fa-graduation-cap',
-      'instrucao': 'fas fa-book',
-      'reuniao': 'fas fa-users',
-      'outro': 'fas fa-calendar-day'
+    // Atualizar estado
+    dashboardState.data = {
+      documents: {
+        total: completeDocuments,
+        complete: completeDocuments,
+        pending: pendingDocuments.length,
+        overdue: overdueDocuments.length,
+        expected: expectedDocuments
+      },
+      categories: categories,
+      monthlyTrend: monthlyTrend,
+      pendingDocuments: [...overdueDocuments, ...pendingDocuments].slice(0, 10),
+      upcomingEvents: dashboardState.data.upcomingEvents
     };
     
-    return icons[eventType] || icons.outro;
+  } catch (error) {
+    console.error('Erro ao carregar dados do dashboard:', error);
+  }
+}
+
+// Carregar eventos próximos
+async function loadUpcomingEvents() {
+  try {
+    const today = new Date();
+    const formattedDate = formatDateForQuery(today);
+    
+    const eventsSnapshot = await db.collection('events')
+      .where('date', '>=', formattedDate)
+      .orderBy('date')
+      .limit(5)
+      .get();
+    
+    const upcomingEvents = [];
+    eventsSnapshot.forEach(doc => {
+      const data = doc.data();
+      upcomingEvents.push({
+        id: doc.id,
+        title: data.title,
+        date: data.date,
+        time: data.time,
+        type: data.type || 'outro',
+        description: data.description || ''
+      });
+    });
+    
+    dashboardState.data.upcomingEvents = upcomingEvents;
+  } catch (error) {
+    console.error('Erro ao carregar eventos:', error);
+    dashboardState.data.upcomingEvents = [];
+  }
+}
+
+// Gerar dados de tendência mensal
+function generateMonthlyTrend(currentMonth, weeksConfig) {
+  const monthlyTrend = [];
+  const validMonths = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  
+  // Últimos 6 meses
+  for (let i = 5; i >= 0; i--) {
+    const month = currentMonth - i;
+    if (month >= 3) {
+      const monthExpected = getExpectedDocumentsForMonth(month, weeksConfig);
+      const completionRate = 0.7 + (Math.random() * 0.3); // Simulação
+      
+      monthlyTrend.push({
+        month: month,
+        monthName: window.MONTH_NAMES[month - 1],
+        value: Math.round(monthExpected * completionRate)
+      });
+    }
   }
   
-  // Truncar texto
-  function truncateText(text, maxLength) {
-    if (!text) return '';
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+  return monthlyTrend;
+}
+
+// Calcular documentos esperados para um mês
+function getExpectedDocumentsForMonth(month, weeksConfig) {
+  let expectedCount = 0;
+  
+  Object.keys(window.DOCUMENT_TYPES).forEach(key => {
+    if (!['CALENDARIO', 'DASHBOARD', 'LIVRO_DE_ORDENS', 'OPERACAO_SIMULADA'].includes(key)) {
+      const categoryInfo = window.DOCUMENT_TYPES[key];
+      
+      let isAvailable = true;
+      if (categoryInfo.annual && categoryInfo.visibleMonths) {
+        isAvailable = categoryInfo.visibleMonths.includes(month);
+      }
+      
+      if (isAvailable) {
+        let categoryExpected = categoryInfo.monthlyCount || 0;
+        if (categoryInfo.needsWeek) {
+          categoryExpected = Math.min(categoryExpected, weeksConfig[month] || 4);
+        }
+        expectedCount += categoryExpected;
+      }
+    }
+  });
+  
+  return expectedCount;
+}
+
+// Inicializar gráficos
+function initializeCharts() {
+  // Gráfico de categorias
+  const categoryCtx = document.getElementById('category-chart');
+  if (categoryCtx && typeof Chart !== 'undefined') {
+    dashboardState.charts.category = new Chart(categoryCtx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Completos',
+            backgroundColor: 'rgba(34, 197, 94, 0.8)',
+            borderColor: 'rgba(34, 197, 94, 1)',
+            borderWidth: 1,
+            data: []
+          },
+          {
+            label: 'Pendentes',
+            backgroundColor: 'rgba(251, 191, 36, 0.8)',
+            borderColor: 'rgba(251, 191, 36, 1)',
+            borderWidth: 1,
+            data: []
+          },
+          {
+            label: 'Atrasados',
+            backgroundColor: 'rgba(239, 68, 68, 0.8)',
+            borderColor: 'rgba(239, 68, 68, 1)',
+            borderWidth: 1,
+            data: []
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        },
+        plugins: {
+          legend: { 
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              padding: 15
+            }
+          }
+        }
+      }
+    });
   }
   
-  // Capitalizar primeira letra
-  function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  // Gráfico de tendência
+  const trendCtx = document.getElementById('monthly-trend-chart');
+  if (trendCtx && typeof Chart !== 'undefined') {
+    dashboardState.charts.monthlyTrend = new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Documentos Completos',
+            data: [],
+            borderColor: 'rgba(33, 150, 243, 1)',
+            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: 'rgba(33, 150, 243, 1)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        },
+        plugins: {
+          legend: { 
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              padding: 15
+            }
+          }
+        }
+      }
+    });
   }
+  
+  updateCharts();
+}
+
+// Atualizar gráficos
+function updateCharts() {
+  if (!dashboardState.charts.category || !dashboardState.charts.monthlyTrend) return;
+  
+  // Atualizar gráfico de categorias
+  const categories = Object.values(dashboardState.data.categories);
+  const validCategories = categories.filter(cat => cat.expected > 0);
+  
+  const labels = validCategories.map(cat => cat.name);
+  const completeData = validCategories.map(cat => cat.complete);
+  const pendingData = validCategories.map(cat => cat.pending);
+  const overdueData = validCategories.map(cat => cat.overdue);
+  
+  dashboardState.charts.category.data.labels = labels;
+  dashboardState.charts.category.data.datasets[0].data = completeData;
+  dashboardState.charts.category.data.datasets[1].data = pendingData;
+  dashboardState.charts.category.data.datasets[2].data = overdueData;
+  dashboardState.charts.category.update();
+  
+  // Atualizar gráfico de tendência
+  const trendLabels = dashboardState.data.monthlyTrend.map(item => item.monthName);
+  const trendData = dashboardState.data.monthlyTrend.map(item => item.value);
+  
+  dashboardState.charts.monthlyTrend.data.labels = trendLabels;
+  dashboardState.charts.monthlyTrend.data.datasets[0].data = trendData;
+  dashboardState.charts.monthlyTrend.update();
+}
+
+// Atualizar cards de resumo
+function updateSummaryCards() {
+  const data = dashboardState.data.documents;
+  
+  // Atualizar valores
+  updateElementText('total-documents-value', data.complete);
+  updateElementText('expected-documents-value', data.expected);
+  updateElementText('complete-documents-value', data.complete);
+  updateElementText('pending-documents-value', data.pending);
+  updateElementText('overdue-documents-value', data.overdue);
+  
+  // Calcular percentuais
+  const total = data.expected || 1;
+  const completePercent = Math.round((data.complete / total) * 100);
+  const pendingPercent = Math.round((data.pending / total) * 100);
+  const overduePercent = Math.round((data.overdue / total) * 100);
+  
+  // Atualizar barras de progresso
+  updateProgressBar('complete-progress', completePercent);
+  updateProgressBar('pending-progress', pendingPercent);
+  updateProgressBar('overdue-progress', overduePercent);
+  
+  // Atualizar labels
+  updateElementText('complete-percentage', `${completePercent}%`);
+  updateElementText('pending-percentage', `${pendingPercent}%`);
+  updateElementText('overdue-percentage', `${overduePercent}%`);
+}
+
+// Atualizar lista de eventos próximos
+function updateUpcomingEventsList() {
+  const container = document.getElementById('upcoming-events-list');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (dashboardState.data.upcomingEvents.length === 0) {
+    container.innerHTML = `
+      <div class="text-center text-gray-500 py-8">
+        <i class="fas fa-calendar-times text-4xl mb-2"></i>
+        <p>Nenhum evento próximo encontrado</p>
+      </div>
+    `;
+    return;
+  }
+  
+  dashboardState.data.upcomingEvents.forEach(event => {
+    const eventEl = createEventElement(event);
+    container.appendChild(eventEl);
+  });
+}
+
+// Criar elemento de evento
+function createEventElement(event) {
+  const div = document.createElement('div');
+  div.className = 'p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer';
+  
+  const eventDate = event.date ? new Date(event.date + (event.time ? 'T' + event.time : 'T00:00:00')) : new Date();
+  const formattedDate = formatDateForDisplay(eventDate);
+  
+  const typeColors = {
+    'visita': 'text-green-600 bg-green-100',
+    'formatura': 'text-blue-600 bg-blue-100',
+    'instrucao': 'text-yellow-600 bg-yellow-100',
+    'reuniao': 'text-purple-600 bg-purple-100',
+    'outro': 'text-gray-600 bg-gray-100'
+  };
+  
+  const typeClass = typeColors[event.type] || typeColors.outro;
+  
+  div.innerHTML = `
+    <div class="flex items-center justify-between">
+      <div class="flex items-center flex-1">
+        <div class="w-10 h-10 rounded-full ${typeClass.split(' ')[1]} flex items-center justify-center mr-3">
+          <i class="${getEventIcon(event.type)} ${typeClass.split(' ')[0]}"></i>
+        </div>
+        <div class="flex-1">
+          <h4 class="font-semibold text-gray-900">${event.title}</h4>
+          <p class="text-sm text-gray-500">${truncateText(event.description, 40)}</p>
+        </div>
+      </div>
+      <div class="text-sm text-gray-500 ml-4">
+        ${formattedDate}
+      </div>
+    </div>
+  `;
+  
+  div.addEventListener('click', () => {
+    const calendarTab = document.querySelector('li[data-category="calendario"]');
+    if (calendarTab) calendarTab.click();
+  });
+  
+  return div;
+}
+
+// Atualizar lista de documentos pendentes
+function updatePendingDocumentsList() {
+  const container = document.getElementById('pending-documents-list');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (dashboardState.data.pendingDocuments.length === 0) {
+    container.innerHTML = `
+      <div class="text-center text-gray-500 py-8">
+        <i class="fas fa-check-circle text-4xl mb-2"></i>
+        <p>Nenhum documento pendente encontrado</p>
+      </div>
+    `;
+    return;
+  }
+  
+  dashboardState.data.pendingDocuments.forEach(doc => {
+    const docEl = createPendingDocumentElement(doc);
+    container.appendChild(docEl);
+  });
+}
+
+// Criar elemento de documento pendente
+function createPendingDocumentElement(doc) {
+  const div = document.createElement('div');
+  div.className = 'p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer';
+  
+  let documentName = doc.categoryName;
+  if (doc.week) {
+    documentName += ` - ${doc.week}ª SEMANA`;
+  }
+  
+  const categoryKey = window.getCategoryKey(doc.category);
+  const isAnnual = categoryKey ? window.DOCUMENT_TYPES[categoryKey].annual : false;
+  
+  documentName += isAnnual ? ' - 2025' : ` - ${doc.monthName}`;
+  
+  const statusColors = {
+    'pending': 'text-yellow-600 bg-yellow-100',
+    'overdue': 'text-red-600 bg-red-100'
+  };
+  
+  const statusClass = statusColors[doc.status];
+  const statusText = doc.status === 'overdue' ? 'Atrasado' : 'Pendente';
+  const statusIcon = doc.status === 'overdue' ? 'fa-exclamation-triangle' : 'fa-clock';
+  
+  div.innerHTML = `
+    <div class="flex items-center justify-between">
+      <div class="flex items-center flex-1">
+        <div class="w-10 h-10 rounded-full ${statusClass.split(' ')[1]} flex items-center justify-center mr-3">
+          <i class="fas ${statusIcon} ${statusClass.split(' ')[0]}"></i>
+        </div>
+        <div>
+          <h4 class="font-semibold text-gray-900">${documentName}</h4>
+          <p class="text-sm text-gray-500">${doc.categoryName}</p>
+        </div>
+      </div>
+      <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
+        ${statusText}
+      </span>
+    </div>
+  `;
+  
+  div.addEventListener('click', () => {
+    if (window.appState) {
+      window.appState.currentMonth = doc.month;
+    }
+    
+    const monthFilter = document.getElementById('month-filter');
+    if (monthFilter) monthFilter.value = doc.month;
+    
+    const categoryTab = document.querySelector(`li[data-category="${doc.category}"]`);
+    if (categoryTab) categoryTab.click();
+  });
+  
+  return div;
+}
+
+// Funções auxiliares
+
+function updateElementText(id, text) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = text;
+}
+
+function updateProgressBar(id, percent) {
+  const element = document.getElementById(id);
+  if (element) element.style.width = `${percent}%`;
+}
+
+function formatDateForQuery(date) {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateForDisplay(date) {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  
+  let timeStr = '';
+  if (date.getHours() + date.getMinutes() > 0) {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    timeStr = ` ${hours}:${minutes}`;
+  }
+  
+  return `${day}/${month}${timeStr}`;
+}
+
+function getEventIcon(eventType) {
+  const icons = {
+    'visita': 'fas fa-building',
+    'formatura': 'fas fa-graduation-cap',
+    'instrucao': 'fas fa-book',
+    'reuniao': 'fas fa-users',
+    'outro': 'fas fa-calendar-day'
+  };
+  
+  return icons[eventType] || icons.outro;
+}
+
+function truncateText(text, maxLength) {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+}
+
+// Exportar funções
+window.updateDashboard = updateDashboard;
+window.destroyDashboardCharts = destroyDashboardCharts;
