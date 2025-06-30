@@ -6,349 +6,515 @@
   <title>SOP - Sistema de Organização de Documentos</title>
   <!-- Favicon -->
   <link rel="icon" href="assets/brasao.png" type="image/png">
+  
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-  <!-- Font Awesome para ícones -->
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <!-- Chart.js para gráficos do dashboard -->
+  
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- CSS da aplicação -->
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/dashboard.css">
+  
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
+  
+  <!-- Custom Tailwind Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#e3f2fd',
+              100: '#bbdefb',
+              200: '#90caf9',
+              300: '#64b5f6',
+              400: '#42a5f5',
+              500: '#2196f3',
+              600: '#1e88e5',
+              700: '#1976d2',
+              800: '#1565c0',
+              900: '#0d47a1',
+            },
+            success: '#4caf50',
+            warning: '#ff9800',
+            danger: '#f44336',
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-in-out',
+            'slide-in': 'slideIn 0.3s ease-out',
+            'scale-in': 'scaleIn 0.2s ease-out',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Custom Styles -->
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes scaleIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    
+    /* FullCalendar Custom Styles */
+    .fc-event.event-visita { background-color: #4CAF50; border-color: #4CAF50; }
+    .fc-event.event-formatura { background-color: #2196F3; border-color: #2196F3; }
+    .fc-event.event-instrucao { background-color: #FF9800; border-color: #FF9800; }
+    .fc-event.event-reuniao { background-color: #9C27B0; border-color: #9C27B0; }
+    .fc-event.event-outro { background-color: #795548; border-color: #795548; }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
 </head>
-<body>
-  <!-- Container de Login -->
-  <div id="login-container">
-    <div class="login-card">
-      <div class="login-header">
-        <img src="assets/brasao.png" alt="Brasão" class="brasao">
-        <h1>SOP - 2025</h1>
-        <p>Sistema de Organização de Documentos</p>
-      </div>
-      <div class="login-form">
-        <div class="input-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" placeholder="Seu email">
+<body class="bg-gray-50">
+  <!-- Login Container -->
+  <div id="login-container" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary-600 to-primary-900 animate-fade-in">
+    <div class="w-full max-w-md mx-4">
+      <div class="bg-white rounded-xl shadow-2xl overflow-hidden animate-scale-in">
+        <div class="bg-gradient-to-r from-primary-700 to-primary-900 px-8 py-10 text-center">
+          <img src="assets/brasao.png" alt="Brasão" class="w-24 h-24 mx-auto mb-4 drop-shadow-lg">
+          <h1 class="text-3xl font-bold text-white mb-2">SOP - 2025</h1>
+          <p class="text-primary-100">Sistema de Organização de Documentos</p>
         </div>
-        <div class="input-group">
-          <label for="password">Senha</label>
-          <input type="password" id="password" placeholder="Sua senha">
-        </div>
-        <button id="login-btn" class="btn btn-primary">Entrar</button>
+        
+        <form class="px-8 py-8 space-y-6">
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <div class="relative">
+              <input type="email" id="email" 
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                placeholder="seu@email.com">
+              <i class="fas fa-envelope absolute left-3 top-3.5 text-gray-400"></i>
+            </div>
+          </div>
+          
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+            <div class="relative">
+              <input type="password" id="password" 
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+                placeholder="••••••••">
+              <i class="fas fa-lock absolute left-3 top-3.5 text-gray-400"></i>
+            </div>
+          </div>
+          
+          <button type="button" id="login-btn" 
+            class="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg font-semibold hover:from-primary-700 hover:to-primary-800 transform transition-all duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Entrar
+          </button>
+        </form>
       </div>
     </div>
   </div>
 
-  <!-- Container Principal da Aplicação -->
-  <div id="app-container" style="display: none;">
-    <!-- Barra de navegação -->
-    <nav class="navbar">
-      <div class="nav-brand">
-        <img src="assets/brasao.png" alt="Brasão" class="brasao-small">
-        <h2>SOP - 2025</h2>
-      </div>
-      <div class="nav-menu">
-        <div class="user-info">
-          <span id="user-name">Usuário</span>
-          <button id="config-btn" class="btn btn-outline" style="margin-right: 10px;">
-            <i class="fas fa-cog"></i> Config
-          </button>
-          <button id="logout-btn" class="btn btn-outline">Sair</button>
+  <!-- Main Application Container -->
+  <div id="app-container" class="hidden">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-40">
+      <div class="px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center">
+            <img src="assets/brasao.png" alt="Brasão" class="w-10 h-10 mr-3">
+            <div>
+              <h2 class="text-xl font-bold text-gray-900">SOP - 2025</h2>
+              <p class="text-xs text-gray-500">Sistema de Organização de Documentos</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center text-sm text-gray-700">
+              <i class="fas fa-user-circle text-2xl text-gray-400 mr-2"></i>
+              <span id="user-name" class="font-medium">Usuário</span>
+            </div>
+            
+            <button id="config-btn" 
+              class="px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors duration-200">
+              <i class="fas fa-cog mr-1"></i>
+              Config
+            </button>
+            
+            <button id="logout-btn" 
+              class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200">
+              <i class="fas fa-sign-out-alt mr-1"></i>
+              Sair
+            </button>
+          </div>
         </div>
       </div>
     </nav>
 
-    <!-- Conteúdo principal -->
-    <main class="main-content">
-      <!-- Barra lateral -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <h3>Categorias</h3>
+    <!-- Main Content -->
+    <div class="flex h-[calc(100vh-4rem)]">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-white shadow-xl overflow-y-auto">
+        <div class="p-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800">Menu Principal</h3>
         </div>
-        <ul class="category-list">
-            <li data-category="dashboard" class="active">
-                <i class="fas fa-tachometer-alt"></i> DASHBOARD
+        
+        <nav class="p-2">
+          <ul class="category-list space-y-1">
+            <li data-category="dashboard" class="active sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
+                <span class="font-medium">Dashboard</span>
+              </a>
             </li>
-          <li data-category="aulas">
-            <i class="fas fa-chalkboard-teacher"></i> AULAS
-          </li>
-          <li data-category="plano-de-sessao">
-            <i class="fas fa-clipboard-list"></i> PLANO DE SESSÃO
-          </li>
-          <li data-category="qta">
-            <i class="fas fa-file-alt"></i> QTA
-          </li>
-          <li data-category="qtm">
-            <i class="fas fa-calendar-alt"></i> QTM
-          </li>
-          <li data-category="qts">
-            <i class="fas fa-tasks"></i> QTS
-          </li>
-          <li data-category="relatorio-mensal">
-            <i class="fas fa-chart-bar"></i> RELATÓRIO MENSAL
-          </li>
-          <li data-category="livro-de-ordens">
-            <i class="fas fa-book"></i> LIVRO DE ORDENS
-          </li>
-          <li data-category="operacao-simulada">
-            <i class="fas fa-shield-alt"></i> OPERAÇÃO SIMULADA
-          </li>
-          <li data-category="calendario">
-            <i class="fas fa-calendar-day"></i> CALENDÁRIO
-          </li>
-        </ul>
+            
+            <li data-category="aulas" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-chalkboard-teacher w-5 text-center mr-3"></i>
+                <span class="font-medium">Aulas</span>
+              </a>
+            </li>
+            
+            <li data-category="plano-de-sessao" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-clipboard-list w-5 text-center mr-3"></i>
+                <span class="font-medium">Plano de Sessão</span>
+              </a>
+            </li>
+            
+            <li data-category="qta" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-file-alt w-5 text-center mr-3"></i>
+                <span class="font-medium">QTA</span>
+              </a>
+            </li>
+            
+            <li data-category="qtm" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-calendar-alt w-5 text-center mr-3"></i>
+                <span class="font-medium">QTM</span>
+              </a>
+            </li>
+            
+            <li data-category="qts" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-tasks w-5 text-center mr-3"></i>
+                <span class="font-medium">QTS</span>
+              </a>
+            </li>
+            
+            <li data-category="relatorio-mensal" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-chart-bar w-5 text-center mr-3"></i>
+                <span class="font-medium">Relatório Mensal</span>
+              </a>
+            </li>
+            
+            <li data-category="livro-de-ordens" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-book w-5 text-center mr-3"></i>
+                <span class="font-medium">Livro de Ordens</span>
+              </a>
+            </li>
+            
+            <li data-category="operacao-simulada" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-shield-alt w-5 text-center mr-3"></i>
+                <span class="font-medium">Operação Simulada</span>
+              </a>
+            </li>
+            
+            <li data-category="calendario" class="sidebar-item">
+              <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-calendar-day w-5 text-center mr-3"></i>
+                <span class="font-medium">Calendário</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
       </aside>
 
-      <!-- Área de conteúdo -->
-      <section class="content-area">
-        <div class="content-header">
-          <h2 id="category-title">DASHBOARD</h2>
-          <div class="content-actions">
-            <select id="month-filter" class="select-filter">
-              <!-- Janeiro e Fevereiro removidos -->
-              <option value="3">Março</option>
-              <option value="4">Abril</option>
-              <option value="5">Maio</option>
-              <option value="6">Junho</option>
-              <option value="7">Julho</option>
-              <option value="8">Agosto</option>
-              <option value="9">Setembro</option>
-              <option value="10">Outubro</option>
-              <option value="11">Novembro</option>
-              <option value="12">Dezembro</option>
-            </select>
-            <button id="upload-btn" class="btn btn-primary" style="display: none;">
-              <i class="fas fa-upload"></i> Upload
-            </button>
-            <button id="add-event-btn" class="btn btn-primary" style="display: none;">
-              <i class="fas fa-plus"></i> Novo Evento
-            </button>
-            <button id="upload-ordem-btn" class="btn btn-primary" style="display: none;">
-              <i class="fas fa-upload"></i> Upload de Documento
-            </button>
-            <button id="upload-operacao-btn" class="btn btn-primary" style="display: none;">
-              <i class="fas fa-upload"></i> Upload de Documento
-            </button>
-          </div>
-        </div>
-
-        <!-- Dashboard Container -->
-        <div id="dashboard-container" class="dashboard-container">
-          <!-- Cartões de resumo -->
-          <div class="summary-cards">
-            <div class="card" id="total-documents-card">
-              <div class="card-icon">
-                <i class="fas fa-file-alt"></i>
-              </div>
-              <div class="card-content">
-                <h3>Total de Documentos</h3>
-                <div class="card-value" id="total-documents-value">0</div>
-                <div class="card-footer">
-                  <span class="card-label">Previsto: </span>
-                  <span class="card-secondary-value" id="expected-documents-value">0</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="card" id="complete-documents-card">
-              <div class="card-icon complete-icon">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <div class="card-content">
-                <h3>Completos</h3>
-                <div class="card-value" id="complete-documents-value">0</div>
-                <div class="progress-bar">
-                  <div class="progress" id="complete-progress" style="width: 0%"></div>
-                </div>
-                <div class="card-footer">
-                  <span id="complete-percentage">0%</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="card" id="pending-documents-card">
-              <div class="card-icon pending-icon">
-                <i class="fas fa-clock"></i>
-              </div>
-              <div class="card-content">
-                <h3>Pendentes</h3>
-                <div class="card-value" id="pending-documents-value">0</div>
-                <div class="progress-bar">
-                  <div class="progress pending-progress" id="pending-progress" style="width: 0%"></div>
-                </div>
-                <div class="card-footer">
-                  <span id="pending-percentage">0%</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="card" id="overdue-documents-card">
-              <div class="card-icon overdue-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-              </div>
-              <div class="card-content">
-                <h3>Atrasados</h3>
-                <div class="card-value" id="overdue-documents-value">0</div>
-                <div class="progress-bar">
-                  <div class="progress overdue-progress" id="overdue-progress" style="width: 0%"></div>
-                </div>
-                <div class="card-footer">
-                  <span id="overdue-percentage">0%</span>
-                </div>
-              </div>
+      <!-- Content Area -->
+      <main class="flex-1 overflow-y-auto bg-gray-50">
+        <div class="p-6">
+          <!-- Content Header -->
+          <div class="flex justify-between items-center mb-6">
+            <h1 id="category-title" class="text-2xl font-bold text-gray-900">Dashboard</h1>
+            
+            <div class="flex items-center space-x-4">
+              <select id="month-filter" class="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <option value="3">Março</option>
+                <option value="4">Abril</option>
+                <option value="5">Maio</option>
+                <option value="6">Junho</option>
+                <option value="7">Julho</option>
+                <option value="8">Agosto</option>
+                <option value="9">Setembro</option>
+                <option value="10">Outubro</option>
+                <option value="11">Novembro</option>
+                <option value="12">Dezembro</option>
+              </select>
+              
+              <button id="upload-btn" class="hidden px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 font-medium text-sm">
+                <i class="fas fa-upload mr-2"></i>
+                Upload
+              </button>
+              
+              <button id="add-event-btn" class="hidden px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 font-medium text-sm">
+                <i class="fas fa-plus mr-2"></i>
+                Novo Evento
+              </button>
+              
+              <button id="upload-ordem-btn" class="hidden px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 font-medium text-sm">
+                <i class="fas fa-upload mr-2"></i>
+                Upload de Documento
+              </button>
+              
+              <button id="upload-operacao-btn" class="hidden px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 font-medium text-sm">
+                <i class="fas fa-upload mr-2"></i>
+                Upload de Documento
+              </button>
             </div>
           </div>
 
-          <!-- Gráficos e listas -->
-          <div class="dashboard-main">
-            <!-- Painel esquerdo - Gráficos -->
-            <div class="dashboard-column">
-              <!-- Gráfico de progresso por categoria -->
-              <div class="dashboard-card">
-                <div class="card-header">
-                  <h3>Progresso por Categoria</h3>
-                </div>
-                <div class="card-body">
-                  <canvas id="category-chart"></canvas>
-                </div>
-              </div>
-
-              <!-- Gráfico de tendência mensal -->
-              <div class="dashboard-card">
-                <div class="card-header">
-                  <h3>Tendência Mensal</h3>
-                </div>
-                <div class="card-body">
-                  <canvas id="monthly-trend-chart"></canvas>
-                </div>
-              </div>
-            </div>
-
-            <!-- Painel direito - Listas -->
-            <div class="dashboard-column">
-              <!-- Próximos eventos -->
-              <div class="dashboard-card">
-                <div class="card-header">
-                  <h3>Próximos Eventos</h3>
-                  <a href="#" class="card-link" id="view-all-events">Ver Todos</a>
-                </div>
-                <div class="card-body">
-                  <div id="upcoming-events-list" class="dashboard-list">
-                    <!-- Eventos serão adicionados dinamicamente -->
-                    <div class="empty-list-message">Nenhum evento próximo encontrado</div>
+          <!-- Dashboard Container -->
+          <div id="dashboard-container" class="space-y-6 animate-fade-in">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <!-- Total Documents Card -->
+              <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center">
+                  <div class="p-3 bg-primary-100 rounded-lg">
+                    <i class="fas fa-file-alt text-2xl text-primary-600"></i>
+                  </div>
+                  <div class="ml-4 flex-1">
+                    <h3 class="text-sm font-medium text-gray-600">Total de Documentos</h3>
+                    <div class="flex items-baseline">
+                      <p class="text-2xl font-bold text-gray-900" id="total-documents-value">0</p>
+                      <span class="ml-2 text-sm text-gray-500">de <span id="expected-documents-value">0</span></span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Documentos pendentes/atrasados -->
-              <div class="dashboard-card">
-                <div class="card-header">
-                  <h3>Documentos Pendentes/Atrasados</h3>
-                  <a href="#" class="card-link" id="view-all-pending">Ver Todos</a>
+              <!-- Complete Documents Card -->
+              <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center">
+                  <div class="p-3 bg-green-100 rounded-lg">
+                    <i class="fas fa-check-circle text-2xl text-green-600"></i>
+                  </div>
+                  <div class="ml-4 flex-1">
+                    <h3 class="text-sm font-medium text-gray-600">Completos</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="complete-documents-value">0</p>
+                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div id="complete-progress" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1" id="complete-percentage">0%</p>
+                  </div>
                 </div>
-                <div class="card-body">
-                  <div id="pending-documents-list" class="dashboard-list">
-                    <!-- Documentos serão adicionados dinamicamente -->
-                    <div class="empty-list-message">Nenhum documento pendente encontrado</div>
+              </div>
+
+              <!-- Pending Documents Card -->
+              <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center">
+                  <div class="p-3 bg-yellow-100 rounded-lg">
+                    <i class="fas fa-clock text-2xl text-yellow-600"></i>
+                  </div>
+                  <div class="ml-4 flex-1">
+                    <h3 class="text-sm font-medium text-gray-600">Pendentes</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="pending-documents-value">0</p>
+                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div id="pending-progress" class="bg-yellow-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1" id="pending-percentage">0%</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Overdue Documents Card -->
+              <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center">
+                  <div class="p-3 bg-red-100 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+                  </div>
+                  <div class="ml-4 flex-1">
+                    <h3 class="text-sm font-medium text-gray-600">Atrasados</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="overdue-documents-value">0</p>
+                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div id="overdue-progress" class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1" id="overdue-percentage">0%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts and Lists -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Charts Column -->
+              <div class="space-y-6">
+                <!-- Category Progress Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <h3 class="text-lg font-semibold text-gray-900 mb-4">Progresso por Categoria</h3>
+                  <div class="h-64">
+                    <canvas id="category-chart"></canvas>
+                  </div>
+                </div>
+
+                <!-- Monthly Trend Chart -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <h3 class="text-lg font-semibold text-gray-900 mb-4">Tendência Mensal</h3>
+                  <div class="h-64">
+                    <canvas id="monthly-trend-chart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lists Column -->
+              <div class="space-y-6">
+                <!-- Upcoming Events -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-100">
+                  <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900">Próximos Eventos</h3>
+                    <a href="#" id="view-all-events" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Ver Todos</a>
+                  </div>
+                  <div class="p-6">
+                    <div id="upcoming-events-list" class="space-y-3">
+                      <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-calendar-times text-4xl mb-2"></i>
+                        <p>Nenhum evento próximo encontrado</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pending Documents -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-100">
+                  <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900">Documentos Pendentes/Atrasados</h3>
+                    <a href="#" id="view-all-pending" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Ver Todos</a>
+                  </div>
+                  <div class="p-6">
+                    <div id="pending-documents-list" class="space-y-3">
+                      <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-check-circle text-4xl mb-2"></i>
+                        <p>Nenhum documento pendente encontrado</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Tabela de documentos -->
-        <div id="document-container" class="document-list-container" style="display: none;">
-          <table class="document-table">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Data de Upload</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="document-list">
-              <!-- Os itens da tabela serão inseridos dinamicamente -->
-            </tbody>
-          </table>
-        </div>
+          <!-- Documents Table Container -->
+          <div id="document-container" class="hidden bg-white rounded-xl shadow-lg border border-gray-100 animate-fade-in">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Upload</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="document-list" class="divide-y divide-gray-200">
+                  <!-- Dynamic content -->
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-        <!-- Container do Calendário (inicialmente oculto) -->
-        <div id="calendar-container" style="display: none;">
-          <div id="calendar"></div>
-        </div>
+          <!-- Calendar Container -->
+          <div id="calendar-container" class="hidden bg-white rounded-xl shadow-lg p-6 border border-gray-100 animate-fade-in">
+            <div id="calendar" class="h-[calc(100vh-16rem)]"></div>
+          </div>
 
-        <!-- Container do Livro de Ordens (inicialmente oculto) -->
-        <div id="livro-ordens-container" style="display: none;">
-          <div class="document-list-container">
-            <table class="document-table">
-              <thead>
-                <tr>
-                  <th>Nome do Documento</th>
-                  <th>Data</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody id="livro-ordens-list">
-                <!-- Os itens da tabela serão inseridos dinamicamente -->
-              </tbody>
-            </table>
+          <!-- Livro de Ordens Container -->
+          <div id="livro-ordens-container" class="hidden bg-white rounded-xl shadow-lg border border-gray-100 animate-fade-in">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Documento</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                    <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="livro-ordens-list" class="divide-y divide-gray-200">
+                  <!-- Dynamic content -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Operação Simulada Container -->
+          <div id="operacao-simulada-container" class="hidden bg-white rounded-xl shadow-lg border border-gray-100 animate-fade-in">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Documento</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                    <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="operacao-simulada-list" class="divide-y divide-gray-200">
+                  <!-- Dynamic content -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Status Legend -->
+          <div class="status-info hidden mt-6 flex items-center space-x-6 text-sm">
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Completo</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Pendente</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Atrasado</span>
+            </div>
           </div>
         </div>
+      </main>
+    </div>
 
-        <!-- Container da Operação Simulada (inicialmente oculto) -->
-        <div id="operacao-simulada-container" style="display: none;">
-          <div class="document-list-container">
-            <table class="document-table">
-              <thead>
-                <tr>
-                  <th>Nome do Documento</th>
-                  <th>Data</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody id="operacao-simulada-list">
-                <!-- Os itens da tabela serão inseridos dinamicamente -->
-              </tbody>
-            </table>
-          </div>
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 animate-scale-in">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-900">Upload de Documento</h3>
+          <button class="close-modal text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+          </button>
         </div>
-
-        <!-- Informações de status -->
-        <div class="status-info">
-          <div class="status-item">
-            <div class="status-icon complete"></div>
-            <span>Completo</span>
-          </div>
-          <div class="status-item">
-            <div class="status-icon pending"></div>
-            <span>Pendente</span>
-          </div>
-          <div class="status-item">
-            <div class="status-icon overdue"></div>
-            <span>Atrasado</span>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- Modal de Upload -->
-    <div id="upload-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Upload de Documento</h3>
-          <span class="close-modal">&times;</span>
-        </div>
-        <div class="modal-body">
-          <div class="input-group">
-            <label for="document-category">Categoria</label>
-            <select id="document-category" disabled>
+        
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+            <select id="document-category" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="aulas">AULAS</option>
               <option value="plano-de-sessao">PLANO DE SESSÃO</option>
               <option value="qta">QTA</option>
@@ -357,10 +523,10 @@
               <option value="relatorio-mensal">RELATÓRIO MENSAL</option>
             </select>
           </div>
-          <div class="input-group">
-            <label for="document-month">Mês</label>
-            <select id="document-month">
-              <!-- Janeiro e Fevereiro removidos -->
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Mês</label>
+            <select id="document-month" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="3">Março</option>
               <option value="4">Abril</option>
               <option value="5">Maio</option>
@@ -373,37 +539,48 @@
               <option value="12">Dezembro</option>
             </select>
           </div>
-          <div id="week-container" class="input-group" style="display: none;">
-            <label for="document-week">Semana</label>
-            <select id="document-week">
-              <!-- Opções de semana serão geradas dinamicamente -->
+          
+          <div id="week-container" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Semana</label>
+            <select id="document-week" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <!-- Dynamic options -->
             </select>
           </div>
-          <div class="input-group">
-            <label for="document-file">Arquivo</label>
-            <input type="file" id="document-file" accept=".pdf,.doc,.docx">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Arquivo</label>
+            <input type="file" id="document-file" accept=".pdf,.doc,.docx" 
+              class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
           </div>
         </div>
-        <div class="modal-footer">
-          <button id="cancel-upload" class="btn btn-outline">Cancelar</button>
-          <button id="confirm-upload" class="btn btn-primary">Upload</button>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 rounded-b-xl">
+          <button id="cancel-upload" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+            Cancelar
+          </button>
+          <button id="confirm-upload" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200">
+            Upload
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Configuração -->
-    <div id="config-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Configurações</h3>
-          <span class="close-config-modal">&times;</span>
+    <!-- Config Modal -->
+    <div id="config-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 animate-scale-in">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-900">Configurações</h3>
+          <button class="close-config-modal text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+          </button>
         </div>
-        <div class="modal-body">
-          <h4>Número de Semanas por Mês</h4>
-          <div class="input-group">
-            <label for="config-month">Selecione o Mês</label>
-            <select id="config-month">
-              <!-- Janeiro e Fevereiro removidos -->
+        
+        <div class="p-6 space-y-4">
+          <h4 class="text-base font-medium text-gray-800 mb-4">Número de Semanas por Mês</h4>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Selecione o Mês</label>
+            <select id="config-month" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="3">Março</option>
               <option value="4">Abril</option>
               <option value="5">Maio</option>
@@ -416,9 +593,10 @@
               <option value="12">Dezembro</option>
             </select>
           </div>
-          <div class="input-group">
-            <label for="config-weeks">Número de Semanas</label>
-            <select id="config-weeks">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Número de Semanas</label>
+            <select id="config-weeks" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="1">1 Semana</option>
               <option value="2">2 Semanas</option>
               <option value="3">3 Semanas</option>
@@ -427,39 +605,56 @@
             </select>
           </div>
         </div>
-        <div class="modal-footer">
-          <button id="save-config" class="btn btn-primary">Salvar</button>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end rounded-b-xl">
+          <button id="save-config" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200">
+            <i class="fas fa-save mr-2"></i>
+            Salvar
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Evento -->
-    <div id="event-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="event-modal-title">Novo Evento</h3>
-          <span class="close-event-modal">&times;</span>
+    <!-- Event Modal -->
+    <div id="event-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 animate-scale-in">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h3 id="event-modal-title" class="text-lg font-semibold text-gray-900">Novo Evento</h3>
+          <button class="close-event-modal text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+          </button>
         </div>
-        <div class="modal-body">
-          <div class="input-group">
-            <label for="event-title">Título do Evento</label>
-            <input type="text" id="event-title" placeholder="Título do evento">
+        
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Título do Evento</label>
+            <input type="text" id="event-title" placeholder="Título do evento" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
           </div>
-          <div class="input-group">
-            <label for="event-date">Data</label>
-            <input type="date" id="event-date">
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Data</label>
+              <input type="date" id="event-date" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Hora</label>
+              <input type="time" id="event-time" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            </div>
           </div>
-          <div class="input-group">
-            <label for="event-time">Hora</label>
-            <input type="time" id="event-time">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Descrição/Observações</label>
+            <textarea id="event-description" rows="3" placeholder="Detalhes do evento" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
           </div>
-          <div class="input-group">
-            <label for="event-description">Descrição/Observações</label>
-            <textarea id="event-description" rows="4" placeholder="Detalhes do evento"></textarea>
-          </div>
-          <div class="input-group">
-            <label for="event-type">Tipo de Evento</label>
-            <select id="event-type">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Evento</label>
+            <select id="event-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
               <option value="visita">Visita</option>
               <option value="formatura">Formatura</option>
               <option value="instrucao">Instrução</option>
@@ -468,66 +663,103 @@
             </select>
           </div>
         </div>
-        <div class="modal-footer">
-          <button id="delete-event" class="btn btn-danger" style="display: none;">Excluir</button>
-          <button id="cancel-event" class="btn btn-outline">Cancelar</button>
-          <button id="save-event" class="btn btn-primary">Salvar</button>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between rounded-b-xl">
+          <button id="delete-event" class="hidden px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200">
+            <i class="fas fa-trash mr-2"></i>
+            Excluir
+          </button>
+          
+          <div class="flex space-x-3 ml-auto">
+            <button id="cancel-event" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+              Cancelar
+            </button>
+            <button id="save-event" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200">
+              Salvar
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Upload/Edição de Livro de Ordens -->
-    <div id="ordem-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="ordem-modal-title">Upload de Documento</h3>
-          <span class="close-ordem-modal">&times;</span>
+    <!-- Ordem Modal -->
+    <div id="ordem-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 animate-scale-in">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h3 id="ordem-modal-title" class="text-lg font-semibold text-gray-900">Upload de Documento</h3>
+          <button class="close-ordem-modal text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+          </button>
         </div>
-        <div class="modal-body">
-          <div class="input-group">
-            <label for="ordem-nome">Nome do Documento</label>
-            <input type="text" id="ordem-nome" placeholder="Nome do documento">
+        
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Documento</label>
+            <input type="text" id="ordem-nome" placeholder="Nome do documento" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
           </div>
-          <div class="input-group">
-            <label for="ordem-data">Data</label>
-            <input type="date" id="ordem-data">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Data</label>
+            <input type="date" id="ordem-data" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
           </div>
-          <div class="input-group" id="ordem-file-container">
-            <label for="ordem-file">Arquivo</label>
-            <input type="file" id="ordem-file" accept=".pdf,.doc,.docx">
+          
+          <div id="ordem-file-container">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Arquivo</label>
+            <input type="file" id="ordem-file" accept=".pdf,.doc,.docx" 
+              class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
           </div>
         </div>
-        <div class="modal-footer">
-          <button id="cancel-ordem" class="btn btn-outline">Cancelar</button>
-          <button id="save-ordem" class="btn btn-primary">Salvar</button>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 rounded-b-xl">
+          <button id="cancel-ordem" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+            Cancelar
+          </button>
+          <button id="save-ordem" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200">
+            Salvar
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Upload/Edição de Operação Simulada -->
-    <div id="operacao-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="operacao-modal-title">Upload de Documento</h3>
-          <span class="close-operacao-modal">&times;</span>
+    <!-- Operação Modal -->
+    <div id="operacao-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 animate-scale-in">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h3 id="operacao-modal-title" class="text-lg font-semibold text-gray-900">Upload de Documento</h3>
+          <button class="close-operacao-modal text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+          </button>
         </div>
-        <div class="modal-body">
-          <div class="input-group">
-            <label for="operacao-nome">Nome do Documento</label>
-            <input type="text" id="operacao-nome" placeholder="Nome do documento">
+        
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Documento</label>
+            <input type="text" id="operacao-nome" placeholder="Nome do documento" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
           </div>
-          <div class="input-group">
-            <label for="operacao-data">Data</label>
-            <input type="date" id="operacao-data">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Data</label>
+            <input type="date" id="operacao-data" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
           </div>
-          <div class="input-group" id="operacao-file-container">
-            <label for="operacao-file">Arquivo</label>
-            <input type="file" id="operacao-file" accept=".pdf,.doc,.docx">
+          
+          <div id="operacao-file-container">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Arquivo</label>
+            <input type="file" id="operacao-file" accept=".pdf,.doc,.docx" 
+              class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
           </div>
         </div>
-        <div class="modal-footer">
-          <button id="cancel-operacao" class="btn btn-outline">Cancelar</button>
-          <button id="save-operacao" class="btn btn-primary">Salvar</button>
+        
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3 rounded-b-xl">
+          <button id="cancel-operacao" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+            Cancelar
+          </button>
+          <button id="save-operacao" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200">
+            Salvar
+          </button>
         </div>
       </div>
     </div>
@@ -537,8 +769,77 @@
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/locales/pt-br.js"></script>
   
-  <!-- Scripts da aplicação -->
-  <script src="js/firebase-config.js"></script>
+  <!-- Firebase Configuration -->
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWeThpt6h1Y3zxNenpGf7eTYPsUhVlgXI",
+      authDomain: "projeto-sop.firebaseapp.com",
+      projectId: "projeto-sop",
+      storageBucket: "projeto-sop.firebasestorage.app",
+      messagingSenderId: "509243342498",
+      appId: "1:509243342498:web:29e941f3e16e7eea7721fb",
+      measurementId: "G-H0D0G5SD3V"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Firebase references
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+  </script>
+  
+  <!-- Updated Tailwind Styles for Application -->
+  <script>
+    // Apply active styles to sidebar items
+    const style = document.createElement('style');
+    style.textContent = `
+      .sidebar-item.active a {
+        background-color: rgb(239 246 255);
+        color: rgb(29 78 216);
+        font-weight: 600;
+      }
+      
+      .sidebar-item.active a i {
+        color: rgb(29 78 216);
+      }
+      
+      /* Status badge styles */
+      .status-complete {
+        background-color: rgb(220 252 231);
+        color: rgb(22 163 74);
+      }
+      
+      .status-pending {
+        background-color: rgb(254 240 138);
+        color: rgb(202 138 4);
+      }
+      
+      .status-overdue {
+        background-color: rgb(254 226 226);
+        color: rgb(220 38 38);
+      }
+      
+      /* Table hover effects */
+      tbody tr:hover {
+        background-color: rgb(249 250 251);
+      }
+      
+      /* Custom modal backdrop animation */
+      .modal {
+        animation: fadeIn 0.3s ease-out;
+      }
+      
+      .modal > div {
+        animation: scaleIn 0.3s ease-out;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+  
+  <!-- Include all JavaScript files -->
   <script src="js/app.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/dashboard.js"></script>
