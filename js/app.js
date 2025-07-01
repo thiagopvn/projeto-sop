@@ -1,24 +1,18 @@
-// app-improved.js - Versão melhorada com correções de bugs
-
-// Configuração de meses válidos
 const VALID_MONTHS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-// Configuração padrão de semanas por mês
 let weeksPerMonth = {
   3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4,
   9: 4, 10: 4, 11: 4, 12: 4
 };
 
-// Estado global da aplicação
 let appState = {
   currentUser: null,
   currentCategory: 'dashboard',
   currentMonth: 3,
   isLoading: false,
-  loadedDocuments: new Set() // Para evitar duplicações
+  loadedDocuments: new Set()
 };
 
-// Constantes para categorias
 const DOCUMENT_TYPES = {
   DASHBOARD: {
     id: 'dashboard',
@@ -91,13 +85,11 @@ const DOCUMENT_TYPES = {
   }
 };
 
-// Nomes dos meses
 const MONTH_NAMES = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
-// Elementos DOM
 const elements = {
   loginContainer: document.getElementById('login-container'),
   appContainer: document.getElementById('app-container'),
@@ -119,23 +111,15 @@ const elements = {
   categoryItems: document.querySelectorAll('.category-list li')
 };
 
-// Inicializar aplicação
 document.addEventListener('DOMContentLoaded', () => {
   initializeApp();
 });
 
-// Função de inicialização
 function initializeApp() {
-  // Configurar listeners de autenticação
   setupAuthListeners();
-  
-  // Configurar navegação
   setupNavigation();
-  
-  // Configurar modais
   setupModals();
   
-  // Definir mês atual
   const currentDate = new Date();
   appState.currentMonth = Math.max(3, currentDate.getMonth() + 1);
   if (elements.monthFilter) {
@@ -143,30 +127,24 @@ function initializeApp() {
   }
 }
 
-// Configurar listeners de autenticação
 function setupAuthListeners() {
-  // Login
   if (elements.loginBtn) {
     elements.loginBtn.addEventListener('click', handleLogin);
   }
   
-  // Enter key on password field
   if (elements.password) {
     elements.password.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') handleLogin();
     });
   }
   
-  // Logout
   if (elements.logoutBtn) {
     elements.logoutBtn.addEventListener('click', handleLogout);
   }
   
-  // Auth state change
   auth.onAuthStateChanged(handleAuthStateChange);
 }
 
-// Handle login
 async function handleLogin() {
   const email = elements.email?.value;
   const password = elements.password?.value;
@@ -184,7 +162,6 @@ async function handleLogin() {
   }
 }
 
-// Handle logout
 async function handleLogout() {
   try {
     await auth.signOut();
@@ -194,7 +171,6 @@ async function handleLogout() {
   }
 }
 
-// Handle auth state change
 function handleAuthStateChange(user) {
   if (user) {
     appState.currentUser = user;
@@ -211,12 +187,10 @@ function handleAuthStateChange(user) {
   }
 }
 
-// Carregar dados iniciais
 async function loadInitialData() {
   try {
     await initializeConfig();
     
-    // Iniciar no dashboard
     appState.currentCategory = 'dashboard';
     updateActiveCategory('dashboard');
     
@@ -228,7 +202,6 @@ async function loadInitialData() {
   }
 }
 
-// Configurar navegação
 function setupNavigation() {
   elements.categoryItems.forEach(item => {
     item.addEventListener('click', handleCategoryClick);
@@ -243,36 +216,28 @@ function setupNavigation() {
   }
 }
 
-// Handle category click
 async function handleCategoryClick(e) {
   e.preventDefault();
   
   const item = e.currentTarget;
   const newCategory = item.getAttribute('data-category');
   
-  if (newCategory === appState.currentCategory || appState.isLoading) return;
-  
-  appState.isLoading = true;
+  if (newCategory === appState.currentCategory) return;
   
   try {
-    // Destruir gráficos se saindo do dashboard
     if (appState.currentCategory === 'dashboard' && newCategory !== 'dashboard') {
       if (typeof destroyDashboardCharts === 'function') {
         destroyDashboardCharts();
       }
     }
     
-    // Atualizar categoria
     appState.currentCategory = newCategory;
     updateActiveCategory(newCategory);
     
-    // Limpar conjunto de documentos carregados
     appState.loadedDocuments.clear();
     
-    // Ocultar todos os containers
     hideAllContainers();
     
-    // Exibir container apropriado
     switch (newCategory) {
       case 'dashboard':
         showDashboard();
@@ -287,14 +252,13 @@ async function handleCategoryClick(e) {
         showOperacaoSimulada();
         break;
       default:
-        await showDocuments(newCategory);
+        showDocuments(newCategory);
     }
-  } finally {
-    appState.isLoading = false;
+  } catch (error) {
+    console.error('Erro ao mudar categoria:', error);
   }
 }
 
-// Atualizar categoria ativa
 function updateActiveCategory(category) {
   elements.categoryItems.forEach(item => {
     item.classList.remove('active');
@@ -303,7 +267,6 @@ function updateActiveCategory(category) {
     }
   });
   
-  // Atualizar título
   const categoryKey = getCategoryKey(category);
   const categoryName = categoryKey ? DOCUMENT_TYPES[categoryKey].name : 'Dashboard';
   if (elements.categoryTitle) {
@@ -311,9 +274,9 @@ function updateActiveCategory(category) {
   }
 }
 
-// Handle month change
 function handleMonthChange() {
-  appState.currentMonth = parseInt(elements.monthFilter.value);
+  const newMonth = parseInt(elements.monthFilter.value);
+  appState.currentMonth = newMonth;
   
   if (appState.currentCategory === 'dashboard' && typeof updateDashboard === 'function') {
     updateDashboard(false);
@@ -323,7 +286,6 @@ function handleMonthChange() {
   }
 }
 
-// Mostrar dashboard
 function showDashboard() {
   document.getElementById('dashboard-container').style.display = 'block';
   elements.monthFilter.style.display = 'block';
@@ -333,7 +295,6 @@ function showDashboard() {
   }
 }
 
-// Mostrar calendário
 function showCalendar() {
   elements.calendarContainer.style.display = 'block';
   elements.addEventBtn.style.display = 'flex';
@@ -343,7 +304,6 @@ function showCalendar() {
   }
 }
 
-// Mostrar livro de ordens
 function showLivroOrdens() {
   document.getElementById('livro-ordens-container').style.display = 'block';
   elements.uploadOrdemBtn.style.display = 'flex';
@@ -353,7 +313,6 @@ function showLivroOrdens() {
   }
 }
 
-// Mostrar operação simulada
 function showOperacaoSimulada() {
   document.getElementById('operacao-simulada-container').style.display = 'block';
   elements.uploadOperacaoBtn.style.display = 'flex';
@@ -363,22 +322,21 @@ function showOperacaoSimulada() {
   }
 }
 
-// Mostrar documentos
-async function showDocuments(category) {
+function showDocuments(category) {
   elements.documentContainer.style.display = 'block';
   elements.monthFilter.style.display = 'block';
   elements.uploadBtn.style.display = 'flex';
   document.querySelector('.status-info').style.display = 'flex';
   
-  // Sincronizar o mês atual com o valor do filtro
   if (elements.monthFilter) {
     appState.currentMonth = parseInt(elements.monthFilter.value);
   }
   
-  await loadDocumentsByCategory(category, appState.currentMonth);
+  setTimeout(() => {
+    loadDocumentsByCategory(category, appState.currentMonth);
+  }, 100);
 }
 
-// Ocultar todos os containers
 function hideAllContainers() {
   const containers = [
     'dashboard-container',
@@ -393,61 +351,53 @@ function hideAllContainers() {
     if (container) container.style.display = 'none';
   });
   
-  // Ocultar botões
   ['month-filter', 'upload-btn', 'add-event-btn', 'upload-ordem-btn', 'upload-operacao-btn'].forEach(id => {
     const element = document.getElementById(id);
     if (element) element.style.display = 'none';
   });
   
-  // Ocultar status info
   const statusInfo = document.querySelector('.status-info');
   if (statusInfo) statusInfo.style.display = 'none';
 }
 
-// Carregar documentos por categoria
 async function loadDocumentsByCategory(category, month) {
   if (!elements.documentList || appState.isLoading) return;
   
   try {
     appState.isLoading = true;
     
-    // Limpar lista
-    elements.documentList.innerHTML = '';
+    elements.documentList.innerHTML = '<tr><td colspan="4" class="text-center py-8">Carregando...</td></tr>';
     appState.loadedDocuments.clear();
     
     const categoryKey = getCategoryKey(category);
     const categoryInfo = DOCUMENT_TYPES[categoryKey];
     
     if (!categoryInfo || ['calendario', 'dashboard', 'livro-de-ordens', 'operacao-simulada'].includes(category)) {
+      elements.documentList.innerHTML = '';
       return;
     }
     
-    // Verificar disponibilidade para documentos anuais
     if (categoryInfo.annual && categoryInfo.visibleMonths && !categoryInfo.visibleMonths.includes(month)) {
+      elements.documentList.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500">Categoria não disponível para este mês</td></tr>';
       return;
     }
     
-    // Criar query
     let query = db.collection('documents').where('category', '==', category);
     
     if (!categoryInfo.annual) {
       query = query.where('month', '==', month);
     }
     
-    // Executar query
     const snapshot = await query.get();
     const documents = new Map();
     
     snapshot.forEach(doc => {
       const data = doc.data();
       
-      // Filtrar documentos anuais por ano
       if (categoryInfo.annual && data.year !== 2025) return;
       
-      // Criar chave única para evitar duplicações
       const key = categoryInfo.needsWeek ? `${category}-${month}-${data.week}` : `${category}-${month}`;
       
-      // Verificar se já foi carregado
       if (!appState.loadedDocuments.has(key)) {
         appState.loadedDocuments.add(key);
         
@@ -459,7 +409,8 @@ async function loadDocumentsByCategory(category, month) {
       }
     });
     
-    // Criar linhas da tabela
+    elements.documentList.innerHTML = '';
+    
     const expectedCount = categoryInfo.needsWeek ? 
       Math.min(categoryInfo.monthlyCount, weeksPerMonth[month]) : 
       categoryInfo.monthlyCount;
@@ -474,15 +425,20 @@ async function loadDocumentsByCategory(category, month) {
         createDocumentRow(category, month, null, documents.get(1));
       }
     }
+    
+    if (elements.documentList.children.length === 0) {
+      elements.documentList.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500">Nenhum documento encontrado</td></tr>';
+    }
+    
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
+    elements.documentList.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-red-500">Erro ao carregar documentos</td></tr>';
     showNotification('Erro ao carregar documentos', 'error');
   } finally {
     appState.isLoading = false;
   }
 }
 
-// Criar linha de documento
 function createDocumentRow(category, month, week, doc) {
   if (!elements.documentList) return;
   
@@ -500,7 +456,6 @@ function createDocumentRow(category, month, week, doc) {
   elements.documentList.appendChild(tr);
 }
 
-// HTML para documento existente
 function createExistingDocumentRowHTML(doc, category, month, week) {
   const categoryKey = getCategoryKey(category);
   const categoryInfo = DOCUMENT_TYPES[categoryKey];
@@ -534,7 +489,6 @@ function createExistingDocumentRowHTML(doc, category, month, week) {
   `;
 }
 
-// HTML para documento vazio
 function createEmptyDocumentRowHTML(category, month, week) {
   const categoryKey = getCategoryKey(category);
   const categoryInfo = DOCUMENT_TYPES[categoryKey];
@@ -570,7 +524,6 @@ function createEmptyDocumentRowHTML(category, month, week) {
   `;
 }
 
-// Configurar ações do documento
 function setupDocumentActions(tr, doc) {
   const viewBtn = tr.querySelector('.action-view');
   const downloadBtn = tr.querySelector('.action-download');
@@ -581,7 +534,6 @@ function setupDocumentActions(tr, doc) {
   if (deleteBtn) deleteBtn.addEventListener('click', () => deleteDocument(doc.id));
 }
 
-// Configurar ação de upload
 function setupUploadAction(tr, category, month, week) {
   const uploadBtn = tr.querySelector('.upload-missing');
   if (uploadBtn) {
@@ -589,12 +541,10 @@ function setupUploadAction(tr, category, month, week) {
   }
 }
 
-// Visualizar documento
 function viewDocument(url) {
   if (url) window.open(url, '_blank');
 }
 
-// Baixar documento
 function downloadDocument(url, name) {
   if (!url) return;
   
@@ -606,7 +556,6 @@ function downloadDocument(url, name) {
   document.body.removeChild(a);
 }
 
-// Excluir documento
 async function deleteDocument(id) {
   if (!confirm('Tem certeza que deseja excluir este documento?')) return;
   
@@ -617,7 +566,6 @@ async function deleteDocument(id) {
     if (doc.exists) {
       const data = doc.data();
       
-      // Tentar excluir arquivo do Storage
       if (data.fileUrl) {
         try {
           const fileRef = storage.refFromURL(data.fileUrl);
@@ -627,10 +575,8 @@ async function deleteDocument(id) {
         }
       }
       
-      // Excluir documento
       await docRef.delete();
       
-      // Recarregar lista
       appState.loadedDocuments.clear();
       await loadDocumentsByCategory(appState.currentCategory, appState.currentMonth);
       
@@ -642,13 +588,11 @@ async function deleteDocument(id) {
   }
 }
 
-// Configurar modais
 function setupModals() {
   setupUploadModal();
   setupConfigModal();
 }
 
-// Modal de upload
 const uploadModal = {
   modal: document.getElementById('upload-modal'),
   category: document.getElementById('document-category'),
@@ -661,7 +605,6 @@ const uploadModal = {
   closeBtn: document.querySelector('.close-modal')
 };
 
-// Configurar modal de upload
 function setupUploadModal() {
   if (elements.uploadBtn) {
     elements.uploadBtn.addEventListener('click', () => openUploadModal());
@@ -675,7 +618,6 @@ function setupUploadModal() {
   if (uploadModal.month) uploadModal.month.addEventListener('change', updateWeekOptions);
 }
 
-// Abrir modal de upload
 function openUploadModal(category = null, month = null, week = null) {
   if (!uploadModal.modal) return;
   
@@ -691,7 +633,6 @@ function openUploadModal(category = null, month = null, week = null) {
   uploadModal.modal.style.display = 'flex';
 }
 
-// Fechar modal de upload
 function closeUploadModal() {
   if (uploadModal.modal) {
     uploadModal.modal.style.display = 'none';
@@ -699,7 +640,6 @@ function closeUploadModal() {
   }
 }
 
-// Atualizar opções de semana
 function updateWeekOptions() {
   const category = uploadModal.category.value;
   const month = parseInt(uploadModal.month.value);
@@ -708,17 +648,14 @@ function updateWeekOptions() {
   
   if (!categoryInfo) return;
   
-  // Mostrar/ocultar container de semana
   uploadModal.weekContainer.style.display = categoryInfo.needsWeek ? 'block' : 'none';
   
-  // Habilitar/desabilitar seletor de mês
   uploadModal.month.disabled = categoryInfo.annual;
   
   if (categoryInfo.annual && categoryInfo.visibleMonths) {
     uploadModal.month.value = categoryInfo.visibleMonths[0];
   }
   
-  // Atualizar opções de semana
   if (categoryInfo.needsWeek && uploadModal.week) {
     uploadModal.week.innerHTML = '';
     const numWeeks = weeksPerMonth[month] || 4;
@@ -732,7 +669,6 @@ function updateWeekOptions() {
   }
 }
 
-// Handle upload
 async function handleUpload() {
   const file = uploadModal.file?.files[0];
   if (!file) {
@@ -747,7 +683,6 @@ async function handleUpload() {
   const week = categoryInfo.needsWeek ? parseInt(uploadModal.week.value) : null;
   
   try {
-    // Verificar documento existente
     let query = db.collection('documents').where('category', '==', category);
     
     if (categoryInfo.annual) {
@@ -764,7 +699,6 @@ async function handleUpload() {
     if (!snapshot.empty) {
       if (!confirm('Já existe um documento. Deseja substituí-lo?')) return;
       
-      // Excluir documento existente
       const existingDoc = snapshot.docs[0];
       const existingData = existingDoc.data();
       
@@ -780,13 +714,11 @@ async function handleUpload() {
       await db.collection('documents').doc(existingDoc.id).delete();
     }
     
-    // Upload do novo arquivo
     const fileName = createFileName(categoryInfo, month, week, file.name);
     const storagePath = createStoragePath(category, month, fileName);
     
     const uploadTask = storage.ref(storagePath).put(file);
     
-    // Mostrar progresso
     showUploadProgress(uploadTask);
     
     uploadTask.on('state_changed',
@@ -808,7 +740,6 @@ async function handleUpload() {
   }
 }
 
-// Criar nome do arquivo
 function createFileName(categoryInfo, month, week, originalName) {
   let fileName = categoryInfo.name;
   
@@ -822,7 +753,6 @@ function createFileName(categoryInfo, month, week, originalName) {
   return `${fileName}.${extension}`;
 }
 
-// Criar caminho no Storage
 function createStoragePath(category, month, fileName) {
   const categoryKey = getCategoryKey(category);
   const categoryInfo = DOCUMENT_TYPES[categoryKey];
@@ -834,7 +764,6 @@ function createStoragePath(category, month, fileName) {
   return `documents/${category}/${month}/${fileName}`;
 }
 
-// Salvar documento no Firestore
 async function saveDocument(category, month, week, fileName, fileUrl) {
   const categoryKey = getCategoryKey(category);
   const categoryInfo = DOCUMENT_TYPES[categoryKey];
@@ -857,7 +786,6 @@ async function saveDocument(category, month, week, fileName, fileUrl) {
   await db.collection('documents').add(docData);
 }
 
-// Modal de configuração
 const configModal = {
   modal: document.getElementById('config-modal'),
   month: document.getElementById('config-month'),
@@ -866,13 +794,11 @@ const configModal = {
   closeBtn: document.querySelector('.close-config-modal')
 };
 
-// Configurar modal de configuração
 function setupConfigModal() {
   if (configModal.closeBtn) configModal.closeBtn.addEventListener('click', closeConfigModal);
   if (configModal.saveBtn) configModal.saveBtn.addEventListener('click', saveConfig);
 }
 
-// Abrir modal de configuração
 function openConfigModal() {
   if (!configModal.modal) return;
   
@@ -881,14 +807,12 @@ function openConfigModal() {
   configModal.modal.style.display = 'flex';
 }
 
-// Fechar modal de configuração
 function closeConfigModal() {
   if (configModal.modal) {
     configModal.modal.style.display = 'none';
   }
 }
 
-// Salvar configuração
 async function saveConfig() {
   try {
     const month = parseInt(configModal.month.value);
@@ -911,7 +835,6 @@ async function saveConfig() {
   }
 }
 
-// Inicializar configurações
 async function initializeConfig() {
   try {
     const configDoc = await db.collection('config').doc('weeksPerMonth').get();
@@ -929,14 +852,10 @@ async function initializeConfig() {
   }
 }
 
-// Funções auxiliares
-
-// Obter chave da categoria
 function getCategoryKey(categoryId) {
   return Object.keys(DOCUMENT_TYPES).find(key => DOCUMENT_TYPES[key].id === categoryId);
 }
 
-// Formatar data
 function formatDate(timestamp) {
   if (!timestamp) return '-';
   
@@ -950,13 +869,10 @@ function formatDate(timestamp) {
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
-// Mostrar notificação
 function showNotification(message, type = 'info') {
-  // Criar elemento de notificação
   const notification = document.createElement('div');
   notification.className = `fixed top-20 right-4 px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full z-50`;
   
-  // Definir cores baseadas no tipo
   const colors = {
     success: 'bg-green-500 text-white',
     error: 'bg-red-500 text-white',
@@ -974,37 +890,30 @@ function showNotification(message, type = 'info') {
   
   document.body.appendChild(notification);
   
-  // Animar entrada
   setTimeout(() => {
     notification.classList.remove('translate-x-full');
   }, 100);
   
-  // Remover após 3 segundos
   setTimeout(() => {
     notification.classList.add('translate-x-full');
     setTimeout(() => notification.remove(), 300);
   }, 3000);
 }
 
-// Mostrar progresso de upload
 function showUploadProgress(uploadTask) {
-  // Implementar barra de progresso visual se necessário
   console.log('Upload iniciado...');
 }
 
-// Atualizar progresso de upload
 function updateUploadProgress(snapshot) {
   const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
   console.log(`Progresso: ${progress.toFixed(0)}%`);
 }
 
-// Handle erro de upload
 function handleUploadError(error) {
   console.error('Erro no upload:', error);
   showNotification('Erro ao fazer upload do arquivo', 'error');
 }
 
-// Exportar funções necessárias
 window.appState = appState;
 window.DOCUMENT_TYPES = DOCUMENT_TYPES;
 window.MONTH_NAMES = MONTH_NAMES;
