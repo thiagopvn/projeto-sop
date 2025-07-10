@@ -1,0 +1,11 @@
+// scss/_dark.scss
+
+body.dark-mode {
+  --primary-color: #4dabf7; // Um azul mais claro para contraste
+  --secondary-color: #ff6b6b; // Um vermelho mais claro
+  --background-color: #121212;
+  --card-background-color: #1E1E1E;
+  --text-color: #E0E0E0;
+  --text-color-muted: #A0A0A0;
+  --border-color: #333333;
+}

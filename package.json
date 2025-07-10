@@ -1,0 +1,14 @@
+{
+  "name": "projeto-sop",
+  "version": "2.0.0",
+  "description": "Sistema de Organização de Documentos do CBMERJ",
+  "scripts": {
+    "build:css": "sass --no-source-map scss/main.scss css/styles.css",
+    "watch:css": "sass --no-source-map --watch scss/main.scss css/styles.css"
+  },
+  "author": "Gemini",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "sass": "^1.69.5"
+  }
+}

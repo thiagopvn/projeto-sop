@@ -1,0 +1,36 @@
+// scss/_variables.scss
+
+// Paleta de Cores
+:root {
+  // Modo Claro (Padrão)
+  --primary-color: #0057B8;
+  --secondary-color: #E30613;
+  --background-color: #F8F9FA;
+  --card-background-color: #FFFFFF;
+  --text-color: #212529;
+  --text-color-muted: #6C757D;
+  --border-color: #DEE2E6;
+
+  --success-color: #3CC47C;
+  --warning-color: #FFC107;
+  --error-color: #F44336;
+
+  // Tipografia
+  --font-family: 'Inter', sans-serif;
+
+  // Sombras
+  --box-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  // Bordas
+  --border-radius: 8px;
+}
+
+// Variáveis SCSS (não vão para o CSS final)
+$breakpoints: (
+  xs: 480px,
+  sm: 768px,
+  md: 1024px,
+  lg: 1280px
+);
