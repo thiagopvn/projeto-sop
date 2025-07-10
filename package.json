@@ -3,9 +3,10 @@
   "version": "2.0.0",
   "description": "Sistema de Organização de Documentos do CBMERJ",
   "scripts": {
-    "build:css": "npx sass --no-source-map scss/main.scss css/styles.css",
+    "build:css": "node node_modules/sass/sass.js --no-source-map scss/main.scss css/styles.css",
     "watch:css": "sass --no-source-map --watch scss/main.scss css/styles.css",
-    "build": "npm install && npm run build:css"
+    "build": "npm install && npm run build:css",
+    "postinstall": "chmod +x node_modules/.bin/sass"
   },
   "author": "Gemini",
   "license": "UNLICENSED",
