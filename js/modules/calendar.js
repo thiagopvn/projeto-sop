@@ -1,11 +1,10 @@
 // js/modules/calendar.js
 
-import { db } from '../firebase-config.js';
-import { showNotification, showConfirmation } from './ui.js';
+import { firestoreService } from './firebase-service.js';
+import * as ui from './ui.js';
 
-const appContent = document.getElementById('app-content');
-
-export function renderCalendar() {
+export const renderCalendar = async () => {
+  const appContent = document.getElementById('app-content');
   appContent.innerHTML = `
     <div class="calendar-container">
       <div id="calendar"></div>
@@ -21,61 +20,60 @@ export function renderCalendar() {
       center: 'title',
       right: 'dayGridMonth,timeGridWeek,timeGridDay'
     },
-    events: async function() {
-      const snapshot = await db.collection('events').get();
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        title: doc.data().title,
-        start: doc.data().date,
-        allDay: !doc.data().time,
-        backgroundColor: getEventColor(doc.data().type),
-        borderColor: getEventColor(doc.data().type)
-      }));
-    },
-    // Placeholder for event interaction
-    eventClick: function(info) {
-      // openEventModal(info.event);
-      showNotification('Evento clicado: ' + info.event.title, 'info');
+    editable: true,
+    selectable: true,
+    events: [], // Events will be loaded from Firestore
+    eventDidMount: function(info) {
+      // Add tooltip for events
+      info.el.title = info.event.title;
     },
     select: function(info) {
-      // openEventModal(null, info.startStr);
-      showNotification('Data selecionada: ' + info.startStr, 'info');
+      // Handle event creation
+      ui.showNotification('info', 'Criar novo evento');
+      // Example: open a modal for event creation
+    },
+    eventClick: function(info) {
+      // Handle event editing/viewing
+      ui.showNotification('info', `Evento clicado: ${info.event.title}`);
+      // Example: open a modal for event details
+    },
+    eventDrop: async function(info) {
+      // Handle event drag and drop
+      const confirmed = await ui.showConfirm('Mover Evento', 'Tem certeza que deseja mover este evento?');
+      if (confirmed) {
+        // Update event in Firestore
+        ui.showNotification('success', 'Evento movido com sucesso!');
+      } else {
+        info.revert(); // Revert if not confirmed
+      }
+    },
+    eventResize: async function(info) {
+      // Handle event resize
+      const confirmed = await ui.showConfirm('Redimensionar Evento', 'Tem certeza que deseja redimensionar este evento?');
+      if (confirmed) {
+        // Update event in Firestore
+        ui.showNotification('success', 'Evento redimensionado com sucesso!');
+      } else {
+        info.revert(); // Revert if not confirmed
+      }
     }
   });
 
   calendar.render();
-}
 
-function getEventColor(type) {
-  switch (type) {
-    case 'visita': return '#3CC47C';
-    case 'formatura': return '#0057B8';
-    case 'instrucao': return '#FFC107';
-    case 'reuniao': return '#9C27B0';
-    default: return '#6C757D';
-  }
-}
-
-// Placeholder for saveEvent and deleteEvent functions
-async function saveEvent(eventData) {
+  // Load events from Firestore
   try {
-    // Actual save logic here
-    showNotification('Evento salvo com sucesso!', 'success');
+    const events = await firestoreService.getCollection('events');
+    const formattedEvents = events.map(event => ({
+      id: event.id,
+      title: event.title,
+      start: event.start,
+      end: event.end,
+      color: event.color // Assuming color is stored in Firestore
+    }));
+    calendar.addEventSource(formattedEvents);
   } catch (error) {
-    console.error('Erro ao salvar evento:', error);
-    showNotification('Erro ao salvar o evento.', 'error');
+    ui.showNotification('error', 'Erro ao carregar eventos do calendário.');
+    console.error('Error loading calendar events:', error);
   }
-}
-
-async function deleteEvent(eventId) {
-  const confirmed = await showConfirmation('Confirmar Exclusão', 'Tem certeza que deseja excluir este evento?');
-  if (confirmed) {
-    try {
-      // Actual delete logic here
-      showNotification('Evento excluído com sucesso!', 'success');
-    } catch (error) {
-      console.error('Erro ao excluir evento:', error);
-      showNotification('Erro ao excluir o evento.', 'error');
-    }
-  }
-}
+};

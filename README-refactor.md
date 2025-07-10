@@ -1,33 +1,82 @@
-# README - Refatoração do Front-end
+# Projeto SOP - Refatoração Front-end
 
-Este documento descreve a nova estrutura do front-end do projeto SOP, as decisões de design e como executar o build.
+Este documento descreve as mudanças e a nova arquitetura do front-end do Projeto SOP, focado em uma experiência de usuário moderna, limpa e responsiva.
 
-## Estrutura de Arquivos
+## Estrutura do Projeto
 
-- `scss/`: Contém os arquivos SASS para estilização.
-  - `main.scss`: Ponto de entrada que importa todos os outros parciais.
-  - `_variables.scss`: Variáveis de cor, tipografia, etc.
-  - `_base.scss`: Estilos base e resets.
-  - `_layout.scss`: Estilos para a estrutura principal (sidebar, navbar).
-  - `_components.scss`: Estilos para componentes reutilizáveis.
-  - `_dark.scss`: Estilos para o modo escuro.
-- `js/modules/`: Contém os módulos JavaScript da aplicação.
-  - `ui.js`: Lógica de renderização da UI.
-  - `dashboard.js`: Lógica do dashboard.
-  - `tables.js`: Lógica das tabelas.
-  - `calendar.js`: Lógica do calendário.
-  - `theme.js`: Lógica de troca de tema.
-  - `firebase-service.js`: Funções de interação com o Firebase.
-- `js/main.js`: Ponto de entrada da aplicação.
-- `css/`: Contém o CSS compilado.
+O front-end foi refatorado para utilizar uma arquitetura modular, com SCSS para estilização e módulos ES6 para o JavaScript.
+
+```
+projeto-sop/
+├───.gitignore
+├───index.html
+├───package-lock.json
+├───package.json
+├───README-refactor.md
+├───.git/...
+├───assets/
+│   └───brasao.png
+├───css/
+│   └───styles.css         <-- CSS compilado do SCSS
+├───js/
+│   ├───firebase-config.js
+│   ├───main.js
+│   └───modules/
+│       ├───calendar.js
+│       ├───dashboard.js
+│       ├───firebase-service.js
+│       ├───tables.js
+│       ├───theme.js
+│       └───ui.js
+├───node_modules/...
+└───scss/
+    ├───_base.scss
+    ├───_components.scss
+    ├───_dark.scss
+    ├───_layout.scss
+    ├───_variables.scss
+    └───main.scss            <-- Ponto de entrada do SCSS
+```
 
 ## Build do CSS
 
-Para compilar os arquivos SASS, utilize os seguintes comandos:
+Para compilar os arquivos SCSS para CSS, utilize o seguinte comando:
 
-- `npm run build:css`: Compila o SASS uma vez.
-- `npm run watch:css`: Observa as alterações nos arquivos SASS e compila automaticamente.
+```bash
+npm run build:css
+```
 
-## Modo Escuro
+Este comando irá gerar o arquivo `css/styles.css` a partir dos arquivos SCSS na pasta `scss/`.
 
-O modo escuro é ativado adicionando a classe `dark-mode` ao `<body>` do HTML. A lógica para alternar entre os modos está em `js/modules/theme.js`.
+## Ativar Dark Mode
+
+O tema escuro é ativado/desativado através de uma classe no `<body>` do `index.html`. Para ativar o dark mode, adicione a classe `dark-mode` ao elemento `<body>`:
+
+```html
+<body class="dark-mode">
+  <!-- Conteúdo do aplicativo -->
+</body>
+```
+
+Para desativar, remova a classe `dark-mode`.
+
+**Observação:** A alternância do dark mode será implementada via JavaScript no módulo `theme.js` para uma experiência dinâmica.
+
+## Dependências
+
+As dependências do projeto são gerenciadas via `package.json`.
+
+*   **sass**: Compilador Dart Sass para SCSS.
+*   **Firebase**: SDKs para autenticação, Firestore e Storage.
+*   **Chart.js**: Para renderização de gráficos.
+*   **FullCalendar**: Para o componente de calendário.
+*   **SweetAlert2**: Para modais de confirmação e alertas.
+*   **Notyf**: Para notificações toast.
+*   **Phosphor Icons**: Biblioteca de ícones para uma interface visualmente rica.
+
+## Próximos Passos
+
+1.  Implementar a lógica de UI nos módulos JavaScript (`js/modules/`).
+2.  Integrar os componentes de UI com os dados do Firebase.
+3.  Garantir a responsividade e acessibilidade em todas as telas.
+4.  Realizar testes de funcionalidade e performance (Lighthouse).

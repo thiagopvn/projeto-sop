@@ -1,36 +1,61 @@
 // scss/_variables.scss
 
-// Paleta de Cores
 :root {
-  // Modo Claro (Padrão)
-  --primary-color: #0057B8;
-  --secondary-color: #E30613;
-  --background-color: #F8F9FA;
-  --card-background-color: #FFFFFF;
+  --primary-color: #0057B8; // Azul CBMERJ
+  --secondary-color: #E30613; // Vermelho CBMERJ
+  --background-color: #F8F9FA; // Fundo neutro
+  --card-background-color: #FFFFFF; // Cards brancos
   --text-color: #212529;
   --text-color-muted: #6C757D;
   --border-color: #DEE2E6;
-
   --success-color: #3CC47C;
   --warning-color: #FFC107;
   --error-color: #F44336;
 
-  // Tipografia
-  --font-family: 'Inter', sans-serif;
+  // Typography
+  --font-family: "Inter", sans-serif;
+  --font-size-body: 0.9rem;
+  --line-height-body: 1.4;
+  --font-size-h1: 2.5rem; // Example, adjust as needed
+  --font-size-h2: 2rem;   // Example, adjust as needed
+  --font-size-h3: 1.75rem; // Example, adjust as needed
+  --font-size-h4: 1.5rem; // Example, adjust as needed
+  --font-size-h5: 1.25rem; // Example, adjust as needed
+  --font-size-h6: 1rem;   // Example, adjust as needed
 
-  // Sombras
+  // Spacing
+  --spacing-xs: 5px;
+  --spacing-sm: 10px;
+  --spacing-md: 20px;
+  --spacing-lg: 30px;
+  --spacing-xl: 40px;
+
+  // Shadows
   --box-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
   --box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --box-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
 
-  // Bordas
+  // Borders
   --border-radius: 8px;
+
+  // Transitions
+  --transition-speed: 0.2s;
+  --transition-timing: ease-in-out;
 }
 
-// Variáveis SCSS (não vão para o CSS final)
-$breakpoints: (
-  xs: 480px,
-  sm: 768px,
-  md: 1024px,
-  lg: 1280px
-);
+// Dark Mode Variables
+body.dark-mode {
+  --primary-color: #4dabf7;
+  --secondary-color: #ff6b6b;
+  --background-color: #121212;
+  --card-background-color: #1E1E1E;
+  --text-color: #E0E0E0;
+  --text-color-muted: #A0A0A0;
+  --border-color: #333333;
+}
+
+// Breakpoints
+$breakpoint-xl: 1280px;
+$breakpoint-lg: 1024px;
+$breakpoint-md: 768px;
+$breakpoint-sm: 480px;
