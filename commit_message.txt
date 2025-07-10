@@ -1,1 +1,1 @@
-Refatoração completa do front-end: UI/UX moderno, modularização e otimizações.
+Fix: Add type="module" to main.js script tag in index.html to resolve SyntaxError.

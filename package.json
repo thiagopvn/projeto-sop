@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "Sistema de Organização de Documentos do CBMERJ",
   "scripts": {
+    "prebuild:css": "chmod +x node_modules/.bin/sass",
     "build:css": "sass --no-source-map scss/main.scss css/styles.css",
     "watch:css": "sass --no-source-map --watch scss/main.scss css/styles.css"
   },
