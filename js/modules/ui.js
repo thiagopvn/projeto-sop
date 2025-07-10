@@ -1,7 +1,7 @@
 // js/modules/ui.js
 
 import { auth } from '../firebase-config.js';
-import { Notyf } from 'https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js';
+
 import Swal from 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
 
 const appContent = document.getElementById('app-content');
