@@ -3,17 +3,19 @@
   "version": "2.0.0",
   "description": "Sistema de Organização de Documentos do CBMERJ",
   "scripts": {
-    "build:css": "npx sass --no-source-map scss/main.scss css/styles.css",
-    "watch:css": "sass --no-source-map --watch scss/main.scss css/styles.css",
-    "build": "npm install && npm run build:css",
+    "build:css": "npx sass --no-source-map scss/main.scss public/css/styles.css",
+    "build:js": "npx esbuild --bundle js/main.js --outfile=public/js/main.js",
+    "build": "del-cli public && mkdir public && copyfiles index.html public && copyfiles -u 1 assets/**/* public/assets && npm run build:css && npm run build:js",
     "postinstall": "chmod +x node_modules/.bin/sass",
-    "dev": "npx esbuild --bundle js/main.js --outfile=dist/main.js --watch",
+    "dev": "npm run build && npx http-server public -p 4173 -c-1",
     "lint": "npx eslint js/**/*.js",
-    "preview": "npx http-server -p 4173"
+    "preview": "npx http-server public -p 4173"
   },
   "author": "Gemini",
   "license": "UNLICENSED",
   "devDependencies": {
+    "copyfiles": "^2.4.1",
+    "del-cli": "^6.0.0",
     "sass": "^1.69.5"
   },
   "dependencies": {
