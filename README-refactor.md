@@ -1,82 +1,29 @@
-# Projeto SOP - Refatoração Front-end
+## Refatoração do Projeto SOP
 
-Este documento descreve as mudanças e a nova arquitetura do front-end do Projeto SOP, focado em uma experiência de usuário moderna, limpa e responsiva.
+Este documento descreve as etapas da refatoração do projeto SOP, com foco na modernização do frontend, remoção de dependências externas problemáticas e melhoria da performance.
 
-## Estrutura do Projeto
+### Instruções de Instalação e Build
 
-O front-end foi refatorado para utilizar uma arquitetura modular, com SCSS para estilização e módulos ES6 para o JavaScript.
+1.  **Instale as dependências:**
 
-```
-projeto-sop/
-├───.gitignore
-├───index.html
-├───package-lock.json
-├───package.json
-├───README-refactor.md
-├───.git/...
-├───assets/
-│   └───brasao.png
-├───css/
-│   └───styles.css         <-- CSS compilado do SCSS
-├───js/
-│   ├───firebase-config.js
-│   ├───main.js
-│   └───modules/
-│       ├───calendar.js
-│       ├───dashboard.js
-│       ├───firebase-service.js
-│       ├───tables.js
-│       ├───theme.js
-│       └───ui.js
-├───node_modules/...
-└───scss/
-    ├───_base.scss
-    ├───_components.scss
-    ├───_dark.scss
-    ├───_layout.scss
-    ├───_variables.scss
-    └───main.scss            <-- Ponto de entrada do SCSS
-```
+    ```bash
+    npm install
+    ```
 
-## Build do CSS
+2.  **Instale o Lucide Icons:**
 
-Para compilar os arquivos SCSS para CSS, utilize o seguinte comando:
+    ```bash
+    npm i lucide
+    ```
 
-```bash
-npm run build:css
-```
+3.  **Execute o ambiente de desenvolvimento:**
 
-Este comando irá gerar o arquivo `css/styles.css` a partir dos arquivos SCSS na pasta `scss/`.
+    ```bash
+    npm run dev
+    ```
 
-## Ativar Dark Mode
+    Este comando irá compilar os arquivos SCSS, iniciar um servidor de desenvolvimento com ESBuild (que inclui o Babel-preset-env para compatibilidade) e copiar os ícones locais para o diretório `/dist/assets/`.
 
-O tema escuro é ativado/desativado através de uma classe no `<body>` do `index.html`. Para ativar o dark mode, adicione a classe `dark-mode` ao elemento `<body>`:
+4.  **Visualize o projeto:**
 
-```html
-<body class="dark-mode">
-  <!-- Conteúdo do aplicativo -->
-</body>
-```
-
-Para desativar, remova a classe `dark-mode`.
-
-**Observação:** A alternância do dark mode será implementada via JavaScript no módulo `theme.js` para uma experiência dinâmica.
-
-## Dependências
-
-As dependências do projeto são gerenciadas via `package.json`.
-
-*   **sass**: Compilador Dart Sass para SCSS.
-*   **Firebase**: SDKs para autenticação, Firestore e Storage.
-*   **Chart.js**: Para renderização de gráficos.
-*   **FullCalendar**: Para o componente de calendário.
-*   **SweetAlert2**: Para modais de confirmação e alertas.
-*   **Notyf**: Para notificações toast.
-*   **Phosphor Icons**: Biblioteca de ícones para uma interface visualmente rica.
-
-## Próximos Passos
-
-1.  Implementar a lógica de UI nos módulos JavaScript (`js/modules/`).
-2.  Integrar os componentes de UI com os dados do Firebase.
-3.  Garantir a responsividade e acessibilidade em todas as telas.
-4.  Realizar testes de funcionalidade e performance (Lighthouse).
+    Abra o navegador em `http://localhost:4173` para ver o projeto em execução.
