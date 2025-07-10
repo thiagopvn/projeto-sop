@@ -81,16 +81,16 @@ export function renderAuthenticatedUI(user) {
 function renderSidebar() {
   const sidebar = document.querySelector('.sidebar');
   const menuItems = [
-    { id: 'dashboard', icon: 'fa-tachometer-alt', label: 'Dashboard' },
-    { id: 'aulas', icon: 'fa-chalkboard-teacher', label: 'Aulas' },
-    { id: 'plano-de-sessao', icon: 'fa-clipboard-list', label: 'Plano de Sessão' },
-    { id: 'qta', icon: 'fa-file-alt', label: 'QTA' },
-    { id: 'qtm', icon: 'fa-calendar-alt', label: 'QTM' },
-    { id: 'qts', icon: 'fa-tasks', label: 'QTS' },
-    { id: 'relatorio-mensal', icon: 'fa-chart-bar', label: 'Relatório Mensal' },
-    { id: 'livro-de-ordens', icon: 'fa-book', label: 'Livro de Ordens' },
-    { id: 'operacao-simulada', icon: 'fa-shield-alt', label: 'Operação Simulada' },
-    { id: 'calendario', icon: 'fa-calendar-day', label: 'Calendário' },
+    { id: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
+    { id: 'aulas', icon: 'school', label: 'Aulas' },
+    { id: 'plano-de-sessao', icon: 'assignment', label: 'Plano de Sessão' },
+    { id: 'qta', icon: 'description', label: 'QTA' },
+    { id: 'qtm', icon: 'event', label: 'QTM' },
+    { id: 'qts', icon: 'task', label: 'QTS' },
+    { id: 'relatorio-mensal', icon: 'bar_chart', label: 'Relatório Mensal' },
+    { id: 'livro-de-ordens', icon: 'book', label: 'Livro de Ordens' },
+    { id: 'operacao-simulada', icon: 'security', label: 'Operação Simulada' },
+    { id: 'calendario', icon: 'calendar_today', label: 'Calendário' },
   ];
 
   sidebar.innerHTML = `
@@ -103,7 +103,7 @@ function renderSidebar() {
         ${menuItems.map(item => `
           <li>
             <a href="#" data-category="${item.id}" class="sidebar-link">
-              <i class="fas ${item.icon}"></i>
+              <span class="material-icons">${item.icon}</span>
               <span class="sidebar-label">${item.label}</span>
             </a>
           </li>
@@ -118,7 +118,7 @@ function renderNavbar(user) {
   navbar.innerHTML = `
     <div class="navbar-left">
       <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle Sidebar">
-            <i class="fas fa-bars"></i>
+            <span class="material-icons">menu</span>
           </button>
     </div>
     <div class="navbar-right">
