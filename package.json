@@ -4,7 +4,8 @@
   "description": "Sistema de Organização de Documentos do CBMERJ",
   "scripts": {
     "build:css": "./node_modules/.bin/sass --no-source-map scss/main.scss css/styles.css",
-    "watch:css": "sass --no-source-map --watch scss/main.scss css/styles.css"
+    "watch:css": "sass --no-source-map --watch scss/main.scss css/styles.css",
+    "build": "npm install && npm run build:css"
   },
   "author": "Gemini",
   "license": "UNLICENSED",
