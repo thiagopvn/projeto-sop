@@ -1,0 +1,1 @@
+Refatoração completa do front-end: UI/UX moderno, modularização e otimizações.
