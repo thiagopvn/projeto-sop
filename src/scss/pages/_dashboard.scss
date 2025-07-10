@@ -1,0 +1,168 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.dashboard-page {
+  .dashboard-header {
+    margin-bottom: $spacing-xl;
+    
+    .dashboard-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: $spacing-sm;
+      
+      [data-theme="dark"] & {
+        color: $dark-text;
+      }
+    }
+    
+    .dashboard-subtitle {
+      font-size: 1rem;
+      color: #6b7280;
+      
+      [data-theme="dark"] & {
+        color: #9ca3af;
+      }
+    }
+  }
+  
+  .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: $spacing-lg;
+    margin-bottom: $spacing-xl;
+  }
+  
+  .dashboard-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-lg;
+    margin-bottom: $spacing-xl;
+    
+    @include tablet {
+      grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+      @include card;
+      
+      .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: $spacing-lg;
+        
+        .chart-title {
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: #111827;
+          
+          [data-theme="dark"] & {
+            color: $dark-text;
+          }
+        }
+        
+        .chart-actions {
+          display: flex;
+          gap: $spacing-xs;
+        }
+      }
+      
+      .chart-wrapper {
+        position: relative;
+        height: 300px;
+        
+        canvas {
+          max-height: 100%;
+        }
+      }
+    }
+  }
+  
+  .dashboard-recent {
+    @include card;
+    
+    .recent-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: $spacing-lg;
+      
+      .recent-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #111827;
+        
+        [data-theme="dark"] & {
+          color: $dark-text;
+        }
+      }
+    }
+    
+    .recent-list {
+      .recent-item {
+        display: flex;
+        align-items: center;
+        padding: $spacing-md 0;
+        border-bottom: 1px solid #f3f4f6;
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        [data-theme="dark"] & {
+          border-bottom-color: $dark-border;
+        }
+        
+        .recent-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: $radius-md;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: $spacing-md;
+          background-color: $gray-50;
+          
+          [data-theme="dark"] & {
+            background-color: $dark-bg;
+          }
+          
+          svg {
+            width: 20px;
+            height: 20px;
+            color: #6b7280;
+          }
+        }
+        
+        .recent-content {
+          flex: 1;
+          
+          .recent-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #111827;
+            margin-bottom: 2px;
+            
+            [data-theme="dark"] & {
+              color: $dark-text;
+            }
+          }
+          
+          .recent-meta {
+            font-size: 0.75rem;
+            color: #6b7280;
+            
+            [data-theme="dark"] & {
+              color: #9ca3af;
+            }
+          }
+        }
+        
+        .recent-status {
+          margin-left: $spacing-md;
+        }
+      }
+    }
+  }
+}

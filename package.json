@@ -1,27 +1,37 @@
 {
   "name": "projeto-sop",
-  "version": "2.0.0",
-  "description": "Sistema de Organização de Documentos do CBMERJ",
+  "version": "3.0.0",
+  "description": "Sistema de Ordens Policiais",
+  "main": "public/index.html",
   "scripts": {
-    "build:css": "npx sass --no-source-map scss/main.scss public/css/styles.css",
-    "build:js": "npx esbuild --bundle js/main.js --outfile=public/js/main.js",
-    "build": "del-cli public && mkdir public && copyfiles index.html public && copyfiles -u 1 assets/**/* public/assets && npm run build:css && npm run build:js",
-    "postinstall": "chmod +x node_modules/.bin/sass",
-    "dev": "npm run build && npx http-server public -p 4173 -c-1",
-    "lint": "npx eslint js/**/*.js",
-    "preview": "npx http-server public -p 4173"
+    "dev:sass": "sass --watch src/scss:public/css",
+    "dev:js": "esbuild src/js/main.js --bundle --outdir=public/js --sourcemap --watch",
+    "dev:copy": "cp -r src/pages/* public/pages/ && cp -r src/assets/* public/assets/ && cp src/index.html public/",
+    "dev": "npm run dev:copy && npm-run-all --parallel dev:sass dev:js",
+    "build:clean": "rm -rf public && mkdir -p public/{pages,css,js,assets/{icons,images}}",
+    "build:copy": "cp src/index.html public/ && cp -r src/pages/* public/pages/ && cp -r src/assets/* public/assets/",
+    "build:sass": "sass src/scss:public/css --no-source-map --style=compressed",
+    "build:js": "esbuild src/js/main.js --bundle --minify --outdir=public/js",
+    "build": "npm run build:clean && npm run build:copy && npm-run-all --parallel build:sass build:js",
+    "serve": "live-server public --port=8080",
+    "preview": "npm run build && npm run serve"
   },
-  "author": "Gemini",
-  "license": "UNLICENSED",
+  "keywords": ["police", "orders", "management"],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "copyfiles": "^2.4.1",
-    "del-cli": "^6.0.0",
-    "sass": "^1.69.5"
+    "npm-run-all": "^4.1.5",
+    "live-server": "^1.2.2",
+    "sass": "^1.80.7",
+    "esbuild": "^0.24.0"
   },
   "dependencies": {
-    "esbuild": "^0.25.6",
-    "eslint": "^9.30.1",
-    "http-server": "^14.1.1",
-    "lucide": "^0.525.0"
+    "lucide": "^0.454.0",
+    "notyf": "^3.10.0",
+    "chart.js": "^4.4.6",
+    "@fullcalendar/core": "^6.1.15",
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
+    "dropzone": "^6.0.0-beta.2"
   }
 }

@@ -1,0 +1,232 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Base card
+.card {
+  @include card;
+  
+  &.card-hover {
+    transition: transform $transition-fast, box-shadow $transition-fast;
+    cursor: pointer;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+  }
+  
+  &.card-bordered {
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
+    
+    [data-theme="dark"] & {
+      border-color: $dark-border;
+    }
+  }
+  
+  &.card-flat {
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+  }
+}
+
+// Card sections
+.card-header {
+  padding: $spacing-lg;
+  border-bottom: 1px solid #e5e7eb;
+  margin: -$spacing-lg;
+  margin-bottom: $spacing-lg;
+  
+  [data-theme="dark"] & {
+    border-bottom-color: $dark-border;
+  }
+  
+  &:first-child {
+    border-radius: $radius-lg $radius-lg 0 0;
+  }
+}
+
+.card-body {
+  padding: $spacing-lg;
+  margin: -$spacing-lg;
+}
+
+.card-footer {
+  padding: $spacing-lg;
+  border-top: 1px solid #e5e7eb;
+  margin: -$spacing-lg;
+  margin-top: $spacing-lg;
+  
+  [data-theme="dark"] & {
+    border-top-color: $dark-border;
+  }
+  
+  &:last-child {
+    border-radius: 0 0 $radius-lg $radius-lg;
+  }
+}
+
+// Card title
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: $spacing-sm;
+  color: #111827;
+  
+  [data-theme="dark"] & {
+    color: $dark-text;
+  }
+}
+
+.card-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: $spacing-md;
+  
+  [data-theme="dark"] & {
+    color: #9ca3af;
+  }
+}
+
+// Stat cards
+.stat-card {
+  @include card;
+  
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: $spacing-md;
+    
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+    
+    &.stat-icon-primary {
+      background-color: rgba($primary, 0.1);
+      color: $primary;
+    }
+    
+    &.stat-icon-success {
+      background-color: rgba($success, 0.1);
+      color: $success;
+    }
+    
+    &.stat-icon-danger {
+      background-color: rgba($danger, 0.1);
+      color: $danger;
+    }
+    
+    &.stat-icon-warning {
+      background-color: rgba($warning, 0.1);
+      color: $warning;
+    }
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: $spacing-xs;
+    
+    [data-theme="dark"] & {
+      color: $dark-text;
+    }
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: $spacing-md;
+    
+    [data-theme="dark"] & {
+      color: #9ca3af;
+    }
+  }
+  
+  .stat-change {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 500;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+      margin-right: $spacing-xs;
+    }
+    
+    &.stat-change-positive {
+      color: $success;
+    }
+    
+    &.stat-change-negative {
+      color: $danger;
+    }
+  }
+}
+
+// Image card
+.card-image {
+  margin: -$spacing-lg;
+  margin-bottom: $spacing-lg;
+  overflow: hidden;
+  
+  &:first-child {
+    border-radius: $radius-lg $radius-lg 0 0;
+  }
+  
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+// Card list
+.card-list {
+  margin: -$spacing-lg;
+  
+  .card-list-item {
+    padding: $spacing-md $spacing-lg;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color $transition-fast;
+    
+    &:hover {
+      background-color: $gray-50;
+      
+      [data-theme="dark"] & {
+        background-color: lighten($dark-surface, 5%);
+      }
+    }
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    [data-theme="dark"] & {
+      border-bottom-color: $dark-border;
+    }
+  }
+}
+
+// Card actions
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-top: $spacing-lg;
+  
+  &.card-actions-right {
+    justify-content: flex-end;
+  }
+  
+  &.card-actions-between {
+    justify-content: space-between;
+  }
+}

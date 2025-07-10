@@ -1,0 +1,257 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Base table
+.table-container {
+  overflow-x: auto;
+  @include custom-scrollbar;
+}
+
+.table {
+  @include table-base;
+  
+  &.table-hover tbody tr:hover {
+    background-color: $gray-50;
+    
+    [data-theme="dark"] & {
+      background-color: lighten($dark-surface, 5%);
+    }
+  }
+  
+  &.table-striped tbody tr:nth-child(even) {
+    background-color: $gray-50;
+    
+    [data-theme="dark"] & {
+      background-color: darken($dark-surface, 3%);
+    }
+  }
+  
+  &.table-bordered {
+    border: 1px solid #e5e7eb;
+    
+    th, td {
+      border: 1px solid #e5e7eb;
+    }
+    
+    [data-theme="dark"] & {
+      border-color: $dark-border;
+      
+      th, td {
+        border-color: $dark-border;
+      }
+    }
+  }
+  
+  &.table-sm {
+    th, td {
+      padding: $spacing-sm;
+    }
+  }
+}
+
+// Table utilities
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  
+  button {
+    @include button-base;
+    padding: $spacing-xs;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    color: #6b7280;
+    
+    &:hover {
+      background-color: $gray-50;
+      color: #374151;
+      
+      [data-theme="dark"] & {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: $dark-text;
+      }
+    }
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// Sortable headers
+.table-sortable {
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: $spacing-xl;
+    
+    &:hover {
+      background-color: darken($gray-50, 5%);
+      
+      [data-theme="dark"] & {
+        background-color: darken($dark-surface, 8%);
+      }
+    }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      right: $spacing-md;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      opacity: 0.3;
+    }
+    
+    &.sort-asc::after {
+      border-bottom: 6px solid #374151;
+      opacity: 1;
+    }
+    
+    &.sort-desc::after {
+      border-top: 6px solid #374151;
+      opacity: 1;
+    }
+  }
+}
+
+// Table filters
+.table-filters {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+  
+  .filter-search {
+    flex: 1;
+    min-width: 200px;
+    
+    @include mobile {
+      min-width: 100%;
+    }
+  }
+  
+  .filter-select {
+    min-width: 150px;
+  }
+}
+
+// Table pagination
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-lg;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  
+  .pagination-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+    
+    [data-theme="dark"] & {
+      color: #9ca3af;
+    }
+  }
+  
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    
+    .pagination-button {
+      @include button-base;
+      padding: $spacing-xs $spacing-sm;
+      min-width: 36px;
+      height: 36px;
+      background: $white;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+      font-size: 0.875rem;
+      
+      &:hover:not(:disabled) {
+        background-color: $gray-50;
+      }
+      
+      &.active {
+        background-color: $primary;
+        border-color: $primary;
+        color: $white;
+      }
+      
+      &:disabled {
+        color: #9ca3af;
+      }
+      
+      [data-theme="dark"] & {
+        background: $dark-surface;
+        border-color: $dark-border;
+        color: $dark-text;
+        
+        &:hover:not(:disabled) {
+          background-color: lighten($dark-surface, 5%);
+        }
+        
+        &.active {
+          background-color: $primary;
+          border-color: $primary;
+          color: $white;
+        }
+      }
+    }
+  }
+}
+
+// Responsive table
+.table-responsive {
+  @include mobile {
+    .table {
+      font-size: 0.875rem;
+      
+      th, td {
+        padding: $spacing-sm;
+      }
+    }
+  }
+}
+
+// Data table empty state
+.table-empty {
+  text-align: center;
+  padding: $spacing-2xl;
+  
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto $spacing-lg;
+    color: #9ca3af;
+  }
+  
+  .empty-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: $spacing-sm;
+    
+    [data-theme="dark"] & {
+      color: $dark-text;
+    }
+  }
+  
+  .empty-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: $spacing-lg;
+    
+    [data-theme="dark"] & {
+      color: #9ca3af;
+    }
+  }
+}

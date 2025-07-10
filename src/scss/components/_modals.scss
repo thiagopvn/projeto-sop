@@ -1,0 +1,248 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Modal backdrop
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+  z-index: $z-modal-backdrop;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity $transition-base, visibility $transition-base;
+  
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    
+    .modal {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+}
+
+// Modal
+.modal {
+  background: $white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-xl;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform $transition-base, opacity $transition-base;
+  
+  [data-theme="dark"] & {
+    background: $dark-surface;
+  }
+  
+  &.modal-sm {
+    max-width: 400px;
+  }
+  
+  &.modal-lg {
+    max-width: 800px;
+  }
+  
+  &.modal-xl {
+    max-width: 1200px;
+  }
+  
+  &.modal-fullscreen {
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+// Modal header
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-lg;
+  border-bottom: 1px solid #e5e7eb;
+  
+  [data-theme="dark"] & {
+    border-bottom-color: $dark-border;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    
+    [data-theme="dark"] & {
+      color: $dark-text;
+    }
+  }
+  
+  .modal-close {
+    @include button-base;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    color: #6b7280;
+    
+    &:hover {
+      background-color: $gray-50;
+      color: #374151;
+      
+      [data-theme="dark"] & {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: $dark-text;
+      }
+    }
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+// Modal body
+.modal-body {
+  flex: 1;
+  padding: $spacing-lg;
+  overflow-y: auto;
+  @include custom-scrollbar;
+}
+
+// Modal footer
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+  padding: $spacing-lg;
+  border-top: 1px solid #e5e7eb;
+  
+  [data-theme="dark"] & {
+    border-top-color: $dark-border;
+  }
+  
+  &.modal-footer-between {
+    justify-content: space-between;
+  }
+}
+
+// Alert modal
+.modal-alert {
+  .modal-body {
+    text-align: center;
+    padding: $spacing-xl;
+    
+    .alert-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto $spacing-lg;
+      border-radius: $radius-full;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      svg {
+        width: 32px;
+        height: 32px;
+      }
+      
+      &.alert-icon-success {
+        background-color: rgba($success, 0.1);
+        color: $success;
+      }
+      
+      &.alert-icon-danger {
+        background-color: rgba($danger, 0.1);
+        color: $danger;
+      }
+      
+      &.alert-icon-warning {
+        background-color: rgba($warning, 0.1);
+        color: $warning;
+      }
+      
+      &.alert-icon-info {
+        background-color: rgba($primary, 0.1);
+        color: $primary;
+      }
+    }
+    
+    .alert-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: $spacing-sm;
+      
+      [data-theme="dark"] & {
+        color: $dark-text;
+      }
+    }
+    
+    .alert-message {
+      font-size: 0.875rem;
+      color: #6b7280;
+      line-height: 1.5;
+      
+      [data-theme="dark"] & {
+        color: #9ca3af;
+      }
+    }
+  }
+}
+
+// Drawer modal
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  background: $white;
+  box-shadow: $shadow-xl;
+  z-index: $z-modal;
+  display: flex;
+  flex-direction: column;
+  transition: transform $transition-base;
+  
+  [data-theme="dark"] & {
+    background: $dark-surface;
+  }
+  
+  &.drawer-left {
+    left: 0;
+    width: 400px;
+    transform: translateX(-100%);
+    
+    &.show {
+      transform: translateX(0);
+    }
+  }
+  
+  &.drawer-right {
+    right: 0;
+    width: 400px;
+    transform: translateX(100%);
+    
+    &.show {
+      transform: translateX(0);
+    }
+  }
+  
+  @include mobile {
+    width: 100%;
+  }
+}

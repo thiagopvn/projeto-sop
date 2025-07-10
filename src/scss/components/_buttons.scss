@@ -1,0 +1,249 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Base button styles
+.btn {
+  @include button-base;
+  
+  // Variants
+  &.btn-primary {
+    background-color: $primary;
+    color: $white;
+    
+    &:hover:not(:disabled) {
+      background-color: darken($primary, 10%);
+    }
+    
+    &:active:not(:disabled) {
+      background-color: darken($primary, 15%);
+    }
+  }
+  
+  &.btn-secondary {
+    background-color: #6b7280;
+    color: $white;
+    
+    &:hover:not(:disabled) {
+      background-color: #4b5563;
+    }
+    
+    &:active:not(:disabled) {
+      background-color: #374151;
+    }
+  }
+  
+  &.btn-success {
+    background-color: $success;
+    color: $white;
+    
+    &:hover:not(:disabled) {
+      background-color: darken($success, 10%);
+    }
+    
+    &:active:not(:disabled) {
+      background-color: darken($success, 15%);
+    }
+  }
+  
+  &.btn-danger {
+    background-color: $danger;
+    color: $white;
+    
+    &:hover:not(:disabled) {
+      background-color: darken($danger, 10%);
+    }
+    
+    &:active:not(:disabled) {
+      background-color: darken($danger, 15%);
+    }
+  }
+  
+  &.btn-warning {
+    background-color: $warning;
+    color: #111827;
+    
+    &:hover:not(:disabled) {
+      background-color: darken($warning, 10%);
+    }
+    
+    &:active:not(:disabled) {
+      background-color: darken($warning, 15%);
+    }
+  }
+  
+  &.btn-outline {
+    background-color: transparent;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    
+    &:hover:not(:disabled) {
+      background-color: $gray-50;
+    }
+    
+    &:active:not(:disabled) {
+      background-color: #e5e7eb;
+    }
+    
+    [data-theme="dark"] & {
+      border-color: $dark-border;
+      color: $dark-text;
+      
+      &:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      
+      &:active:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+  
+  &.btn-ghost {
+    background-color: transparent;
+    color: #374151;
+    
+    &:hover:not(:disabled) {
+      background-color: $gray-50;
+    }
+    
+    &:active:not(:disabled) {
+      background-color: #e5e7eb;
+    }
+    
+    [data-theme="dark"] & {
+      color: $dark-text;
+      
+      &:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      
+      &:active:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+  
+  // Sizes
+  &.btn-sm {
+    padding: $spacing-xs $spacing-sm;
+    font-size: 0.75rem;
+  }
+  
+  &.btn-lg {
+    padding: $spacing-md $spacing-lg;
+    font-size: 1rem;
+  }
+  
+  // States
+  &.btn-block {
+    width: 100%;
+  }
+  
+  &.btn-loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+  }
+  
+  // Icon button
+  &.btn-icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    
+    &.btn-sm {
+      width: 32px;
+      height: 32px;
+    }
+    
+    &.btn-lg {
+      width: 48px;
+      height: 48px;
+    }
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  
+  // Button with icon
+  svg {
+    width: 16px;
+    height: 16px;
+    margin-right: $spacing-xs;
+  }
+  
+  &.btn-icon-right svg {
+    margin-right: 0;
+    margin-left: $spacing-xs;
+  }
+}
+
+// Button group
+.btn-group {
+  display: inline-flex;
+  
+  .btn {
+    border-radius: 0;
+    
+    &:first-child {
+      border-top-left-radius: $radius-md;
+      border-bottom-left-radius: $radius-md;
+    }
+    
+    &:last-child {
+      border-top-right-radius: $radius-md;
+      border-bottom-right-radius: $radius-md;
+    }
+    
+    &:not(:last-child) {
+      border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+// Floating action button
+.fab {
+  position: fixed;
+  bottom: $spacing-xl;
+  right: $spacing-xl;
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-full;
+  box-shadow: $shadow-lg;
+  @include button-base;
+  background-color: $primary;
+  color: $white;
+  padding: 0;
+  
+  &:hover:not(:disabled) {
+    background-color: darken($primary, 10%);
+    transform: scale(1.05);
+  }
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+  }
+  
+  @include mobile {
+    bottom: $spacing-lg;
+    right: $spacing-lg;
+  }
+}

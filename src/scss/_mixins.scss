@@ -1,0 +1,267 @@
+@use 'variables' as *;
+
+// Responsive breakpoint mixins
+@mixin mobile {
+  @media (max-width: #{$breakpoint-mobile - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: #{$breakpoint-mobile}) and (max-width: #{$breakpoint-tablet - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$breakpoint-tablet}) and (max-width: #{$breakpoint-desktop - 1px}) {
+    @content;
+  }
+}
+
+@mixin wide {
+  @media (min-width: #{$breakpoint-desktop}) {
+    @content;
+  }
+}
+
+// Flexbox helpers
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Focus visible
+@mixin focus-visible {
+  &:focus {
+    outline: none;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+// Button base
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-sm $spacing-md;
+  font-family: $font-family;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  border-radius: $radius-md;
+  transition: all $transition-fast;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  border: none;
+  
+  @include focus-visible;
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Card base
+@mixin card {
+  background: $white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow;
+  padding: $spacing-lg;
+  
+  [data-theme="dark"] & {
+    background: $dark-surface;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  }
+}
+
+// Input base
+@mixin input-base {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  font-family: $font-family;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background: $white;
+  border: 1px solid #e5e7eb;
+  border-radius: $radius-md;
+  transition: all $transition-fast;
+  
+  @include focus-visible;
+  
+  &:hover {
+    border-color: #d1d5db;
+  }
+  
+  &:focus {
+    border-color: $primary;
+  }
+  
+  &::placeholder {
+    color: #9ca3af;
+  }
+  
+  &:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+  }
+  
+  [data-theme="dark"] & {
+    background: $dark-surface;
+    border-color: $dark-border;
+    color: $dark-text;
+    
+    &:hover {
+      border-color: lighten($dark-border, 10%);
+    }
+    
+    &::placeholder {
+      color: #6b7280;
+    }
+    
+    &:disabled {
+      background: darken($dark-surface, 5%);
+    }
+  }
+}
+
+// Table base
+@mixin table-base {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #374151;
+    background: $gray-50;
+    border-bottom: 1px solid #e5e7eb;
+    
+    [data-theme="dark"] & {
+      color: $dark-text;
+      background: darken($dark-surface, 5%);
+      border-bottom-color: $dark-border;
+    }
+  }
+  
+  td {
+    padding: $spacing-md;
+    font-size: 0.875rem;
+    color: #1f2937;
+    border-bottom: 1px solid #f3f4f6;
+    
+    [data-theme="dark"] & {
+      color: $dark-text;
+      border-bottom-color: $dark-border;
+    }
+  }
+  
+  tbody tr {
+    transition: background-color $transition-fast;
+    
+    &:hover {
+      background: $gray-50;
+      
+      [data-theme="dark"] & {
+        background: lighten($dark-surface, 5%);
+      }
+    }
+  }
+}
+
+// Scrollbar styling
+@mixin custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: $radius-full;
+    
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+  
+  [data-theme="dark"] & {
+    scrollbar-color: $dark-border transparent;
+    
+    &::-webkit-scrollbar-thumb {
+      background: $dark-border;
+      
+      &:hover {
+        background: lighten($dark-border, 10%);
+      }
+    }
+  }
+}
+
+// Animation keyframes
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
