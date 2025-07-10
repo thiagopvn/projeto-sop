@@ -9,7 +9,7 @@
     "dev:copy": "cp -r src/pages/* public/pages/ && cp -r src/assets/* public/assets/ && cp src/index.html public/",
     "dev": "npm run dev:copy && npm-run-all --parallel dev:sass dev:js",
     "build:clean": "rm -rf public && mkdir -p public/{pages,css,js,assets/{icons,images}}",
-    "build:copy": "cp src/index.html public/ && cp -r src/pages/* public/pages/ && cp -r src/assets/* public/assets/",
+    "build:copy": "cp src/index.html public/ && [ -d src/assets ] && cp -r src/assets/* public/assets/ || true",
     "build:sass": "sass src/scss:public/css --no-source-map --style=compressed",
     "build:js": "esbuild src/js/main.js --bundle --minify --outdir=public/js",
     "build": "npm run build:clean && npm run build:copy && npm-run-all --parallel build:sass build:js",
