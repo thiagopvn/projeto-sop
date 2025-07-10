@@ -1,8 +1,7 @@
-import { Notyf } from 'notyf';
-
 export class Toast {
   constructor() {
-    this.notyf = new Notyf({
+    // Notyf is loaded via CDN script tag
+    this.notyf = new window.Notyf({
       duration: 4000,
       position: {
         x: 'right',

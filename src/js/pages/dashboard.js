@@ -280,18 +280,20 @@ export class DashboardPage {
 
   async initializeCharts() {
     try {
-      // Import Chart.js dynamically
-      const { Chart, CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend } = await import('chart.js');
+      // Check if Chart.js is available globally (loaded via CDN)
+      if (typeof window.Chart === 'undefined') {
+        console.warn('Chart.js não está disponível. Carregue via CDN se necessário.');
+        return;
+      }
       
-      // Register Chart.js components
-      Chart.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend);
+      const Chart = window.Chart;
       
       // Initialize charts
       this.initOrdensChart(Chart);
       this.initTiposChart(Chart);
       
     } catch (error) {
-      console.error('Erro ao carregar Chart.js:', error);
+      console.error('Erro ao inicializar gráficos:', error);
     }
   }
 
