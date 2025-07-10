@@ -2,9 +2,11 @@
 
 import { auth } from './firebase-config.js';
 import * as ui from './modules/ui.js';
+import { renderDashboard } from './modules/dashboard.js';
+import { renderLivroOrdens } from './modules/tables.js';
+import { renderCalendar } from './modules/calendar.js';
 
 // Função principal de inicialização
-import { renderDashboard } from './modules/dashboard.js';
 
 function initApp() {
   auth.onAuthStateChanged(user => {
@@ -12,7 +14,6 @@ function initApp() {
       // Se o usuário estiver logado, renderiza a UI principal
       ui.renderAuthenticatedUI(user);
       initializeTheme();
-      import { renderLivroOrdens } from './modules/tables.js';
 
 // ... (código existente)
 
@@ -25,7 +26,6 @@ function initApp() {
       } else if (category === 'dashboard') {
         renderDashboard();
       }
-      import { renderCalendar } from './modules/calendar.js';
 
 // ... (código existente)
 
