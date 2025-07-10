@@ -1,1 +1,1 @@
-feat: Refatoração completa do frontend com novo UX/UI e arquitetura modular
+fix: Prevent re-rendering of entire body to fix SyntaxError in main.js

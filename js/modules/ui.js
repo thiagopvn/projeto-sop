@@ -38,52 +38,56 @@ export const showConfirm = async (title, text, icon = 'warning') => {
 
 export const renderAuthenticatedUI = (user) => {
   document.body.classList.remove('login-page');
-  document.body.innerHTML = `
-    <div id="app-container" class="app-container">
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <img src="assets/brasao.png" alt="Logo CBMERJ" class="sidebar-logo">
-          <span class="sidebar-title">SOP</span>
-        </div>
-        <nav class="sidebar-nav">
-          <ul>
-            <li><a href="#dashboard" class="sidebar-link active" data-category="dashboard"><i class="ph-fill ph-gauge"></i> <span class="sidebar-label">Dashboard</span></a></li>
-            <li><a href="#aulas" class="sidebar-link" data-category="aulas"><i class="ph-fill ph-chalkboard-teacher"></i> <span class="sidebar-label">Aulas</span></a></li>
-            <li><a href="#plano-sessao" class="sidebar-link" data-category="plano-sessao"><i class="ph-fill ph-clipboard-text"></i> <span class="sidebar-label">Plano de Sessão</span></a></li>
-            <li><a href="#qta" class="sidebar-link" data-category="qta"><i class="ph-fill ph-file-text"></i> <span class="sidebar-label">QTA</span></a></li>
-            <li><a href="#qtm" class="sidebar-link" data-category="qtm"><i class="ph-fill ph-file-text"></i> <span class="sidebar-label">QTM</span></a></li>
-            <li><a href="#qts" class="sidebar-link" data-category="qts"><i class="ph-fill ph-file-text"></i> <span class="sidebar-label">QTS</span></a></li>
-            <li><a href="#relatorio-mensal" class="sidebar-link" data-category="relatorio-mensal"><i class="ph-fill ph-chart-line"></i> <span class="sidebar-label">Relatório Mensal</span></a></li>
-            <li><a href="#livro-ordens" class="sidebar-link" data-category="livro-ordens"><i class="ph-fill ph-book-open"></i> <span class="sidebar-label">Livro de Ordens</span></a></li>
-            <li><a href="#operacao-simulada" class="sidebar-link" data-category="operacao-simulada"><i class="ph-fill ph-rocket-launch"></i> <span class="sidebar-label">Operação Simulada</span></a></li>
-            <li><a href="#calendario" class="sidebar-link" data-category="calendario"><i class="ph-fill ph-calendar-blank"></i> <span class="sidebar-label">Calendário</span></a></li>
-          </ul>
-        </nav>
-      </aside>
+  const appContainer = document.getElementById('app-container');
+  if (!appContainer) {
+    console.error('#app-container not found!');
+    return;
+  }
 
-      <div class="main-wrapper">
-        <header class="navbar">
-          <button id="sidebar-toggle" class="btn-icon"><i class="ph-fill ph-list"></i></button>
-          <div class="navbar-right">
-            <div class="theme-switcher">
-              <input type="checkbox" id="theme-toggle" class="theme-toggle-checkbox">
-              <label for="theme-toggle" class="theme-toggle-label"></label>
-            </div>
-            <div class="user-menu">
-              <img src="https://via.placeholder.com/40" alt="User Avatar" class="user-avatar">
-              <div class="user-dropdown">
-                <a href="#profile">${user.email}</a>
-                <a href="#settings">Configurações</a>
-                <a href="#logout" id="logout-btn">Sair</a>
-              </div>
+  appContainer.innerHTML = `
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="assets/brasao.png" alt="Logo CBMERJ" class="sidebar-logo">
+        <span class="sidebar-title">SOP</span>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li><a href="#dashboard" class="sidebar-link active" data-category="dashboard"><i class="ph-fill ph-gauge"></i> <span class="sidebar-label">Dashboard</span></a></li>
+          <li><a href="#aulas" class="sidebar-link" data-category="aulas"><i class="ph-fill ph-chalkboard-teacher"></i> <span class="sidebar-label">Aulas</span></a></li>
+          <li><a href="#plano-sessao" class="sidebar-link" data-category="plano-sessao"><i class="ph-fill ph-clipboard-text"></i> <span class="sidebar-label">Plano de Sessão</span></a></li>
+          <li><a href="#qta" class="sidebar-link" data-category="qta"><i class="ph-fill ph-file-text"></i> <span class="sidebar-label">QTA</span></a></li>
+          <li><a href="#qtm" class="sidebar-link" data-category="qtm"><i class="ph-fill ph-file-text"></i> <span class="sidebar-label">QTM</span></a></li>
+          <li><a href="#qts" class="sidebar-link" data-category="qts"><i class="ph-fill ph-file-text"></i> <span class="sidebar-label">QTS</span></a></li>
+          <li><a href="#relatorio-mensal" class="sidebar-link" data-category="relatorio-mensal"><i class="ph-fill ph-chart-line"></i> <span class="sidebar-label">Relatório Mensal</span></a></li>
+          <li><a href="#livro-ordens" class="sidebar-link" data-category="livro-ordens"><i class="ph-fill ph-book-open"></i> <span class="sidebar-label">Livro de Ordens</span></a></li>
+          <li><a href="#operacao-simulada" class="sidebar-link" data-category="operacao-simulada"><i class="ph-fill ph-rocket-launch"></i> <span class="sidebar-label">Operação Simulada</span></a></li>
+          <li><a href="#calendario" class="sidebar-link" data-category="calendario"><i class="ph-fill ph-calendar-blank"></i> <span class="sidebar-label">Calendário</span></a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="navbar">
+        <button id="sidebar-toggle" class="btn-icon"><i class="ph-fill ph-list"></i></button>
+        <div class="navbar-right">
+          <div class="theme-switcher">
+            <input type="checkbox" id="theme-toggle" class="theme-toggle-checkbox">
+            <label for="theme-toggle" class="theme-toggle-label"></label>
+          </div>
+          <div class="user-menu">
+            <img src="https://via.placeholder.com/40" alt="User Avatar" class="user-avatar">
+            <div class="user-dropdown">
+              <a href="#profile">${user.email}</a>
+              <a href="#settings">Configurações</a>
+              <a href="#logout" id="logout-btn">Sair</a>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main id="app-content" class="content-area">
-          <!-- Dynamic content will be rendered here -->
-        </main>
-      </div>
+      <main id="app-content" class="content-area">
+        <!-- Dynamic content will be rendered here -->
+      </main>
     </div>
   `;
 
@@ -93,7 +97,13 @@ export const renderAuthenticatedUI = (user) => {
 
 export const renderLoginUI = () => {
   document.body.classList.add('login-page');
-  document.body.innerHTML = `
+  const appContainer = document.getElementById('app-container');
+  if (!appContainer) {
+    console.error('#app-container not found!');
+    return;
+  }
+
+  appContainer.innerHTML = `
     <div class="login-container">
       <div class="login-card">
         <img src="assets/brasao.png" alt="Logo CBMERJ" class="login-logo">
