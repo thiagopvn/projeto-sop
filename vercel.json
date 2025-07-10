@@ -1,10 +1,7 @@
 {
   "outputDirectory": "public",
   "buildCommand": "npm run build",
-  "devCommand": "npm run serve",
   "installCommand": "npm install",
-  "framework": null,
-  "functions": {},
   "routes": [
     {
       "src": "/(.*)",
