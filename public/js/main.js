@@ -182,6 +182,13 @@ function setupLoginForm() {
             e.preventDefault();
             console.log('🔐 Login form submitted');
             
+            // Check if Firebase auth is available
+            if (!auth) {
+                console.error('❌ Firebase auth não está disponível');
+                showToast('Sistema não inicializado. Recarregue a página.', 'error');
+                return;
+            }
+            
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
@@ -198,6 +205,7 @@ function setupLoginForm() {
             
             try {
                 console.log('🔍 Tentando login com:', email);
+                console.log('🔑 Auth object:', auth);
                 
                 // Call Firebase auth directly
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);

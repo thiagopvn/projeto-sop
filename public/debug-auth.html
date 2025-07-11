@@ -33,18 +33,40 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDWeThpt6h1Y3zxNenpGf7eTYPsUhVlgXI",
-            authDomain: "projeto-sop.firebaseapp.com",
-            projectId: "projeto-sop",
-            storageBucket: "projeto-sop.appspot.com",
-            messagingSenderId: "509243342498",
-            appId: "1:509243342498:web:29e941f3e16e7eea7721fb",
-            measurementId: "G-H0D0G5SD3V"
-        };
-        
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        // Wait for Firebase to load
+        window.addEventListener('load', () => {
+            console.log('Firebase available:', typeof firebase);
+            
+            if (typeof firebase === 'undefined') {
+                log('❌ Firebase não carregado!', 'error');
+                updateStatus('Firebase não carregado', 'error');
+                return;
+            }
+            
+            const firebaseConfig = {
+                apiKey: "AIzaSyDWeThpt6h1Y3zxNenpGf7eTYPsUhVlgXI",
+                authDomain: "projeto-sop.firebaseapp.com",
+                projectId: "projeto-sop",
+                storageBucket: "projeto-sop.appspot.com",
+                messagingSenderId: "509243342498",
+                appId: "1:509243342498:web:29e941f3e16e7eea7721fb",
+                measurementId: "G-H0D0G5SD3V"
+            };
+            
+            try {
+                firebase.initializeApp(firebaseConfig);
+                window.auth = firebase.auth();
+                log('✅ Firebase inicializado com sucesso', 'success');
+                updateStatus('Firebase conectado', 'success');
+                
+                // Setup auth listener
+                setupAuthListener();
+                
+            } catch (error) {
+                log(`❌ Erro ao inicializar Firebase: ${error.message}`, 'error');
+                updateStatus('Erro na inicialização', 'error');
+            }
+        });
         
         function log(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
@@ -61,25 +83,32 @@
             statusDiv.textContent = message;
         }
         
-        // Monitor auth state changes
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                log(`✅ Usuário logado: ${user.email}`, 'success');
-                updateStatus(`Logado como: ${user.email}`, 'success');
-            } else {
-                log(`❌ Usuário deslogado`, 'error');
-                updateStatus('Não logado', 'error');
-            }
-        });
+        function setupAuthListener() {
+            // Monitor auth state changes
+            window.auth.onAuthStateChanged((user) => {
+                if (user) {
+                    log(`✅ Usuário logado: ${user.email}`, 'success');
+                    updateStatus(`Logado como: ${user.email}`, 'success');
+                } else {
+                    log(`❌ Usuário deslogado`, 'error');
+                    updateStatus('Não logado', 'error');
+                }
+            });
+        }
         
         async function testLogin() {
+            if (!window.auth) {
+                log('❌ Firebase auth não inicializado', 'error');
+                return;
+            }
+            
             const email = document.getElementById('testEmail').value;
             const password = document.getElementById('testPassword').value;
             
             log(`🔐 Tentando login com: ${email}`);
             
             try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
                 log(`✅ Login bem-sucedido: ${userCredential.user.email}`, 'success');
             } catch (error) {
                 log(`❌ Erro no login: ${error.code} - ${error.message}`, 'error');
@@ -87,10 +116,15 @@
         }
         
         async function testLogout() {
+            if (!window.auth) {
+                log('❌ Firebase auth não inicializado', 'error');
+                return;
+            }
+            
             log(`🚪 Fazendo logout...`);
             
             try {
-                await auth.signOut();
+                await window.auth.signOut();
                 log(`✅ Logout bem-sucedido`, 'success');
             } catch (error) {
                 log(`❌ Erro no logout: ${error.code} - ${error.message}`, 'error');

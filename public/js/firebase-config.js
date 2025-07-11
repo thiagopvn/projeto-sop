@@ -9,23 +9,73 @@ const firebaseConfig = {
     measurementId: "G-H0D0G5SD3V"
 };
 
-// Wait for Firebase to load
-if (typeof firebase === 'undefined') {
-    console.error('Firebase não carregado!');
-} else {
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+// Initialize Firebase only once
+let firebaseApp = null;
+let auth = null;
+let db = null;
+let storage = null;
+
+function initializeFirebase() {
+    if (typeof firebase === 'undefined') {
+        console.error('❌ Firebase não carregado!');
+        return false;
+    }
+    
+    try {
+        // Initialize Firebase app if not already initialized
+        if (!firebase.apps.length) {
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            console.log('✅ Firebase app inicializado');
+        } else {
+            firebaseApp = firebase.apps[0];
+            console.log('✅ Firebase app já estava inicializado');
+        }
+        
+        // Initialize services
+        auth = firebase.auth();
+        db = firebase.firestore();
+        storage = firebase.storage();
+        
+        console.log('✅ Serviços Firebase inicializados');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Erro ao inicializar Firebase:', error);
+        return false;
     }
 }
 
-// Firebase Services
-export const auth = firebase.auth();
-export const db = firebase.firestore();
-export const storage = firebase.storage();
+// Initialize immediately if Firebase is available
+if (typeof firebase !== 'undefined') {
+    initializeFirebase();
+} else {
+    // Wait for Firebase to load
+    const checkFirebase = setInterval(() => {
+        if (typeof firebase !== 'undefined') {
+            console.log('🔄 Firebase detectado, inicializando...');
+            initializeFirebase();
+            clearInterval(checkFirebase);
+        }
+    }, 100);
+    
+    // Timeout after 10 seconds
+    setTimeout(() => {
+        clearInterval(checkFirebase);
+        console.error('❌ Timeout: Firebase não carregou em 10 segundos');
+    }, 10000);
+}
 
-// Storage reference
-export const storageRef = storage.refFromURL('gs://projeto-sop.firebasestorage.app/');
+// Export services (will be null until Firebase is initialized)
+export { auth, db, storage };
+
+// Storage reference getter (to avoid null reference)
+export const getStorageRef = () => {
+    if (!storage) {
+        console.error('❌ Storage não inicializado');
+        return null;
+    }
+    return storage.refFromURL('gs://projeto-sop.firebasestorage.app/');
+};
 
 // Auth helpers
 export const signIn = async (email, password) => {
@@ -115,6 +165,11 @@ export const deleteDocument = async (collection, docId) => {
 // Storage helpers
 export const uploadFile = async (file, path) => {
     try {
+        const storageRef = getStorageRef();
+        if (!storageRef) {
+            throw new Error('Storage não inicializado');
+        }
+        
         const fileRef = storageRef.child(path);
         const snapshot = await fileRef.put(file);
         const downloadURL = await snapshot.ref.getDownloadURL();
@@ -127,6 +182,11 @@ export const uploadFile = async (file, path) => {
 
 export const deleteFile = async (path) => {
     try {
+        const storageRef = getStorageRef();
+        if (!storageRef) {
+            throw new Error('Storage não inicializado');
+        }
+        
         const fileRef = storageRef.child(path);
         await fileRef.delete();
         return { success: true };
