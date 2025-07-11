@@ -66,8 +66,12 @@ function navigateTo(route) {
     
     currentRoute = route;
     
-    // Update URL
-    window.location.hash = route;
+    // Update URL without causing page reload
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', `#${route}`);
+    } else {
+        window.location.hash = route;
+    }
     
     // Update active nav item
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -98,10 +102,13 @@ function navigateTo(route) {
     });
 }
 
-// Handle hash changes
+// Handle hash changes (only when app is initialized)
 window.addEventListener('hashchange', () => {
-    const route = window.location.hash.slice(1) || 'dashboard';
-    navigateTo(route);
+    if (currentUser && document.querySelector('.app-container').style.display !== 'none') {
+        const route = window.location.hash.slice(1) || 'dashboard';
+        console.log('🔄 Hash changed to:', route);
+        navigateTo(route);
+    }
 });
 
 // Initialize App
@@ -160,6 +167,15 @@ function initApp() {
 // Prevent multiple initializations
 let isAppInitialized = false;
 
+// Prevent page reloads during login process
+window.addEventListener('beforeunload', (e) => {
+    if (currentUser) {
+        console.log('⚠️ Tentativa de reload detectada - prevenindo...');
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     if (isAppInitialized) {
@@ -169,6 +185,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log('🚀 DOM loaded, inicializando aplicação...');
     isAppInitialized = true;
+    
+    // Clear any query parameters from URL
+    if (window.location.search) {
+        console.log('🧹 Removendo query parameters da URL');
+        window.history.replaceState(null, '', window.location.pathname);
+    }
     
     setupLoginForm();
     setupAuthObserver();
@@ -212,6 +234,11 @@ function setupLoginForm() {
                 console.log('✅ Login Firebase bem-sucedido:', userCredential.user.email);
                 
                 showToast('Login realizado com sucesso!', 'success');
+                
+                // Prevent any navigation or reload
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState(null, '', window.location.pathname);
+                }
                 
                 // Don't manually redirect - let onAuthStateChanged handle it
                 console.log('⏳ Aguardando onAuthStateChanged...');
@@ -279,8 +306,18 @@ function setupAuthObserver() {
             // Initialize app only once
             if (!isInitialized) {
                 console.log('🚀 Inicializando app pela primeira vez');
-                initApp();
-                isInitialized = true;
+                
+                // Prevent any form submissions or page reloads
+                window.addEventListener('beforeunload', (e) => {
+                    console.log('⚠️ Página tentando recarregar!');
+                });
+                
+                // Add a small delay to ensure DOM is stable
+                setTimeout(() => {
+                    initApp();
+                    isInitialized = true;
+                    console.log('✅ App inicializado com sucesso');
+                }, 100);
             }
         } else {
             console.log('❌ Usuário não está logado');
