@@ -9,8 +9,15 @@ const firebaseConfig = {
     measurementId: "G-H0D0G5SD3V"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// Wait for Firebase to load
+if (typeof firebase === 'undefined') {
+    console.error('Firebase não carregado!');
+} else {
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+}
 
 // Firebase Services
 export const auth = firebase.auth();

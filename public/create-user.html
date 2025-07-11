@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Criar Usuário de Teste</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; background: #0057B8; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Criar Usuário de Teste</h1>
+    
+    <form id="createUserForm">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="admin@projeto-sop.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Senha:</label>
+            <input type="password" id="password" value="123456" required>
+        </div>
+        
+        <button type="submit">Criar Usuário</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <h2>Usuários Sugeridos:</h2>
+    <ul>
+        <li>admin@projeto-sop.com / 123456</li>
+        <li>usuario@projeto-sop.com / 123456</li>
+        <li>teste@projeto-sop.com / 123456</li>
+    </ul>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDWeThpt6h1Y3zxNenpGf7eTYPsUhVlgXI",
+            authDomain: "projeto-sop.firebaseapp.com",
+            projectId: "projeto-sop",
+            storageBucket: "projeto-sop.appspot.com",
+            messagingSenderId: "509243342498",
+            appId: "1:509243342498:web:29e941f3e16e7eea7721fb",
+            measurementId: "G-H0D0G5SD3V"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                resultDiv.innerHTML = `<div class="success">Usuário criado com sucesso: ${userCredential.user.email}</div>`;
+                
+                // Auto logout para permitir teste de login
+                await auth.signOut();
+                resultDiv.innerHTML += `<div class="success">Usuário criado e deslogado. Agora você pode testar o login!</div>`;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Erro: ${error.message}</div>`;
+                console.error('Erro ao criar usuário:', error);
+            }
+        });
+    </script>
+</body>
+</html>

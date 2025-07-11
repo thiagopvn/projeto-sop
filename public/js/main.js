@@ -155,8 +155,62 @@ function initApp() {
     navigateTo(initialRoute);
 }
 
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', () => {
+    setupLogin();
+});
+
+// Setup login form handler
+function setupLogin() {
+    // Add login page if not exists
+    if (!document.querySelector('.login-page')) {
+        addLoginPage();
+    }
+    
+    // Setup login form handler
+    setTimeout(() => {
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                console.log('Login form submitted');
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                if (!email || !password) {
+                    showToast('Preencha email e senha', 'error');
+                    return;
+                }
+                
+                showLoading();
+                try {
+                    console.log('Tentando login com:', email);
+                    const { success, error, user } = await signIn(email, password);
+                    console.log('Resultado login:', { success, error, user });
+                    hideLoading();
+                    
+                    if (success) {
+                        showToast('Login realizado com sucesso!', 'success');
+                        console.log('Login bem-sucedido, aguardando redirecionamento...');
+                    } else {
+                        console.error('Erro no login:', error);
+                        showToast(error || 'Erro ao fazer login', 'error');
+                    }
+                } catch (err) {
+                    hideLoading();
+                    console.error('Erro no login (catch):', err);
+                    showToast('Erro ao conectar com o servidor', 'error');
+                }
+            });
+        }
+    }, 100);
+}
+
 // Authentication State Observer
 onAuthStateChanged((user) => {
+    console.log('Auth state changed:', user ? 'Logged in' : 'Logged out');
+    
     if (user) {
         currentUser = user;
         
@@ -187,29 +241,8 @@ onAuthStateChanged((user) => {
     }
 });
 
-// Login Form Handler
-const loginForm = document.getElementById('login-form');
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        showLoading();
-        const { success, error } = await signIn(email, password);
-        hideLoading();
-        
-        if (success) {
-            showToast('Login realizado com sucesso!', 'success');
-        } else {
-            showToast(error || 'Erro ao fazer login', 'error');
-        }
-    });
-}
-
-// Add login page if not exists
-if (!document.querySelector('.login-page')) {
+// Add login page function
+function addLoginPage() {
     const loginHTML = `
         <div class="login-page">
             <div class="login-card">
