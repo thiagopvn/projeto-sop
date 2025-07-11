@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Autenticação</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        .log { background: #000; padding: 10px; border-radius: 5px; margin: 10px 0; max-height: 400px; overflow-y: auto; }
+        .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .success { background: #2d5a2d; }
+        .error { background: #5a2d2d; }
+        .warning { background: #5a5a2d; }
+        button { padding: 10px; margin: 5px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Autenticação Firebase</h1>
+    
+    <div class="status" id="status">Carregando...</div>
+    
+    <div>
+        <h3>Teste de Login:</h3>
+        <input type="email" id="testEmail" placeholder="Email" value="admin@projeto-sop.com">
+        <input type="password" id="testPassword" placeholder="Senha" value="123456">
+        <button onclick="testLogin()">Testar Login</button>
+        <button onclick="testLogout()">Testar Logout</button>
+        <button onclick="clearLogs()">Limpar Logs</button>
+    </div>
+    
+    <div class="log" id="logs"></div>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDWeThpt6h1Y3zxNenpGf7eTYPsUhVlgXI",
+            authDomain: "projeto-sop.firebaseapp.com",
+            projectId: "projeto-sop",
+            storageBucket: "projeto-sop.appspot.com",
+            messagingSenderId: "509243342498",
+            appId: "1:509243342498:web:29e941f3e16e7eea7721fb",
+            measurementId: "G-H0D0G5SD3V"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('logs');
+            const color = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#00ff00';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus(message, type = 'warning') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+        
+        // Monitor auth state changes
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                log(`✅ Usuário logado: ${user.email}`, 'success');
+                updateStatus(`Logado como: ${user.email}`, 'success');
+            } else {
+                log(`❌ Usuário deslogado`, 'error');
+                updateStatus('Não logado', 'error');
+            }
+        });
+        
+        async function testLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            log(`🔐 Tentando login com: ${email}`);
+            
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                log(`✅ Login bem-sucedido: ${userCredential.user.email}`, 'success');
+            } catch (error) {
+                log(`❌ Erro no login: ${error.code} - ${error.message}`, 'error');
+            }
+        }
+        
+        async function testLogout() {
+            log(`🚪 Fazendo logout...`);
+            
+            try {
+                await auth.signOut();
+                log(`✅ Logout bem-sucedido`, 'success');
+            } catch (error) {
+                log(`❌ Erro no logout: ${error.code} - ${error.message}`, 'error');
+            }
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+        
+        // Initial status
+        updateStatus('Firebase inicializado', 'warning');
+        log('🚀 Debug iniciado');
+        log('📋 Use os botões acima para testar autenticação');
+    </script>
+</body>
+</html>

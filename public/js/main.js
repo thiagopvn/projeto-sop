@@ -132,13 +132,15 @@ function initApp() {
         });
         
         if (result.isConfirmed) {
-            showLoading();
-            const { success } = await signOut();
-            hideLoading();
-            
-            if (success) {
+            console.log('🚪 Fazendo logout...');
+            try {
+                await auth.signOut();
+                console.log('✅ Logout realizado');
                 showToast('Logout realizado com sucesso!', 'success');
-                window.location.reload();
+                // Don't reload - let onAuthStateChanged handle the transition
+            } catch (error) {
+                console.error('❌ Erro no logout:', error);
+                showToast('Erro ao fazer logout', 'error');
             }
         }
     });
@@ -155,9 +157,19 @@ function initApp() {
     navigateTo(initialRoute);
 }
 
+// Prevent multiple initializations
+let isAppInitialized = false;
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, inicializando aplicação...');
+    if (isAppInitialized) {
+        console.log('⚠️ App já foi inicializado, ignorando...');
+        return;
+    }
+    
+    console.log('🚀 DOM loaded, inicializando aplicação...');
+    isAppInitialized = true;
+    
     setupLoginForm();
     setupAuthObserver();
 });
@@ -168,9 +180,9 @@ function setupLoginForm() {
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            console.log('Login form submitted');
+            console.log('🔐 Login form submitted');
             
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
             if (!email || !password) {
@@ -178,40 +190,70 @@ function setupLoginForm() {
                 return;
             }
             
-            showLoading();
+            // Disable form to prevent multiple submissions
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '⏳ Entrando...';
+            
             try {
-                console.log('Tentando login com:', email);
-                const { success, error, user } = await signIn(email, password);
-                console.log('Resultado login:', { success, error, user });
-                hideLoading();
+                console.log('🔍 Tentando login com:', email);
                 
-                if (success) {
-                    showToast('Login realizado com sucesso!', 'success');
-                    console.log('Login bem-sucedido, aguardando redirecionamento...');
-                } else {
-                    console.error('Erro no login:', error);
-                    showToast(error || 'Erro ao fazer login', 'error');
+                // Call Firebase auth directly
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                console.log('✅ Login Firebase bem-sucedido:', userCredential.user.email);
+                
+                showToast('Login realizado com sucesso!', 'success');
+                
+                // Don't manually redirect - let onAuthStateChanged handle it
+                console.log('⏳ Aguardando onAuthStateChanged...');
+                
+            } catch (error) {
+                console.error('❌ Erro no login:', error);
+                
+                let errorMessage = 'Erro ao fazer login';
+                
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'Usuário não encontrado';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Senha incorreta';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Email inválido';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
+                        break;
+                    default:
+                        errorMessage = error.message || 'Erro desconhecido';
                 }
-            } catch (err) {
-                hideLoading();
-                console.error('Erro no login (catch):', err);
-                showToast('Erro ao conectar com o servidor', 'error');
+                
+                showToast(errorMessage, 'error');
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             }
         });
-        console.log('Login form handler configurado');
+        console.log('✅ Login form handler configurado');
     } else {
-        console.error('Login form não encontrado');
+        console.error('❌ Login form não encontrado');
     }
 }
 
 // Setup auth state observer
 function setupAuthObserver() {
+    let isInitialized = false;
+    
     onAuthStateChanged((user) => {
-        console.log('Auth state changed:', user ? 'Logged in' : 'Logged out');
+        console.log('Auth state changed:', user ? `Logged in: ${user.email}` : 'Logged out');
+        console.log('Is initialized:', isInitialized);
         
         if (user) {
             currentUser = user;
-            console.log('Usuário logado:', user.email);
+            console.log('Usuário autenticado:', user.email);
             
             // Hide login, show app
             const loginContainer = document.getElementById('loginPage');
@@ -219,25 +261,34 @@ function setupAuthObserver() {
             
             if (loginContainer) {
                 loginContainer.style.display = 'none';
-                console.log('Tela de login ocultada');
+                console.log('✅ Tela de login ocultada');
             }
             if (appContainer) {
                 appContainer.style.display = 'flex';
-                console.log('App container exibido');
+                console.log('✅ App container exibido');
             }
             
-            // Initialize app
-            initApp();
+            // Initialize app only once
+            if (!isInitialized) {
+                console.log('🚀 Inicializando app pela primeira vez');
+                initApp();
+                isInitialized = true;
+            }
         } else {
-            console.log('Usuário não está logado, exibindo tela de login');
+            console.log('❌ Usuário não está logado');
+            currentUser = null;
+            isInitialized = false;
+            
             const loginContainer = document.getElementById('loginPage');
             const appContainer = document.querySelector('.app-container');
             
             if (loginContainer) {
                 loginContainer.style.display = 'flex';
+                console.log('📱 Exibindo tela de login');
             }
             if (appContainer) {
                 appContainer.style.display = 'none';
+                console.log('🚫 Ocultando app container');
             }
         }
     });
