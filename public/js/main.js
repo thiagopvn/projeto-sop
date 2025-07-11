@@ -200,22 +200,52 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupLoginForm() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
+        console.log('📝 Configurando listener do form de login');
+        console.log('📝 Form encontrado:', loginForm);
+        console.log('📝 Form action:', loginForm.action);
+        console.log('📝 Form method:', loginForm.method);
+        
+        // Check if form already has listeners
+        const existingListeners = loginForm.hasAttribute('data-listener-added');
+        if (existingListeners) {
+            console.log('⚠️ Form já tem listener, ignorando...');
+            return;
+        }
+        
+        // Mark form as having listener
+        loginForm.setAttribute('data-listener-added', 'true');
+        
+        // Add listener to button directly as well
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        console.log('🔘 Submit button:', submitBtn);
+        
+        const handleLogin = async (e) => {
             e.preventDefault();
-            console.log('🔐 Login form submitted');
+            e.stopPropagation();
+            console.log('🔐 Login form submitted - evento disparado');
+            
+            // Debug Firebase availability
+            console.log('🔍 Verificando Firebase:');
+            console.log('- typeof firebase:', typeof firebase);
+            console.log('- auth object:', auth);
+            console.log('- auth type:', typeof auth);
             
             // Check if Firebase auth is available
             if (!auth) {
                 console.error('❌ Firebase auth não está disponível');
-                showToast('Sistema não inicializado. Recarregue a página.', 'error');
+                alert('Firebase não inicializado. Veja o console para detalhes.');
                 return;
             }
             
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
+            console.log('📧 Email:', email);
+            console.log('🔑 Password length:', password.length);
+            
             if (!email || !password) {
-                showToast('Preencha email e senha', 'error');
+                console.error('❌ Email ou senha vazios');
+                alert('Preencha email e senha');
                 return;
             }
             
@@ -271,7 +301,14 @@ function setupLoginForm() {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             }
-        });
+        };
+        
+        // Add listeners to both form and button
+        loginForm.addEventListener('submit', handleLogin);
+        if (submitBtn) {
+            submitBtn.addEventListener('click', handleLogin);
+        }
+        
         console.log('✅ Login form handler configurado');
     } else {
         console.error('❌ Login form não encontrado');
