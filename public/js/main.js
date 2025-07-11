@@ -198,22 +198,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Setup login form handler
 function setupLoginForm() {
+    console.log('🔧 Iniciando setupLoginForm...');
+    console.log('🔍 Verificando disponibilidade do Firebase:');
+    console.log('  - typeof firebase:', typeof firebase);
+    console.log('  - auth object:', auth);
+    console.log('  - auth available:', !!auth);
+    
+    if (!auth) {
+        console.error('❌ Firebase auth não disponível durante setup do form!');
+        // Tentar novamente em 500ms
+        setTimeout(setupLoginForm, 500);
+        return;
+    }
+    
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-        console.log('📝 Configurando listener do form de login');
-        console.log('📝 Form encontrado:', loginForm);
-        console.log('📝 Form action:', loginForm.action);
-        console.log('📝 Form method:', loginForm.method);
+        console.log('📝 Form de login encontrado');
+        console.log('📝 Form ID:', loginForm.id);
+        console.log('📝 Form class:', loginForm.className);
         
         // Check if form already has listeners
         const existingListeners = loginForm.hasAttribute('data-listener-added');
         if (existingListeners) {
-            console.log('⚠️ Form já tem listener, ignorando...');
+            console.log('⚠️ Form já possui listener configurado');
             return;
         }
         
         // Mark form as having listener
         loginForm.setAttribute('data-listener-added', 'true');
+        console.log('✅ Marcando form como configurado');
         
         // Add listener to button directly as well
         const submitBtn = loginForm.querySelector('button[type="submit"]');
@@ -222,18 +235,22 @@ function setupLoginForm() {
         const handleLogin = async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔐 Login form submitted - evento disparado');
+            console.log('🔐 LOGIN FORM SUBMITTED - Evento capturado!');
+            console.log('🔍 Event type:', e.type);
+            console.log('🔍 Event target:', e.target);
+            console.log('🔍 Current target:', e.currentTarget);
             
             // Debug Firebase availability
-            console.log('🔍 Verificando Firebase:');
-            console.log('- typeof firebase:', typeof firebase);
-            console.log('- auth object:', auth);
-            console.log('- auth type:', typeof auth);
+            console.log('🔍 Estado atual do Firebase:');
+            console.log('  - typeof firebase:', typeof firebase);
+            console.log('  - auth object:', auth);
+            console.log('  - auth type:', typeof auth);
+            console.log('  - auth.currentUser:', auth?.currentUser);
             
             // Check if Firebase auth is available
             if (!auth) {
-                console.error('❌ Firebase auth não está disponível');
-                alert('Firebase não inicializado. Veja o console para detalhes.');
+                console.error('❌ Firebase auth não está disponível no momento do login');
+                showToast('Erro: Firebase não inicializado', 'error');
                 return;
             }
             
@@ -304,12 +321,23 @@ function setupLoginForm() {
         };
         
         // Add listeners to both form and button
-        loginForm.addEventListener('submit', handleLogin);
+        console.log('🔗 Adicionando event listeners...');
+        
+        loginForm.addEventListener('submit', handleLogin, false);
+        console.log('✅ Listener de submit adicionado ao form');
+        
         if (submitBtn) {
-            submitBtn.addEventListener('click', handleLogin);
+            submitBtn.addEventListener('click', handleLogin, false);
+            console.log('✅ Listener de click adicionado ao botão');
         }
         
-        console.log('✅ Login form handler configurado');
+        // Test if button is clickable
+        console.log('🧪 Testando clique no botão...');
+        submitBtn?.addEventListener('click', () => {
+            console.log('🖱️ BOTÃO CLICADO - Teste básico funcionando!');
+        });
+        
+        console.log('✅ Login form handler configurado completamente');
     } else {
         console.error('❌ Login form não encontrado');
     }

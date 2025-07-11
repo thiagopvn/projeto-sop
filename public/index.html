@@ -25,7 +25,7 @@
                 <p>Sistema de Organização de Documentos</p>
             </div>
             
-            <form class="login-form" id="login-form" onsubmit="return false;">
+            <form class="login-form" id="login-form">
                 <div class="form-group">
                     <label for="email" class="form-label">Email</label>
                     <input type="email" id="email" class="form-control" placeholder="seu@email.com" required>
@@ -197,21 +197,28 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
     
+    <!-- Load Firebase config first -->
+    <script type="module" src="./js/firebase-config.js"></script>
+    
     <!-- Load main.js after Firebase is ready -->
     <script type="module">
+        console.log('🔄 Iniciando carregamento da aplicação...');
+        
         // Wait for Firebase to be available
         function waitForFirebase() {
             if (typeof firebase !== 'undefined' && firebase.auth) {
-                console.log('Firebase carregado, importando main.js');
-                import('./js/main.js').catch(err => console.error('Erro ao carregar main.js:', err));
+                console.log('✅ Firebase detectado, carregando main.js...');
+                import('./js/main.js').catch(err => {
+                    console.error('❌ Erro ao carregar main.js:', err);
+                });
             } else {
-                console.log('Aguardando Firebase...');
-                setTimeout(waitForFirebase, 100);
+                console.log('⏳ Aguardando Firebase carregar...');
+                setTimeout(waitForFirebase, 50);
             }
         }
         
         // Start checking for Firebase
-        waitForFirebase();
+        setTimeout(waitForFirebase, 100);
     </script>
 </body>
 </html>
