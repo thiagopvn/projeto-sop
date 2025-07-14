@@ -306,18 +306,130 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1.5rem;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
+    min-height: 600px; /* Ensure enough height for the calendar */
+}
+
+#calendar {
+    height: 100%; /* Make the calendar take full height of its container */
 }
 
 .fc .fc-button-primary {
     background-color: var(--primary-600) !important;
     border-color: var(--primary-600) !important;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-md);
 }
 .fc .fc-button-primary:hover {
     background-color: var(--primary-700) !important;
+    border-color: var(--primary-700) !important;
 }
 
 .fc-event {
     border-radius: var(--border-radius-sm) !important;
     padding: 0.25rem 0.5rem !important;
     font-weight: 500 !important;
+    border: 1px solid transparent !important;
+    opacity: 0.9;
+    transition: opacity 0.2s ease-in-out;
 }
+
+.fc-event:hover {
+    opacity: 1;
+}
+
+/* Event Type Colors */
+.fc-event.event-visita {
+    background-color: var(--event-visita) !important;
+    border-color: var(--event-visita) !important;
+    color: white;
+}
+.fc-event.event-formatura {
+    background-color: var(--event-formatura) !important;
+    border-color: var(--event-formatura) !important;
+    color: white;
+}
+.fc-event.event-instrucao {
+    background-color: var(--event-instrucao) !important;
+    border-color: var(--event-instrucao) !important;
+    color: white;
+}
+.fc-event.event-reuniao {
+    background-color: var(--event-reuniao) !important;
+    border-color: var(--event-reuniao) !important;
+    color: white;
+}
+.fc-event.event-outro {
+    background-color: var(--event-outro) !important;
+    border-color: var(--event-outro) !important;
+    color: white;
+}
+
+/* Day grid styling */
+.fc-daygrid-day-number {
+    padding: 8px;
+    font-weight: 600;
+    color: var(--neutral-700);
+}
+
+.fc-day-today {
+    background-color: var(--primary-50) !important;
+}
+
+.fc-col-header-cell-cushion {
+    color: var(--neutral-700);
+    font-weight: 600;
+    padding: 10px 0;
+}
+
+/* Event tooltip (if implemented) */
+.event-tooltip {
+    background-color: var(--neutral-900);
+    color: white;
+    border-radius: var(--border-radius-md);
+    padding: 10px 15px;
+    font-size: 0.875rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.event-tooltip-title {
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: white;
+}
+
+.event-tooltip-time, .event-tooltip-description {
+    color: var(--neutral-300);
+}
+
+/* Calendar Legend */
+.calendar-legend {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: var(--neutral-100);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--neutral-700);
+}
+
+.legend-color {
+    width: 15px;
+    height: 15px;
+    border-radius: var(--border-radius-sm);
+    margin-right: 8px;
+}
+
+.legend-color.visita { background-color: var(--event-visita); }
+.legend-color.formatura { background-color: var(--event-formatura); }
+.legend-color.instrucao { background-color: var(--event-instrucao); }
+.legend-color.reuniao { background-color: var(--event-reuniao); }
+.legend-color.outro { background-color: var(--event-outro); }

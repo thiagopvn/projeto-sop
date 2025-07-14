@@ -1,15 +1,20 @@
 let calendar = null;
 let currentEventId = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-  if (typeof FullCalendar !== 'undefined') {
-    initCalendar();
-  }
-});
+// Removed DOMContentLoaded listener from here. initCalendar will be called from app.js
 
 function initCalendar() {
+  console.log('initCalendar called');
   const calendarEl = document.getElementById('calendar');
-  if (!calendarEl) return;
+  console.log('calendarEl:', calendarEl);
+  if (!calendarEl) {
+    console.error('Calendar element #calendar not found!');
+    return;
+  }
+
+  // Check element dimensions
+  const rect = calendarEl.getBoundingClientRect();
+  console.log('calendarEl dimensions:', { width: rect.width, height: rect.height });
 
   calendar = new FullCalendar.Calendar(calendarEl, {
     locale: 'pt-br',
