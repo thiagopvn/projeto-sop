@@ -380,56 +380,14 @@ function initializeCharts() {
     });
   }
   
-  const trendCtx = document.getElementById('monthly-trend-chart');
-  if (trendCtx && typeof Chart !== 'undefined') {
-    dashboardState.charts.monthlyTrend = new Chart(trendCtx, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: 'Documentos Completos',
-            data: [],
-            borderColor: 'rgba(33, 150, 243, 1)',
-            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-            tension: 0.4,
-            fill: true,
-            pointBackgroundColor: 'rgba(33, 150, 243, 1)',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 }
-          }
-        },
-        plugins: {
-          legend: { 
-            position: 'bottom',
-            labels: {
-              usePointStyle: true,
-              padding: 15
-            }
-          }
-        }
-      }
-    });
-  }
+  // Removed monthly-trend-chart initialization as it's no longer in HTML
   
   updateCharts();
 }
 
 function updateCharts() {
-  if (!dashboardState.charts.category || !dashboardState.charts.monthlyTrend) return;
-  
+  if (!dashboardState.charts.category) return; // Only check for category chart
+
   const categories = Object.values(dashboardState.data.categories);
   const validCategories = categories.filter(cat => cat.expected > 0);
   
@@ -444,12 +402,7 @@ function updateCharts() {
   dashboardState.charts.category.data.datasets[2].data = overdueData;
   dashboardState.charts.category.update();
   
-  const trendLabels = dashboardState.data.monthlyTrend.map(item => item.monthName);
-  const trendData = dashboardState.data.monthlyTrend.map(item => item.value);
-  
-  dashboardState.charts.monthlyTrend.data.labels = trendLabels;
-  dashboardState.charts.monthlyTrend.data.datasets[0].data = trendData;
-  dashboardState.charts.monthlyTrend.update();
+  // Removed monthly-trend-chart update logic
 }
 
 function updateSummaryCards() {

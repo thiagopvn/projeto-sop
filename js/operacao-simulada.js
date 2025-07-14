@@ -5,7 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setupOperacaoSimuladaEvents();
 });
 
+let operacaoSimuladaEventsSetup = false; // Flag to prevent multiple event listener setups
+
 function setupOperacaoSimuladaEvents() {
+  if (operacaoSimuladaEventsSetup) return; // Prevent re-setup
+
   const operacaoSimuladaItem = document.querySelector('li[data-category="operacao-simulada"]');
   
   if (operacaoSimuladaItem) {
@@ -54,6 +58,8 @@ function setupOperacaoSimuladaEvents() {
   if (saveOperacaoBtn) {
     saveOperacaoBtn.addEventListener('click', saveOperacao);
   }
+
+  operacaoSimuladaEventsSetup = true; // Set flag to true after setup
 }
 
 function hideAllContainers() {
@@ -89,6 +95,7 @@ function hideAllContainers() {
 }
 
 async function loadOperacoes() {
+  console.log('loadOperacoes called'); // Debug log
   const operacaoList = document.getElementById('operacao-simulada-list');
   
   if (!operacaoList) {
@@ -96,7 +103,7 @@ async function loadOperacoes() {
     return;
   }
   
-  operacaoList.innerHTML = '';
+  operacaoList.innerHTML = ''; // Clear existing content
   
   try {
     if (typeof db === 'undefined') {

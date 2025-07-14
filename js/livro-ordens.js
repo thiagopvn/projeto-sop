@@ -5,7 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setupLivroOrdensEvents();
 });
 
+let livroOrdensEventsSetup = false; // Flag to prevent multiple event listener setups
+
 function setupLivroOrdensEvents() {
+  if (livroOrdensEventsSetup) return; // Prevent re-setup
+
   const livroOrdensItem = document.querySelector('li[data-category="livro-de-ordens"]');
   
   if (livroOrdensItem) {
@@ -54,6 +58,8 @@ function setupLivroOrdensEvents() {
   if (saveOrdemBtn) {
     saveOrdemBtn.addEventListener('click', saveOrdem);
   }
+
+  livroOrdensEventsSetup = true; // Set flag to true after setup
 }
 
 function hideAllContainers() {
@@ -89,6 +95,7 @@ function hideAllContainers() {
 }
 
 async function loadOrdens() {
+  console.log('loadOrdens called'); // Debug log
   const livroOrdensList = document.getElementById('livro-ordens-list');
   
   if (!livroOrdensList) {
@@ -96,7 +103,7 @@ async function loadOrdens() {
     return;
   }
   
-  livroOrdensList.innerHTML = '';
+  livroOrdensList.innerHTML = ''; // Clear existing content
   
   try {
     if (typeof db === 'undefined') {
