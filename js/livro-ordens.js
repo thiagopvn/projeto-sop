@@ -35,7 +35,7 @@ function setupLivroOrdensEvents() {
         uploadOrdemBtn.style.display = 'inline-flex';
       }
       
-      loadOrdens();
+      // Removed loadOrdens() call from here to prevent duplication
     });
   }
   

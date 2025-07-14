@@ -35,7 +35,7 @@ function setupOperacaoSimuladaEvents() {
         uploadOperacaoBtn.style.display = 'inline-flex';
       }
       
-      loadOperacoes();
+      // Removed loadOperacoes() call from here to prevent duplication
     });
   }
   
