@@ -95,7 +95,8 @@ function hideAllContainers() {
 }
 
 async function loadOrdens() {
-  console.log('loadOrdens called'); // Debug log
+  console.log('loadOrdens called');
+  console.trace(); // Add trace to see call stack
   const livroOrdensList = document.getElementById('livro-ordens-list');
   
   if (!livroOrdensList) {
