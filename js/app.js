@@ -299,8 +299,14 @@ function showCalendar() {
   elements.calendarContainer.style.display = 'block';
   elements.addEventBtn.style.display = 'flex';
   
-  if (typeof calendar !== 'undefined' && calendar) {
-    calendar.refetchEvents();
+  // Initialize calendar only when it's shown and not already initialized
+  if (typeof calendar === 'undefined' || !calendar) {
+    if (typeof initCalendar === 'function') {
+      initCalendar();
+    }
+  } else {
+    // If already initialized, ensure it re-renders correctly
+    calendar.render();
   }
 }
 
