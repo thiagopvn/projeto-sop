@@ -253,7 +253,7 @@ h1, h2, h3, h4, h5, h6 {
     height: 100% !important;
     background-color: rgba(15, 23, 42, 0.5) !important; /* neutral-900 com 50% de opacidade */
     z-index: 1000 !important; /* Ensure it's on top */
-    display: flex !important; /* Use flexbox for centering */
+    display: flex; /* Use flexbox for centering */
     justify-content: center !important; /* Center horizontally */
     align-items: center !important; /* Center vertically */
     overflow: auto !important; /* Allow scrolling for long content */
