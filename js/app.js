@@ -637,6 +637,8 @@ function openUploadModal(category = null, month = null, week = null) {
   }
   
   uploadModal.modal.style.display = 'flex';
+  console.log('Upload Modal opened. Current style:', uploadModal.modal.style.cssText);
+  console.log('Upload Modal computed style:', window.getComputedStyle(uploadModal.modal).cssText);
 }
 
 function closeUploadModal() {
