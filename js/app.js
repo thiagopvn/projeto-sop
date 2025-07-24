@@ -1069,3 +1069,4 @@ window.DOCUMENT_TYPES = DOCUMENT_TYPES;
 window.MONTH_NAMES = MONTH_NAMES;
 window.getCategoryKey = getCategoryKey;
 window.showNotification = showNotification;
+

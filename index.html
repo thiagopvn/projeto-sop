@@ -671,6 +671,184 @@
       .modal > div {
         animation: scaleIn 0.3s ease-out;
       }
+      
+      .task-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background-color: #f9fafb;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
+      
+      .task-item:hover {
+        background-color: #f3f4f6;
+        transform: translateX(4px);
+      }
+      
+      .task-item.completed {
+        opacity: 0.6;
+      }
+      
+      .task-item.completed .task-text {
+        text-decoration: line-through;
+        color: #6b7280;
+      }
+      
+      .task-checkbox {
+        flex-shrink: 0;
+      }
+      
+      .task-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+      
+      .task-text {
+        flex: 1;
+        font-size: 14px;
+        color: #374151;
+      }
+      
+      .inspection-section {
+        margin-bottom: 1.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+      
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background-color: #f9fafb;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      
+      .section-header:hover {
+        background-color: #f3f4f6;
+      }
+      
+      .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111827;
+      }
+      
+      .section-toggle {
+        transition: transform 0.3s;
+        color: #6b7280;
+      }
+      
+      .section-content {
+        padding: 1rem;
+        background-color: white;
+      }
+      
+      .inspection-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        background-color: #f9fafb;
+      }
+      
+      .inspection-item:last-child {
+        margin-bottom: 0;
+      }
+      
+      .item-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .item-description p {
+        margin: 0;
+        color: #374151;
+        font-size: 0.875rem;
+      }
+      
+      .item-controls {
+        display: grid;
+        gap: 1rem;
+      }
+      
+      .status-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .status-selector label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+      }
+      
+      .status-dropdown {
+        flex: 1;
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        background-color: white;
+        cursor: pointer;
+      }
+      
+      .status-dropdown.status-pendente {
+        border-color: #fbbf24;
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+      
+      .status-dropdown.status-conforme {
+        border-color: #34d399;
+        background-color: #d1fae5;
+        color: #065f46;
+      }
+      
+      .status-dropdown.status-nao-conforme {
+        border-color: #f87171;
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+      
+      .status-dropdown.status-nao-aplica {
+        border-color: #9ca3af;
+        background-color: #f3f4f6;
+        color: #374151;
+      }
+      
+      .observations-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+      }
+      
+      .observations-field label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+      }
+      
+      .observations-input {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        resize: vertical;
+        min-height: 4rem;
+      }
+      
+      .attachment-controls {
+        display: flex;
+        gap: 0.5rem;
+      }
     `;
     document.head.appendChild(style);
   </script>
@@ -684,3 +862,7 @@
   <script src="js/controle-inspecao.js"></script>
 </body>
 </html>
+
+const VALID_MONTHS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+let weeksPerMonth
