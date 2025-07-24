@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOP - Sistema de Organização de Documentos</title>
+  <link rel="icon" href="assets/brasao.png" type="image/png">
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
+  <link href="css/modern.css" rel="stylesheet">
+  
+  
+</head>
+<body class="bg-gray-50">
+  <div id="login-container" class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-50 animate-fade-in">
+    <div class="w-full max-w-md mx-4">
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-8 py-10 text-center">
+          <img src="assets/brasao.png" alt="Brasão" class="w-24 h-24 mx-auto mb-4">
+          <h1 class="text-2xl font-bold text-neutral-900 mb-1">SOP - 2025</h1>
+          <p class="text-neutral-500">Sistema de Organização de Documentos</p>
+        </div>
+        
+        <form class="px-8 py-8 space-y-6 bg-neutral-50">
+          <div class="input-group">
+            <label for="email" class="block text-sm font-medium text-neutral-700">Email</label>
+            <input type="email" id="email" class="input-field" placeholder="seu@email.com">
+          </div>
+          
+          <div class="input-group">
+            <label for="password" class="block text-sm font-medium text-neutral-700">Senha</label>
+            <input type="password" id="password" class="input-field" placeholder="••••••••">
+          </div>
+          
+          <button type="button" id="login-btn" class="btn btn-primary w-full">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Entrar</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-container" class="hidden">
+    <div class="flex h-screen bg-neutral-100">
+      <aside class="sidebar w-64 bg-white shadow-lg flex-shrink-0">
+        <div class="p-4 border-b border-neutral-200 flex items-center gap-3">
+          <img src="assets/brasao.png" alt="Brasão" class="w-10 h-10">
+          <div>
+            <h2 class="text-lg font-bold text-neutral-900">SOP - 2025</h2>
+            <p class="text-xs text-neutral-500">Organizador de Documentos</p>
+          </div>
+        </div>
+        
+        <nav class="p-4">
+          <ul class="category-list space-y-1">
+            <li data-category="dashboard" class="active sidebar-item"><a href="#"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+            <li data-category="aulas" class="sidebar-item"><a href="#"><i class="fas fa-chalkboard-teacher"></i><span>Aulas</span></a></li>
+            <li data-category="plano-de-sessao" class="sidebar-item"><a href="#"><i class="fas fa-clipboard-list"></i><span>Plano de Sessão</span></a></li>
+            <li data-category="qta" class="sidebar-item"><a href="#"><i class="fas fa-file-alt"></i><span>QTA</span></a></li>
+            <li data-category="qtm" class="sidebar-item"><a href="#"><i class="fas fa-calendar-alt"></i><span>QTM</span></a></li>
+            <li data-category="qts" class="sidebar-item"><a href="#"><i class="fas fa-tasks"></i><span>QTS</span></a></li>
+            <li data-category="relatorio-mensal" class="sidebar-item"><a href="#"><i class="fas fa-chart-bar"></i><span>Relatório Mensal</span></a></li>
+            <li data-category="livro-de-ordens" class="sidebar-item"><a href="#"><i class="fas fa-book"></i><span>Livro de Ordens</span></a></li>
+            <li data-category="operacao-simulada" class="sidebar-item"><a href="#"><i class="fas fa-shield-alt"></i><span>Operação Simulada</span></a></li>
+            <li data-category="pto" class="sidebar-item"><a href="#"><i class="fas fa-clipboard-check"></i><span>PTO</span></a></li>
+            <li data-category="calendario" class="sidebar-item"><a href="#"><i class="fas fa-calendar-day"></i><span>Calendário</span></a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <nav class="navbar bg-white shadow-md h-16 flex justify-end items-center px-6">
+          <div class="flex items-center space-x-6">
+            <div class="flex items-center text-sm text-neutral-700">
+              <i class="fas fa-user-circle text-2xl text-neutral-400 mr-2"></i>
+              <span id="user-name" class="font-medium">Usuário</span>
+            </div>
+            
+            <button id="config-btn" class="btn btn-secondary">
+              <i class="fas fa-cog"></i>
+              <span>Config</span>
+            </button>
+            
+            <button id="logout-btn" class="btn btn-danger">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Sair</span>
+            </button>
+          </div>
+        </nav>
+
+        <main class="flex-1 overflow-y-auto content-area">
+        <div class="p-6">
+          <div class="content-header flex justify-between items-center mb-8">
+            <h1 id="category-title" class="text-3xl font-bold text-neutral-900">Dashboard</h1>
+            <div class="flex items-center space-x-2">
+              <select id="month-filter" class="input-field py-2 pr-8">
+                <option value="3">Março</option>
+                <option value="4">Abril</option>
+                <option value="5">Maio</option>
+                <option value="6">Junho</option>
+                <option value="7">Julho</option>
+                <option value="8">Agosto</option>
+                <option value="9">Setembro</option>
+                <option value="10">Outubro</option>
+                <option value="11">Novembro</option>
+                <option value="12">Dezembro</option>
+              </select>
+              <button id="upload-btn" class="btn btn-primary hidden"><i class="fas fa-upload"></i><span>Upload</span></button>
+              <button id="add-event-btn" class="btn btn-primary hidden"><i class="fas fa-plus"></i><span>Novo Evento</span></button>
+              <button id="upload-ordem-btn" class="btn btn-primary hidden"><i class="fas fa-upload"></i><span>Upload de Documento</span></button>
+              <button id="upload-operacao-btn" class="btn btn-primary hidden"><i class="fas fa-upload"></i><span>Upload de Documento</span></button>
+              <button id="upload-pto-btn" class="btn btn-primary hidden"><i class="fas fa-upload"></i><span>Upload de Documento</span></button>
+            </div>
+          </div>
+
+          <div id="dashboard-container" class="space-y-8 animate-fade-in">
+            <div class="summary-cards grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="summary-card flex items-start p-6">
+                <div class="card-icon bg-primary-100 text-primary-600"><i class="fas fa-file-alt"></i></div>
+                <div>
+                  <h3 class="text-sm font-medium text-neutral-500">Total de Documentos</h3>
+                  <div class="flex items-baseline gap-2 mt-1">
+                    <p class="text-3xl font-bold text-neutral-900" id="total-documents-value">0</p>
+                    <span class="text-sm text-neutral-500">de <span id="expected-documents-value">0</span></span>
+                  </div>
+                </div>
+              </div>
+              <div class="summary-card flex items-start p-6">
+                <div class="card-icon bg-success-color/10 text-success-color"><i class="fas fa-check-circle"></i></div>
+                <div>
+                  <h3 class="text-sm font-medium text-neutral-500">Completos</h3>
+                  <p class="text-3xl font-bold text-neutral-900 mt-1" id="complete-documents-value">0</p>
+                  <div class="w-full bg-neutral-200 rounded-full h-2 mt-2">
+                    <div id="complete-progress" class="bg-success-color h-2 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="summary-card flex items-start p-6">
+                <div class="card-icon bg-warning-color/10 text-warning-color"><i class="fas fa-clock"></i></div>
+                <div>
+                  <h3 class="text-sm font-medium text-neutral-500">Pendentes</h3>
+                  <p class="text-3xl font-bold text-neutral-900 mt-1" id="pending-documents-value">0</p>
+                  <div class="w-full bg-neutral-200 rounded-full h-2 mt-2">
+                    <div id="pending-progress" class="bg-warning-color h-2 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="summary-card flex items-start p-6">
+                <div class="card-icon bg-danger-color/10 text-danger-color"><i class="fas fa-exclamation-triangle"></i></div>
+                <div>
+                  <h3 class="text-sm font-medium text-neutral-500">Atrasados</h3>
+                  <p class="text-3xl font-bold text-neutral-900 mt-1" id="overdue-documents-value">0</p>
+                  <div class="w-full bg-neutral-200 rounded-full h-2 mt-2">
+                    <div id="overdue-progress" class="bg-danger-color h-2 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-neutral-900 mb-4">Progresso por Categoria</h3>
+                <div class="h-80">
+                  <canvas id="category-chart"></canvas>
+                </div>
+              </div>
+              <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-neutral-900 mb-4">Próximos Eventos</h3>
+                <div id="upcoming-events-list" class="space-y-4">
+                  <div class="text-center text-neutral-500 py-8">
+                    <div class="loader"></div>
+                    <p>Carregando eventos...</p>
+                  </div>
+                </div>
+              </div>
+              <div class="lg:col-span-3 bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-neutral-900 mb-4">Documentos Pendentes/Atrasados</h3>
+                <div id="pending-documents-list" class="space-y-3">
+                  <div class="text-center text-neutral-500 py-8">
+                    <div class="loader"></div>
+                    <p>Carregando documentos...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-neutral-900">Checklist de Tarefas</h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="task-column">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-md font-medium text-neutral-700">Tarefas Semanais</h4>
+                    <button class="add-task-btn text-neutral-400 hover:text-primary-600 transition-colors" data-type="weekly" title="Adicionar tarefa">
+                      <i class="fas fa-plus text-sm"></i>
+                    </button>
+                  </div>
+                  <div id="weekly-tasks" class="space-y-3">
+                    <div class="text-center text-neutral-400 py-4">
+                      <div class="loader"></div>
+                      <p class="text-sm">Carregando...</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="task-column">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-md font-medium text-neutral-700">Tarefas Quinzenais</h4>
+                    <button class="add-task-btn text-neutral-400 hover:text-primary-600 transition-colors" data-type="biweekly" title="Adicionar tarefa">
+                      <i class="fas fa-plus text-sm"></i>
+                    </button>
+                  </div>
+                  <div id="biweekly-tasks" class="space-y-3">
+                    <div class="text-center text-neutral-400 py-4">
+                      <div class="loader"></div>
+                      <p class="text-sm">Carregando...</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="task-column">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-md font-medium text-neutral-700">Tarefas Mensais</h4>
+                    <button class="add-task-btn text-neutral-400 hover:text-primary-600 transition-colors" data-type="monthly" title="Adicionar tarefa">
+                      <i class="fas fa-plus text-sm"></i>
+                    </button>
+                  </div>
+                  <div id="monthly-tasks" class="space-y-3">
+                    <div class="text-center text-neutral-400 py-4">
+                      <div class="loader"></div>
+                      <p class="text-sm">Carregando...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="document-container" class="hidden bg-white rounded-lg shadow-md animate-fade-in">
+            <div class="overflow-x-auto">
+              <table class="document-table w-full">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Data de Upload</th>
+                    <th>Status</th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="document-list">
+                  <tr><td colspan="4" class="text-center py-8"><div class="loader"></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="calendar-container" class="hidden animate-fade-in">
+            <div id="calendar"></div>
+          </div>
+
+          <div id="livro-ordens-container" class="hidden bg-white rounded-lg shadow-md animate-fade-in">
+            <div class="overflow-x-auto">
+              <table class="document-table w-full">
+                <thead>
+                  <tr>
+                    <th>Nome do Documento</th>
+                    <th>Data</th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="livro-ordens-list">
+                  <tr><td colspan="3" class="text-center py-8"><div class="loader"></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="operacao-simulada-container" class="hidden bg-white rounded-lg shadow-md animate-fade-in">
+            <div class="overflow-x-auto">
+              <table class="document-table w-full">
+                <thead>
+                  <tr>
+                    <th>Nome do Documento</th>
+                    <th>Data</th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="operacao-simulada-list">
+                  <tr><td colspan="3" class="text-center py-8"><div class="loader"></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="pto-container" class="hidden bg-white rounded-lg shadow-md animate-fade-in">
+            <div class="overflow-x-auto">
+              <table class="document-table w-full">
+                <thead>
+                  <tr>
+                    <th>Nome do Documento</th>
+                    <th>Data</th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="pto-list">
+                  <tr><td colspan="3" class="text-center py-8"><div class="loader"></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="status-info hidden mt-6 flex items-center space-x-6 text-sm">
+            <div class="flex items-center"><div class="w-3 h-3 bg-success-color rounded-full mr-2"></div><span class="text-neutral-600">Completo</span></div>
+            <div class="flex items-center"><div class="w-3 h-3 bg-warning-color rounded-full mr-2"></div><span class="text-neutral-600">Pendente</span></div>
+            <div class="flex items-center"><div class="w-3 h-3 bg-danger-color rounded-full mr-2"></div><span class="text-neutral-600">Atrasado</span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="upload-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Upload de Documento</h3>
+          <button class="close-modal" type="button" aria-label="Fechar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="document-category">Categoria</label>
+            <select id="document-category" disabled class="input-field bg-neutral-100">
+              <option value="aulas">AULAS</option>
+              <option value="plano-de-sessao">PLANO DE SESSÃO</option>
+              <option value="qta">QTA</option>
+              <option value="qtm">QTM</option>
+              <option value="qts">QTS</option>
+              <option value="relatorio-mensal">RELATÓRIO MENSAL</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="document-month">Mês</label>
+            <select id="document-month" class="input-field">
+              <option value="3">Março</option>
+              <option value="4">Abril</option>
+              <option value="5">Maio</option>
+              <option value="6">Junho</option>
+              <option value="7">Julho</option>
+              <option value="8">Agosto</option>
+              <option value="9">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div id="week-container" class="hidden input-group">
+            <label for="document-week">Semana</label>
+            <select id="document-week" class="input-field"></select>
+          </div>
+          <div class="input-group">
+            <label for="document-file">Arquivo</label>
+            <input type="file" id="document-file" class="input-field" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-upload" class="btn btn-secondary">Cancelar</button>
+          <button id="confirm-upload" class="btn btn-primary">
+            <i class="fas fa-upload"></i>
+            Upload
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="config-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Configurações</h3>
+          <button class="close-config-modal" type="button" aria-label="Fechar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h4 class="text-base font-medium text-neutral-800 mb-4">Número de Semanas por Mês</h4>
+          <div class="input-group">
+            <label for="config-month">Selecione o Mês</label>
+            <select id="config-month" class="input-field">
+              <option value="3">Março</option>
+              <option value="4">Abril</option>
+              <option value="5">Maio</option>
+              <option value="6">Junho</option>
+              <option value="7">Julho</option>
+              <option value="8">Agosto</option>
+              <option value="9">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="config-weeks">Número de Semanas</label>
+            <select id="config-weeks" class="input-field">
+              <option value="1">1 Semana</option>
+              <option value="2">2 Semanas</option>
+              <option value="3">3 Semanas</option>
+              <option value="4">4 Semanas</option>
+              <option value="5">5 Semanas</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="save-config" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="event-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="event-modal-title">Novo Evento</h3>
+          <button class="close-event-modal" type="button" aria-label="Fechar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="event-title">Título do Evento</label>
+            <input type="text" id="event-title" placeholder="Digite o título do evento" class="input-field">
+          </div>
+          <div class="grid grid-cols-2">
+            <div class="input-group">
+              <label for="event-date">Data</label>
+              <input type="date" id="event-date" class="input-field">
+            </div>
+            <div class="input-group">
+              <label for="event-time">Hora</label>
+              <input type="time" id="event-time" class="input-field">
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="event-description">Descrição/Observações</label>
+            <textarea id="event-description" rows="3" placeholder="Adicione detalhes sobre o evento" class="input-field"></textarea>
+          </div>
+          <div class="input-group">
+            <label for="event-type">Tipo de Evento</label>
+            <select id="event-type" class="input-field">
+              <option value="visita">Visita</option>
+              <option value="formatura">Formatura</option>
+              <option value="instrucao">Instrução</option>
+              <option value="reuniao">Reunião</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer space-between">
+          <button id="delete-event" class="btn btn-danger hidden">
+            <i class="fas fa-trash"></i>
+            Excluir
+          </button>
+          <div class="flex space-x-3">
+            <button id="cancel-event" class="btn btn-secondary">Cancelar</button>
+            <button id="save-event" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ordem-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="ordem-modal-title">Upload de Documento</h3>
+          <button class="close-ordem-modal" type="button" aria-label="Fechar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="ordem-nome">Nome do Documento</label>
+            <input type="text" id="ordem-nome" placeholder="Digite o nome do documento" class="input-field">
+          </div>
+          <div class="input-group">
+            <label for="ordem-data">Data</label>
+            <input type="date" id="ordem-data" class="input-field">
+          </div>
+          <div id="ordem-file-container" class="input-group">
+            <label for="ordem-file">Arquivo</label>
+            <input type="file" id="ordem-file" class="input-field" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-ordem" class="btn btn-secondary">Cancelar</button>
+          <button id="save-ordem" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="operacao-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="operacao-modal-title">Upload de Documento</h3>
+          <button class="close-operacao-modal" type="button" aria-label="Fechar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="operacao-nome">Nome do Documento</label>
+            <input type="text" id="operacao-nome" placeholder="Digite o nome do documento" class="input-field">
+          </div>
+          <div class="input-group">
+            <label for="operacao-data">Data</label>
+            <input type="date" id="operacao-data" class="input-field">
+          </div>
+          <div id="operacao-file-container" class="input-group">
+            <label for="operacao-file">Arquivo</label>
+            <input type="file" id="operacao-file" class="input-field" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-operacao" class="btn btn-secondary">Cancelar</button>
+          <button id="save-operacao" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pto-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="pto-modal-title">Upload de Documento</h3>
+          <button class="close-pto-modal" type="button" aria-label="Fechar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group">
+            <label for="pto-nome">Nome do Documento</label>
+            <input type="text" id="pto-nome" placeholder="Digite o nome do documento" class="input-field">
+          </div>
+          <div class="input-group">
+            <label for="pto-data">Data</label>
+            <input type="date" id="pto-data" class="input-field">
+          </div>
+          <div id="pto-file-container" class="input-group">
+            <label for="pto-file">Arquivo</label>
+            <input type="file" id="pto-file" class="input-field" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-pto" class="btn btn-secondary">Cancelar</button>
+          <button id="save-pto" class="btn btn-primary">
+            <i class="fas fa-save"></i>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/locales/pt-br.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWeThpt6h1Y3zxNenpGf7eTYPsUhVlgXI",
+      authDomain: "projeto-sop.firebaseapp.com",
+      projectId: "projeto-sop",
+      storageBucket: "projeto-sop.firebasestorage.app",
+      messagingSenderId: "509243342498",
+      appId: "1:509243342498:web:29e941f3e16e7eea7721fb",
+      measurementId: "G-H0D0G5SD3V"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+  </script>
+  
+  <script>
+    const style = document.createElement('style');
+    style.textContent = `
+      .sidebar-item.active a {
+        background-color: rgb(239 246 255);
+        color: rgb(29 78 216);
+        font-weight: 600;
+      }
+      
+      .sidebar-item.active a i {
+        color: rgb(29 78 216);
+      }
+      
+      .status-complete {
+        background-color: rgb(220 252 231);
+        color: rgb(22 163 74);
+      }
+      
+      .status-pending {
+        background-color: rgb(254 240 138);
+        color: rgb(202 138 4);
+      }
+      
+      .status-overdue {
+        background-color: rgb(254 226 226);
+        color: rgb(220 38 38);
+      }
+      
+      tbody tr:hover {
+        background-color: rgb(249 250 251);
+      }
+      
+      .modal {
+        animation: fadeIn 0.3s ease-out;
+      }
+      
+      .modal > div {
+        animation: scaleIn 0.3s ease-out;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+  
+  <script src="js/app.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/livro-ordens.js"></script>
+  <script src="js/operacao-simulada.js"></script>
+  <script src="js/pto.js"></script>
+</body>
+</html>
