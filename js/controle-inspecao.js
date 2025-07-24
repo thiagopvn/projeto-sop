@@ -141,24 +141,24 @@ function createSectionHTML(sectionName, items) {
         <i class="fas fa-chevron-down section-toggle"></i>
       </div>
       <div class="section-content" id="${sectionId}">
-        ${items.map(item => createTaskHTML(item)).join('')}
+        ${items.map(item => createInspectionItemHTML(item)).join('')}
       </div>
     </div>
   `;
 }
 
-function createTaskHTML(item) {
+function createInspectionItemHTML(item) {
   const statusClass = getStatusClass(item.status || 'Pendente');
   const hasAttachment = item.attachmentUrl && item.attachmentUrl.trim() !== '';
   
   return `
-    <div class="inspection-task" data-task-id="${item.id}">
-      <div class="task-content">
-        <div class="task-description">
+    <div class="inspection-item" data-item-id="${item.id}">
+      <div class="item-content">
+        <div class="item-description">
           <p>${item.taskDescription}</p>
         </div>
         
-        <div class="task-controls">
+        <div class="item-controls">
           <div class="status-selector">
             <label>Status:</label>
             <select class="status-dropdown ${statusClass}" data-field="status">
@@ -245,12 +245,12 @@ function toggleSection(e) {
 
 async function handleStatusChange(e) {
   const select = e.target;
-  const taskElement = select.closest('.inspection-task');
-  const taskId = taskElement.getAttribute('data-task-id');
+  const itemElement = select.closest('.inspection-item');
+  const itemId = itemElement.getAttribute('data-item-id');
   const newStatus = select.value;
   
   try {
-    await db.collection('inspection_items').doc(taskId).update({
+    await db.collection('inspection_items').doc(itemId).update({
       status: newStatus
     });
     
@@ -269,12 +269,12 @@ async function handleStatusChange(e) {
 
 async function handleObservationsChange(e) {
   const textarea = e.target;
-  const taskElement = textarea.closest('.inspection-task');
-  const taskId = taskElement.getAttribute('data-task-id');
+  const itemElement = textarea.closest('.inspection-item');
+  const itemId = itemElement.getAttribute('data-item-id');
   const observations = textarea.value.trim();
   
   try {
-    await db.collection('inspection_items').doc(taskId).update({
+    await db.collection('inspection_items').doc(itemId).update({
       observations: observations
     });
     
@@ -291,8 +291,8 @@ async function handleObservationsChange(e) {
 
 function handleAttachEvidence(e) {
   const btn = e.target.closest('button');
-  const taskElement = btn.closest('.inspection-task');
-  const taskId = taskElement.getAttribute('data-task-id');
+  const itemElement = btn.closest('.inspection-item');
+  const itemId = itemElement.getAttribute('data-item-id');
   
   const input = document.createElement('input');
   input.type = 'file';
@@ -301,14 +301,14 @@ function handleAttachEvidence(e) {
   input.addEventListener('change', (event) => {
     const file = event.target.files[0];
     if (file) {
-      uploadAttachment(taskId, file);
+      uploadAttachment(itemId, file);
     }
   });
   
   input.click();
 }
 
-async function uploadAttachment(taskId, file) {
+async function uploadAttachment(itemId, file) {
   try {
     const safeFileName = file.name.replace(/[^a-z0-9.-]/gi, '_');
     const timestamp = Date.now();
@@ -332,7 +332,7 @@ async function uploadAttachment(taskId, file) {
         try {
           const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
           
-          await db.collection('inspection_items').doc(taskId).update({
+          await db.collection('inspection_items').doc(itemId).update({
             attachmentUrl: downloadURL,
             attachmentName: file.name
           });
@@ -369,13 +369,13 @@ function handleViewAttachment(e) {
 
 async function handleRemoveAttachment(e) {
   const btn = e.target.closest('button');
-  const taskElement = btn.closest('.inspection-task');
-  const taskId = taskElement.getAttribute('data-task-id');
+  const itemElement = btn.closest('.inspection-item');
+  const itemId = itemElement.getAttribute('data-item-id');
   
   if (!confirm('Tem certeza que deseja remover o anexo?')) return;
   
   try {
-    const docRef = db.collection('inspection_items').doc(taskId);
+    const docRef = db.collection('inspection_items').doc(itemId);
     const doc = await docRef.get();
     
     if (doc.exists) {
