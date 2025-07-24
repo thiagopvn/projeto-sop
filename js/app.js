@@ -83,6 +83,11 @@ const DOCUMENT_TYPES = {
     name: 'PTO',
     icon: 'fas fa-file-shield'
   },
+  CONTROLE_INSPECAO: {
+  id: 'controle-inspecao',
+  name: 'CONTROLE DE INSPEÇÃO',
+  icon: 'fas fa-clipboard-check'
+  },
   CALENDARIO: {
     id: 'calendario',
     name: 'CALENDÁRIO',
@@ -260,6 +265,9 @@ async function handleCategoryClick(e) {
       case 'pto':
         showPto();
         break;
+      case 'controle-inspecao':
+      showControleInspecao();
+      break;
       default:
         showDocuments(newCategory);
     }
@@ -366,7 +374,8 @@ function hideAllContainers() {
     'calendar-container',
     'livro-ordens-container',
     'operacao-simulada-container',
-    'pto-container'
+    'pto-container',
+    'controle-inspecao-container'
   ];
   
   containers.forEach(id => {
@@ -1048,7 +1057,13 @@ function handleUploadError(error) {
   console.error('Erro no upload:', error);
   showNotification('Erro ao fazer upload do arquivo', 'error');
 }
-
+function showControleInspecao() {
+  document.getElementById('controle-inspecao-container').style.display = 'block';
+  
+  if (typeof loadInspectionItems === 'function') {
+    loadInspectionItems();
+  }
+}
 window.appState = appState;
 window.DOCUMENT_TYPES = DOCUMENT_TYPES;
 window.MONTH_NAMES = MONTH_NAMES;

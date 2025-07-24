@@ -75,6 +75,7 @@
             <li data-category="livro-de-ordens" class="sidebar-item"><a href="#"><i class="fas fa-book"></i><span>Livro de Ordens</span></a></li>
             <li data-category="operacao-simulada" class="sidebar-item"><a href="#"><i class="fas fa-shield-alt"></i><span>Operação Simulada</span></a></li>
             <li data-category="pto" class="sidebar-item"><a href="#"><i class="fas fa-clipboard-check"></i><span>PTO</span></a></li>
+            <li data-category="controle-inspecao" class="sidebar-item"><a href="#"><i class="fas fa-clipboard-check"></i><span>Controle de Inspeção</span></a></li>
             <li data-category="calendario" class="sidebar-item"><a href="#"><i class="fas fa-calendar-day"></i><span>Calendário</span></a></li>
           </ul>
         </nav>
@@ -319,6 +320,37 @@
               </table>
             </div>
           </div>
+          <div id="controle-inspecao-container" class="hidden animate-fade-in">
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-semibold text-neutral-900">Checklist de Inspeção</h3>
+      <div class="text-sm text-gray-500">
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mr-2">
+          <span class="w-2 h-2 bg-yellow-400 rounded-full mr-1"></span>
+          Pendente
+        </span>
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+          <span class="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+          Conforme
+        </span>
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mr-2">
+          <span class="w-2 h-2 bg-red-400 rounded-full mr-1"></span>
+          Não Conforme
+        </span>
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <span class="w-2 h-2 bg-gray-400 rounded-full mr-1"></span>
+          Não se Aplica
+        </span>
+      </div>
+    </div>
+    <div id="inspection-content">
+      <div class="text-center py-8">
+        <div class="loader"></div>
+        <p>Carregando checklist...</p>
+      </div>
+    </div>
+  </div>
+</div>
 
           <div class="status-info hidden mt-6 flex items-center space-x-6 text-sm">
             <div class="flex items-center"><div class="w-3 h-3 bg-success-color rounded-full mr-2"></div><span class="text-neutral-600">Completo</span></div>
@@ -649,5 +681,6 @@
   <script src="js/livro-ordens.js"></script>
   <script src="js/operacao-simulada.js"></script>
   <script src="js/pto.js"></script>
+  <script src="js/controle-inspecao.js"></script>
 </body>
 </html>
