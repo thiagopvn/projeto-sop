@@ -88,6 +88,7 @@ h1, h2, h3, h4, h5, h6 {
     color: white;
     border-color: var(--primary-600);
 }
+
 .btn-primary:hover {
     background-color: var(--primary-700);
     border-color: var(--primary-700);
@@ -100,6 +101,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--neutral-700);
     border-color: var(--neutral-300);
 }
+
 .btn-secondary:hover {
     background-color: var(--neutral-50);
     border-color: var(--neutral-400);
@@ -109,6 +111,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--danger-color);
     color: white;
 }
+
 .btn-danger:hover {
     background-color: #dc2626;
     transform: translateY(-1px);
@@ -248,6 +251,7 @@ input[type="file"].input-field::file-selector-button:hover {
     border: 1px solid var(--neutral-200);
     transition: all var(--transition-speed) ease-in-out;
 }
+
 .summary-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
@@ -455,7 +459,7 @@ tbody tr:hover {
     background-color: var(--neutral-50);
 }
 
-.task-item {
+.dashboard-container .task-item {
     display: flex;
     align-items: center;
     padding: 0.75rem;
@@ -464,21 +468,22 @@ tbody tr:hover {
     border: 1px solid var(--neutral-200);
     transition: all var(--transition-speed) ease-in-out;
     cursor: pointer;
+    margin-bottom: 0.5rem;
 }
 
-.task-item:hover {
+.dashboard-container .task-item:hover {
     border-color: var(--neutral-300);
     box-shadow: var(--shadow-sm);
 }
 
-.task-checkbox {
+.dashboard-container .task-checkbox {
     position: relative;
     display: flex;
     align-items: center;
     margin-right: 0.75rem;
 }
 
-.task-checkbox input[type="checkbox"] {
+.dashboard-container .task-checkbox input[type="checkbox"] {
     appearance: none;
     width: 1.25rem;
     height: 1.25rem;
@@ -490,12 +495,12 @@ tbody tr:hover {
     position: relative;
 }
 
-.task-checkbox input[type="checkbox"]:checked {
+.dashboard-container .task-checkbox input[type="checkbox"]:checked {
     background-color: var(--success-color);
     border-color: var(--success-color);
 }
 
-.task-checkbox input[type="checkbox"]:checked::before {
+.dashboard-container .task-checkbox input[type="checkbox"]:checked::before {
     content: '✓';
     position: absolute;
     top: 50%;
@@ -506,11 +511,11 @@ tbody tr:hover {
     font-weight: bold;
 }
 
-.task-checkbox input[type="checkbox"]:hover {
+.dashboard-container .task-checkbox input[type="checkbox"]:hover {
     border-color: var(--primary-500);
 }
 
-.task-text {
+.dashboard-container .task-text {
     flex: 1;
     font-size: 0.875rem;
     color: var(--neutral-700);
@@ -518,7 +523,7 @@ tbody tr:hover {
     transition: all var(--transition-speed) ease-in-out;
 }
 
-.task-item.completed .task-text {
+.dashboard-container .task-item.completed .task-text {
     text-decoration: line-through;
     color: var(--neutral-400);
 }
@@ -536,6 +541,163 @@ tbody tr:hover {
     background-color: var(--primary-50);
 }
 
+.inspection-section {
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 1rem;
+    background-color: white;
+    overflow: hidden;
+}
+
+.inspection-section .section-header {
+    padding: 1rem 1.5rem;
+    background-color: var(--neutral-50);
+    border-bottom: 1px solid var(--neutral-200);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all var(--transition-speed) ease-in-out;
+}
+
+.inspection-section .section-header:hover {
+    background-color: var(--neutral-100);
+}
+
+.inspection-section .section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin: 0;
+    flex: 1;
+}
+
+.inspection-section .section-toggle {
+    color: var(--neutral-500);
+    transition: transform var(--transition-speed) ease-in-out;
+}
+
+.inspection-section .section-content {
+    display: block;
+}
+
+.inspection-task {
+    border-bottom: 1px solid var(--neutral-200);
+    padding: 1.5rem;
+    transition: all var(--transition-speed) ease-in-out;
+}
+
+.inspection-task:last-child {
+    border-bottom: none;
+}
+
+.inspection-task:hover {
+    background-color: var(--neutral-50);
+}
+
+.inspection-task .task-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.inspection-task .task-description {
+    margin-bottom: 1rem;
+}
+
+.inspection-task .task-description p {
+    font-size: 0.875rem;
+    color: var(--neutral-700);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.inspection-task .task-controls {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.inspection-task .status-selector label,
+.inspection-task .observations-field label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--neutral-700);
+    margin-bottom: 0.5rem;
+}
+
+.inspection-task .status-dropdown {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-size: 0.875rem;
+    transition: all var(--transition-speed) ease-in-out;
+}
+
+.inspection-task .status-dropdown:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.inspection-task .status-pendente {
+    background-color: rgb(254 240 138);
+    color: rgb(146 64 14);
+    border-color: rgb(217 119 6);
+}
+
+.inspection-task .status-conforme {
+    background-color: rgb(220 252 231);
+    color: rgb(22 163 74);
+    border-color: rgb(34 197 94);
+}
+
+.inspection-task .status-nao-conforme {
+    background-color: rgb(254 226 226);
+    color: rgb(220 38 38);
+    border-color: rgb(239 68 68);
+}
+
+.inspection-task .status-nao-aplica {
+    background-color: rgb(243 244 246);
+    color: rgb(75 85 99);
+    border-color: rgb(156 163 175);
+}
+
+.inspection-task .observations-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.5rem;
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-size: 0.875rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: all var(--transition-speed) ease-in-out;
+}
+
+.inspection-task .observations-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.inspection-task .attachment-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: start;
+}
+
+.inspection-task .attachment-controls .btn {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+
 @media (max-width: 640px) {
     .modal-content {
         max-width: 100%;
@@ -550,179 +712,23 @@ tbody tr:hover {
         margin-bottom: 1rem;
     }
 }
-.inspection-section {
-  border: 1px solid var(--neutral-200);
-  border-radius: var(--border-radius-lg);
-  margin-bottom: 1rem;
-  background-color: white;
-  overflow: hidden;
-}
-
-.section-header {
-  padding: 1rem 1.5rem;
-  background-color: var(--neutral-50);
-  border-bottom: 1px solid var(--neutral-200);
-  cursor: pointer;
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  transition: all var(--transition-speed) ease-in-out;
-}
-
-.section-header:hover {
-  background-color: var(--neutral-100);
-}
-
-.section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--neutral-900);
-  margin: 0;
-  flex: 1;
-}
-
-.section-toggle {
-  color: var(--neutral-500);
-  transition: transform var(--transition-speed) ease-in-out;
-}
-
-.section-content {
-  display: block;
-}
-
-.inspection-task {
-  border-bottom: 1px solid var(--neutral-200);
-  padding: 1.5rem;
-  transition: all var(--transition-speed) ease-in-out;
-}
-
-.inspection-task:last-child {
-  border-bottom: none;
-}
-
-.inspection-task:hover {
-  background-color: var(--neutral-50);
-}
-
-.task-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.task-description {
-  margin-bottom: 1rem;
-}
-
-.task-description p {
-  font-size: 0.875rem;
-  color: var(--neutral-700);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.task-controls {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 1rem;
-  align-items: start;
-}
-
-.status-selector label,
-.observations-field label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--neutral-700);
-  margin-bottom: 0.5rem;
-}
-
-.status-dropdown {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid var(--neutral-300);
-  border-radius: var(--border-radius-md);
-  font-size: 0.875rem;
-  transition: all var(--transition-speed) ease-in-out;
-}
-
-.status-dropdown:focus {
-  outline: none;
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px var(--primary-100);
-}
-
-.status-pendente {
-  background-color: rgb(254 240 138);
-  color: rgb(146 64 14);
-  border-color: rgb(217 119 6);
-}
-
-.status-conforme {
-  background-color: rgb(220 252 231);
-  color: rgb(22 163 74);
-  border-color: rgb(34 197 94);
-}
-
-.status-nao-conforme {
-  background-color: rgb(254 226 226);
-  color: rgb(220 38 38);
-  border-color: rgb(239 68 68);
-}
-
-.status-nao-aplica {
-  background-color: rgb(243 244 246);
-  color: rgb(75 85 99);
-  border-color: rgb(156 163 175);
-}
-
-.observations-input {
-  width: 100%;
-  min-height: 80px;
-  padding: 0.5rem;
-  border: 1px solid var(--neutral-300);
-  border-radius: var(--border-radius-md);
-  font-size: 0.875rem;
-  font-family: inherit;
-  resize: vertical;
-  transition: all var(--transition-speed) ease-in-out;
-}
-
-.observations-input:focus {
-  outline: none;
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px var(--primary-100);
-}
-
-.attachment-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: start;
-}
-
-.attachment-controls .btn {
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
-  white-space: nowrap;
-}
 
 @media (max-width: 768px) {
-  .task-controls {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .attachment-controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  
-  .section-header {
-    padding: 1rem;
-  }
-  
-  .inspection-task {
-    padding: 1rem;
-  }
+    .inspection-task .task-controls {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .inspection-task .attachment-controls {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .inspection-section .section-header {
+        padding: 1rem;
+    }
+    
+    .inspection-task {
+        padding: 1rem;
+    }
 }

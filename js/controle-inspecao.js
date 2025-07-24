@@ -183,7 +183,7 @@ function createTaskHTML(item) {
                 <i class="fas fa-trash"></i> Remover
               </button>` :
               `<button class="btn btn-primary attach-evidence-btn">
-                <i class="fas fa-paperclip"></i> Anexar Evidência
+                <i class="fas fa-paperclip"></i> Anexar documento
               </button>`
             }
           </div>
